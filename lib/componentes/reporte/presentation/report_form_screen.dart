@@ -22,7 +22,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   String _tipoReporte = 'Mascota Perdida';
   String _nivelUrgencia = 'Media';
   
-  File? _evidenceImage;
+  List<File> _evidenceImages = [];
   final ImagePicker _picker = ImagePicker();
 
   final List<String> _tiposAnimal = ['Gato', 'Perro', 'Otro'];
@@ -51,17 +51,33 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final XFile? image = await _picker.pickImage(
-        source: source,
-        maxWidth: 1800,
-        maxHeight: 1800,
-        imageQuality: 85,
-      );
-      
-      if (image != null) {
-        setState(() {
-          _evidenceImage = File(image.path);
-        });
+      if (source == ImageSource.gallery) {
+        final List<XFile> images = await _picker.pickMultiImage(
+          maxWidth: 1800,
+          maxHeight: 1800,
+          imageQuality: 85,
+        );
+        
+        if (images.isNotEmpty) {
+          setState(() {
+            for (var image in images) {
+              _evidenceImages.add(File(image.path));
+            }
+          });
+        }
+      } else {
+        final XFile? image = await _picker.pickImage(
+          source: source,
+          maxWidth: 1800,
+          maxHeight: 1800,
+          imageQuality: 85,
+        );
+        
+        if (image != null) {
+          setState(() {
+            _evidenceImages.add(File(image.path));
+          });
+        }
       }
     } catch (e) {
       _showErrorDialog('Error al seleccionar la imagen');
@@ -112,6 +128,12 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         );
       },
     );
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _evidenceImages.removeAt(index);
+    });
   }
 
   void _showErrorDialog(String message) {
@@ -272,8 +294,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: _evidenceImage == null 
-                  ? () => _showErrorDialog('Por favor agrega una evidencia fotográfica')
+                onPressed: _evidenceImages.isEmpty
+                  ? () => _showErrorDialog('Por favor agrega al menos una evidencia fotográfica')
                   : _submitReport,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -484,89 +506,106 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   }
 
   Widget _buildEvidenceSection() {
-    return GestureDetector(
-      onTap: _showImageSourceDialog,
-      child: Container(
-        height: 200,
-        decoration: BoxDecoration(
-          color: AppColors.secondary.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: _evidenceImage != null ? AppColors.primary : Colors.grey.shade400,
-            width: 2,
-            style: BorderStyle.solid,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: _showImageSourceDialog,
+          child: Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: AppColors.secondary.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.primary.withOpacity(0.5),
+                width: 2,
+                style: BorderStyle.solid,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.add_a_photo,
+                    size: 36,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Agregar más fotos',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        child: _evidenceImage != null
-            ? Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      _evidenceImage!,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                    ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() => _evidenceImage = null);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          size: 20,
+        if (_evidenceImages.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 120,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _evidenceImages.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(
+                          _evidenceImages[index],
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
                         ),
                       ),
-                    ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: () => _removeImage(index),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt,
-                      size: 48,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Agregar evidencia',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Toca para tomar foto o seleccionar de galería',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-      ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${_evidenceImages.length} imagen${_evidenceImages.length == 1 ? '' : 'es'} agregada${_evidenceImages.length == 1 ? '' : 's'}',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ],
     );
   }
 

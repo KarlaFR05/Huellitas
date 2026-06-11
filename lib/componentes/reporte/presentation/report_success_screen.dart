@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../componentes/home/home_screen.dart';
 import '../../../../styles/constantes/app_colors.dart';
-import 'widgets/bottom_bar.dart';
 
 class ReportSuccessScreen extends StatelessWidget {
   final bool isSuccess;
@@ -127,7 +126,59 @@ class ReportSuccessScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: const BottomBarWidget(),
+      bottomNavigationBar: _buildBottomBar(context),
+    );
+  }
+
+  Widget _buildBottomBar(BuildContext context) {
+    return Container(
+      height: 75,
+      margin: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(40),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          // Ícono de inicio - Navega al Home
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => const HomeScreen(),
+                ),
+                (route) => false,
+              );
+            },
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.home_outlined,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ],
+            ),
+          ),
+          const Icon(
+            Icons.notifications_none,
+            color: Colors.white,
+            size: 28,
+          ),
+          const Icon(
+            Icons.assignment_outlined,
+            color: Colors.white,
+            size: 28,
+          ),
+          const Icon(
+            Icons.person_outline,
+            color: Colors.white,
+            size: 28,
+          ),
+        ],
+      ),
     );
   }
 }
