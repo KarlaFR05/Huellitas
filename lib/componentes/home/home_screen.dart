@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../reporte/presentation/report_form_screen.dart'; // ← AGREGA ESTE IMPORT
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -68,12 +69,17 @@ class HomeScreen extends StatelessWidget {
               right: 20,
               bottom: 20,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ReportFormScreen(),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      const Color(0xFF57C29A),
-                  minimumSize:
-                      const Size(double.infinity, 60),
+                  backgroundColor: const Color(0xFF57C29A),
+                  minimumSize: const Size(double.infinity, 60),
                 ),
                 child: const Text(
                   'Realizar Reporte',
@@ -104,12 +110,12 @@ class _Header extends StatelessWidget {
       ),
       child: Row(
         children: [
-        const CircleAvatar(
-          radius: 24,
-          backgroundImage: AssetImage(
-            'assets/images/perfil.png',
+          const CircleAvatar(
+            radius: 24,
+            backgroundImage: AssetImage(
+              'assets/images/perfil.png',
+            ),
           ),
-        ),
 
           const SizedBox(width: 10),
 
@@ -138,8 +144,7 @@ class _Header extends StatelessWidget {
 
           Container(
             decoration: BoxDecoration(
-              color:
-                  const Color(0xFF57C29A),
+              color: const Color(0xFF57C29A),
               borderRadius:
                   BorderRadius.circular(50),
             ),
@@ -156,8 +161,7 @@ class _Header extends StatelessWidget {
 
           Container(
             decoration: BoxDecoration(
-              color:
-                  const Color(0xFF57C29A),
+              color: const Color(0xFF57C29A),
               borderRadius:
                   BorderRadius.circular(50),
             ),
