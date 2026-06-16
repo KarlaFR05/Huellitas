@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../../styles/constantes/app_colors.dart';
 import 'report_success_screen.dart';
+import '../../../../componentes/home/home_screen.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -14,38 +15,43 @@ class ReportFormScreen extends StatefulWidget {
 class _ReportFormScreenState extends State<ReportFormScreen> {
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _ubicacionController = TextEditingController();
-  final TextEditingController _estadoSaludController = TextEditingController();
 
-  String _tipoAnimal = 'Gato';
+  String? _tipoAnimal;
   String _raza = '';
-  String _tamano = 'Pequeño';
-  String _tipoReporte = 'Mascota Perdida';
-  String _nivelUrgencia = 'Media';
+  String? _tamano;
+  String? _tipoReporte;  
+  String _nivelUrgencia = '';
   
   List<File> _evidenceImages = [];
   final ImagePicker _picker = ImagePicker();
 
-  final List<String> _tiposAnimal = ['Gato', 'Perro', 'Otro'];
-  final List<String> _tamanos = ['Pequeño', 'Mediano', 'Grande'];
+  final List<String> _tiposAnimal = ['Gato', 'Perro'];
+
   final List<String> _tiposReporte = [
-    'Mascota Perdida',
-    'Mascota Encontrada',
+    'Mascota perdida',
+    'Mascota encontrada',
     'Animal en abandono/riesgo',
     'Maltrato animal'
   ];
   
   final List<Map<String, dynamic>> _nivelesUrgencia = [
-    {'label': 'Baja', 'value': 'Baja', 'color': Colors.green, 'desc': 'Animal estable'},
+    {'label': 'Baja', 'value': 'Baja', 'color': const Color.fromARGB(255, 255, 238, 0), 'desc': 'Animal estable'},
     {'label': 'Media', 'value': 'Media', 'color': Colors.orange, 'desc': 'Requiere atención pronto'},
     {'label': 'Alta', 'value': 'Alta', 'color': Colors.red, 'desc': 'Riesgo inminente'},
     {'label': 'Crítica', 'value': 'Crítica', 'color': const Color(0xFF800020), 'desc': 'Vida en peligro'},
   ];
 
+  List<String> _getTamanosPorAnimal(String? animal) {
+    if (animal == 'Perro') {
+      return ['Pequeño', 'Mediano', 'Grande'];
+    } else {
+      return ['Robusto/Compacto', 'Esbelto/Alargado', 'Moderado'];
+    }
+  }
   @override
   void dispose() {
     _descripcionController.dispose();
     _ubicacionController.dispose();
-    _estadoSaludController.dispose();
     super.dispose();
   }
 
@@ -161,13 +167,38 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(40),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Icon(Icons.home_outlined, color: Colors.white),
-          Icon(Icons.notifications_none, color: Colors.white),
-          Icon(Icons.assignment_outlined, color: Colors.white),
-          Icon(Icons.person_outline, color: Colors.white),
+          // Ícono de inicio - Muestra diálogo de confirmación
+          GestureDetector(
+            onTap: _showExitConfirmationDialog,
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.home_outlined,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ],
+            ),
+          ),
+          const Icon(
+            Icons.notifications_none,
+            color: Colors.white,
+            size: 28,
+          ),
+          const Icon(
+            Icons.assignment_outlined,
+            color: Colors.white,
+            size: 28,
+          ),
+          const Icon(
+            Icons.person_outline,
+            color: Colors.white,
+            size: 28,
+          ),
         ],
       ),
     );
@@ -209,7 +240,10 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             const SizedBox(height: 16),
             
             _buildDropdownField('Tipo de animal', _tipoAnimal, _tiposAnimal, (value) {
-              setState(() => _tipoAnimal = value!);
+              setState(() {
+                _tipoAnimal = value;
+                _tamano = null; // ← Reinicia el tamaño cuando cambia el animal
+              });
             }),
             
             const SizedBox(height: 16),
@@ -218,8 +252,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             }),
             
             const SizedBox(height: 16),
-            _buildDropdownField('Tamaño', _tamano, _tamanos, (value) {
-              setState(() => _tamano = value!);
+            _buildDropdownField('Tamaño', _tamano, _getTamanosPorAnimal(_tipoAnimal), (value) {
+              setState(() => _tamano = value);
             }),
             
             const SizedBox(height: 24),
@@ -244,10 +278,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             const SizedBox(height: 8),
             _buildLocationField(_ubicacionController),
             
-            const SizedBox(height: 24),
-            _buildTextField('Estado de salud', _estadoSaludController.text, (value) {
-              setState(() => _estadoSaludController.text = value);
-            }),
             
             const SizedBox(height: 32),
             const Divider(color: Colors.grey, height: 1),
@@ -262,9 +292,15 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildDropdownField('Tipo de reporte', _tipoReporte, _tiposReporte, (value) {
-              setState(() => _tipoReporte = value!);
-            }),
+            _buildDropdownField(
+              'Tipo de reporte', 
+              _tipoReporte, 
+              _tiposReporte, 
+              (value) {
+                setState(() => _tipoReporte = value);
+              },
+              hintText: 'Seleccione una opción',
+            ),
             
             const SizedBox(height: 24),
             const Text(
@@ -296,7 +332,9 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               child: ElevatedButton(
                 onPressed: _evidenceImages.isEmpty
                   ? () => _showErrorDialog('Por favor agrega al menos una evidencia fotográfica')
-                  : _submitReport,
+                  : _tipoAnimal == null || _tamano == null
+                    ? () => _showErrorDialog('Por favor completa todos los campos')
+                    : _submitReport,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
@@ -361,49 +399,59 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     );
   }
 
-  Widget _buildDropdownField(String label, String value, List<String> items, Function(String?) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-          ),
+  Widget _buildDropdownField(
+  String label, 
+  String? value, 
+  List<String> items, 
+  Function(String?) onChanged,
+  {String? hintText}  // ← AGREGA ESTO
+) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
         ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: AppColors.secondary.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.secondary),
+      ),
+      const SizedBox(height: 8),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppColors.secondary.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.secondary),
+        ),
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          underline: const SizedBox(),
+          hint: Text(
+            hintText ?? 'Seleccione $label', // HINT PERSONALIZADO
+            style: const TextStyle(color: AppColors.textSecondary),
           ),
-          child: DropdownButton<String>(
-            value: value,
-            isExpanded: true,
-            underline: const SizedBox(),
-            icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
-            items: items.map((String item) {
-              return DropdownMenuItem<String>(
-                value: item,
-                child: Text(
-                  item,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                  ),
+          icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
+          items: items.map((String item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(
+                item,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
                 ),
-              );
-            }).toList(),
-            onChanged: onChanged,
-          ),
+              ),
+            );
+          }).toList(),
+          onChanged: onChanged,
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
   Widget _buildTextArea(TextEditingController controller) {
     return Container(
@@ -615,6 +663,93 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       MaterialPageRoute(
         builder: (context) => const ReportSuccessScreen(isSuccess: true),
       ),
+    );
+  }
+  void _showExitConfirmationDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // No se cierra al tocar fuera
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            '¿Estás seguro(a) que quieres salir?',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          content: const Text(
+            'No se guardará la información del formulario',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Cierra el diálogo (Continuar)
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: AppColors.secondary.withOpacity(0.3),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Continuar',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => const HomeScreen(),
+                        ),
+                        (route) => false,
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Salir',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 }
