@@ -1,25 +1,16 @@
-import '../../domain/entities/catalog.dart';
+import '../../domain/entities/reporte.dart';
 import '../../domain/repositories/reporte_repository.dart';
 import '../datasources/reporte_remote_datasource.dart';
-import '../../domain/entities/reporte.dart';
+import '../models/reporte_model.dart';
 
 class ReporteRepositoryImpl implements ReporteRepository {
-  final ReporteRemoteDataSource remoteDataSource;
+  final ReporteRemoteDataSource remote;
 
-  ReporteRepositoryImpl(this.remoteDataSource);
-
-  @override
-  Future<List<Catalog>> getAnimalTypes() => remoteDataSource.getAnimalTypes();
-
-  @override
-  Future<List<Catalog>> getReportTypes() => remoteDataSource.getReportTypes();
-
-  @override
-  Future<List<Catalog>> getUrgencyLevels() =>
-      remoteDataSource.getUrgencyLevels();
+  ReporteRepositoryImpl(this.remote);
 
   @override
   Future<void> crearReporte(Reporte reporte) {
-    return remoteDataSource.crearReporte(reporte);
+    final model = ReporteModel.fromEntity(reporte);
+    return remote.crearReporte(model);
   }
 }

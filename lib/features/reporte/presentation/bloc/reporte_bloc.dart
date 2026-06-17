@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'reporte_event.dart';
 import 'reporte_state.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/usecases/create_reporte_usecase.dart';
 import '../../domain/usecases/get_animal_types.dart';
 import '../../domain/usecases/get_report_types.dart';
@@ -53,7 +52,7 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
     emit(ReporteSubmitting());
 
     try {
-      await createReporte(event.reporte);
+      await crearReporte(event.reporte);
       emit(ReporteSuccess());
     } catch (e) {
       emit(ReporteError(message: e.toString()));
