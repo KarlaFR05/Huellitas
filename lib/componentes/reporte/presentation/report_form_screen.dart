@@ -15,17 +15,47 @@ class ReportFormScreen extends StatefulWidget {
 class _ReportFormScreenState extends State<ReportFormScreen> {
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _ubicacionController = TextEditingController();
+  final TextEditingController _otraRazaController = TextEditingController();
 
   String? _tipoAnimal;
-  String _raza = '';
+  String? _raza;
   String? _tamano;
   String? _tipoReporte;  
   String _nivelUrgencia = '';
+  bool _mostrarOtraRaza = false;
   
   List<File> _evidenceImages = [];
   final ImagePicker _picker = ImagePicker();
 
   final List<String> _tiposAnimal = ['Gato', 'Perro'];
+
+  final List<String> _razasPerro = [
+    'Mestizos',
+    'Chihuahua',
+    'Schnauzer',
+    'Poodle (Caniche)',
+    'Yorkshire Terrier',
+    'Pug',
+    'Husky',
+    'Labrador',
+    'Pitbull',
+    'Salchicha',
+    'Pastor Aleman',
+    'Raza desconocida',
+    'Otro'
+  ];
+
+  final List<String> _razasGato = [
+    'Mestizo',
+    'Ragdoll',
+    'Americano de pelo corto',
+    'Bombay',
+    'Persa',
+    'Azul Ruso',
+    'Maine Coon',
+    'Raza desconocida',
+    'Otro'
+  ];
 
   final List<String> _tiposReporte = [
     'Mascota perdida',
@@ -48,26 +78,116 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       return ['Robusto/Compacto', 'Esbelto/Alargado', 'Moderado'];
     }
   }
+
+  List<String> _getRazasPorAnimal(String? animal) {
+    if (animal == 'Perro') {
+      return _razasPerro;
+    } else if (animal == 'Gato') {
+      return _razasGato;
+    }
+    return [];
+  }
+
   @override
   void dispose() {
     _descripcionController.dispose();
     _ubicacionController.dispose();
+    _otraRazaController.dispose();
     super.dispose();
   }
 
+  // Widget para mostrar información de ayuda
+  Widget _buildInfoIcon(String title, String content) {
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: AppColors.primary,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: Text(
+                content,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Entendido',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(left: 8),
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Icons.info_outline,
+          color: AppColors.primary,
+          size: 18,
+        ),
+      ),
+    );
+  }
+
   Future<void> _pickImage(ImageSource source) async {
+    if (_evidenceImages.length >= 3) {
+      _showErrorDialog('Máximo 3 imágenes permitidas');
+      return;
+    }
+
     try {
       if (source == ImageSource.gallery) {
+        final int disponibles = 3 - _evidenceImages.length;
         final List<XFile> images = await _picker.pickMultiImage(
           maxWidth: 1800,
           maxHeight: 1800,
           imageQuality: 85,
+          limit: disponibles,
         );
         
         if (images.isNotEmpty) {
           setState(() {
             for (var image in images) {
-              _evidenceImages.add(File(image.path));
+              if (_evidenceImages.length < 3) {
+                _evidenceImages.add(File(image.path));
+              }
             }
           });
         }
@@ -88,6 +208,126 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     } catch (e) {
       _showErrorDialog('Error al seleccionar la imagen');
     }
+  }
+
+  Widget _buildEvidenceSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: _evidenceImages.length >= 3 ? null : _showImageSourceDialog,
+          child: Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: _evidenceImages.length >= 3 
+                  ? Colors.grey.withOpacity(0.2)
+                  : AppColors.secondary.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _evidenceImages.length >= 3 
+                    ? Colors.grey.withOpacity(0.4)
+                    : AppColors.primary.withOpacity(0.5),
+                width: 2,
+                style: BorderStyle.solid,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _evidenceImages.length >= 3
+                        ? Colors.grey.withOpacity(0.2)
+                        : AppColors.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _evidenceImages.length >= 3 ? Icons.block : Icons.add_a_photo,
+                    size: 36,
+                    color: _evidenceImages.length >= 3 ? Colors.grey : AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _evidenceImages.length >= 3 
+                      ? 'Límite alcanzado'
+                      : 'Agregar más fotos',
+                  style: TextStyle(
+                    color: _evidenceImages.length >= 3 ? Colors.grey : AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Máximo 3 imágenes',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (_evidenceImages.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 120,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _evidenceImages.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(
+                          _evidenceImages[index],
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: () => _removeImage(index),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${_evidenceImages.length}/3 imagen${_evidenceImages.length == 1 ? '' : 'es'} agregada${_evidenceImages.length == 1 ? '' : 's'}',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ],
+    );
   }
 
   void _showImageSourceDialog() {
@@ -170,7 +410,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Ícono de inicio - Muestra diálogo de confirmación
           GestureDetector(
             onTap: _showExitConfirmationDialog,
             child: const Column(
@@ -213,7 +452,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: _showExitConfirmationDialog,
         ),
         title: const Text(
           'Reporte',
@@ -229,60 +468,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Datos del animal',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            _buildDropdownField('Tipo de animal', _tipoAnimal, _tiposAnimal, (value) {
-              setState(() {
-                _tipoAnimal = value;
-                _tamano = null; // ← Reinicia el tamaño cuando cambia el animal
-              });
-            }),
-            
-            const SizedBox(height: 16),
-            _buildTextField('Raza', _raza, (value) {
-              setState(() => _raza = value);
-            }),
-            
-            const SizedBox(height: 16),
-            _buildDropdownField('Tamaño', _tamano, _getTamanosPorAnimal(_tipoAnimal), (value) {
-              setState(() => _tamano = value);
-            }),
-            
-            const SizedBox(height: 24),
-            const Text(
-              'Descripción',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _buildTextArea(_descripcionController),
-            
-            const SizedBox(height: 24),
-            const Text(
-              'Ubicación',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _buildLocationField(_ubicacionController),
-            
-            
-            const SizedBox(height: 32),
-            const Divider(color: Colors.grey, height: 1),
-            const SizedBox(height: 32),
-            
+            // TIPO DE REPORTE
             const Text(
               'Tipo de reporte',
               style: TextStyle(
@@ -303,17 +489,125 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             ),
             
             const SizedBox(height: 24),
+            
+            //NIVEL DE URGENCIA CON INFO
+            Row(
+              children: [
+                const Text(
+                  'Nivel de urgencia',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                _buildInfoIcon(
+                  'Niveles de Urgencia',
+                  '• Baja: Animal estable, sin riesgo inmediato\n'
+                  '• Media: Requiere atención pronto pero no es emergencia\n'
+                  '• Alta: Riesgo inminente, necesita rescate urgente\n'
+                  '• Crítica: Vida en peligro, emergencia médica inmediata',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildUrgencySelector(),
+            
+            const SizedBox(height: 32),
+            const Divider(color: Colors.grey, height: 1),
+            const SizedBox(height: 32),
+            
+            // 3. DATOS DEL ANIMAL
             const Text(
-              'Nivel de urgencia',
+              'Datos del animal',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            _buildDropdownField('Tipo de animal', _tipoAnimal, _tiposAnimal, (value) {
+              setState(() {
+                _tipoAnimal = value;
+                _tamano = null;
+                _raza = null; 
+                _mostrarOtraRaza = false;
+                _otraRazaController.clear();
+              });
+            },
+            hintText: 'Seleccione un tipo de animal',
+            ),
+            
+            const SizedBox(height: 16),
+            if (_tipoAnimal != null) ...[
+              _buildDropdownField('Raza', _raza, _getRazasPorAnimal(_tipoAnimal), (value) {
+                setState(() {
+                  _raza = value;
+                  _mostrarOtraRaza = value == 'Otro';
+                  if (!_mostrarOtraRaza) {
+                    _otraRazaController.clear();
+                  }
+                });
+              },
+              hintText: 'Seleccione una raza',
+              ),
+              if (_mostrarOtraRaza) ...[
+                const SizedBox(height: 16),
+                _buildTextField('Ingresar otra raza', _otraRazaController.text, (value) {
+                  setState(() => _otraRazaController.text = value);
+                }),
+              ],
+            ],
+            
+            const SizedBox(height: 16),
+            _buildDropdownField('Tamaño', _tamano, _getTamanosPorAnimal(_tipoAnimal), (value) {
+              setState(() => _tamano = value);
+            }),
+            
+            const SizedBox(height: 24),
+            
+            // DESCRIPCIÓN CON INFO
+            Row(
+              children: [
+                const Text(
+                  'Descripción',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                _buildInfoIcon(
+                  'Información Importante',
+                  'Describe características que ayuden a identificar al animal:\n\n'
+                  '• Peso aproximado\n'
+                  '• Color del pelaje\n'
+                  '• Si usa ropa, collar u otros accesorios\n'
+                  '• Señas particulares (cicatrices, manchas, etc.)\n'
+                  '• Comportamiento o condición especial\n\n'
+                  'Mientras más detalles proporciones, más fácil será identificarlo.',
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _buildTextArea(_descripcionController),
+            
+            const SizedBox(height: 24),
+            const Text(
+              'Ubicación',
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 12),
-            _buildUrgencySelector(),
+            const SizedBox(height: 8),
+            _buildLocationField(_ubicacionController),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
+            const Divider(color: Colors.grey, height: 1),
+            const SizedBox(height: 32),
+            
+            // 4. EVIDENCIA
             const Text(
               'Evidencia',
               style: TextStyle(
@@ -332,7 +626,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               child: ElevatedButton(
                 onPressed: _evidenceImages.isEmpty
                   ? () => _showErrorDialog('Por favor agrega al menos una evidencia fotográfica')
-                  : _tipoAnimal == null || _tamano == null
+                  : _tipoAnimal == null || _tamano == null || _raza == null || (_mostrarOtraRaza && _otraRazaController.text.isEmpty)
                     ? () => _showErrorDialog('Por favor completa todos los campos')
                     : _submitReport,
                 style: ElevatedButton.styleFrom(
@@ -386,7 +680,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               border: InputBorder.none,
               isDense: true,
               contentPadding: EdgeInsets.zero,
-              hintText: 'Ingresa $label',
+              hintText: 'Escribe la raza del animal',
               hintStyle: const TextStyle(color: AppColors.textSecondary),
             ),
             style: const TextStyle(
@@ -404,7 +698,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   String? value, 
   List<String> items, 
   Function(String?) onChanged,
-  {String? hintText}  // ← AGREGA ESTO
+  {String? hintText}
 ) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -430,7 +724,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           isExpanded: true,
           underline: const SizedBox(),
           hint: Text(
-            hintText ?? 'Seleccione $label', // HINT PERSONALIZADO
+            hintText ?? 'Seleccione $label',
             style: const TextStyle(color: AppColors.textSecondary),
           ),
           icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
@@ -468,7 +762,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           border: InputBorder.none,
           isDense: true,
           contentPadding: EdgeInsets.zero,
-          hintText: 'Describe los detalles del reporte...',
+          hintText: 'Describe los detalles sobre el animal a reportar...',
           hintStyle: TextStyle(color: AppColors.textSecondary),
         ),
         style: const TextStyle(
@@ -553,110 +847,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     );
   }
 
-  Widget _buildEvidenceSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GestureDetector(
-          onTap: _showImageSourceDialog,
-          child: Container(
-            height: 120,
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.primary.withOpacity(0.5),
-                width: 2,
-                style: BorderStyle.solid,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.add_a_photo,
-                    size: 36,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Agregar más fotos',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (_evidenceImages.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 120,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _evidenceImages.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.file(
-                          _evidenceImages[index],
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: GestureDetector(
-                          onTap: () => _removeImage(index),
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${_evidenceImages.length} imagen${_evidenceImages.length == 1 ? '' : 'es'} agregada${_evidenceImages.length == 1 ? '' : 's'}',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
   void _submitReport() {
     Navigator.pushReplacement(
       context,
@@ -665,10 +855,11 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       ),
     );
   }
+
   void _showExitConfirmationDialog() {
     showDialog(
       context: context,
-      barrierDismissible: false, // No se cierra al tocar fuera
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
@@ -698,7 +889,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                 Expanded(
                   child: TextButton(
                     onPressed: () {
-                      Navigator.pop(context); // Cierra el diálogo (Continuar)
+                      Navigator.pop(context);
                     },
                     style: TextButton.styleFrom(
                       backgroundColor: AppColors.secondary.withOpacity(0.3),
