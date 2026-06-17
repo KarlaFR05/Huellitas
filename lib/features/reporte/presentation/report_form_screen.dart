@@ -5,6 +5,9 @@ import '../../../../styles/constantes/app_colors.dart';
 import 'report_success_screen.dart';
 import '../../home/home_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'bloc/reporte_bloc.dart';
+import 'bloc/reporte_event.dart';
+import '../domain/entities/reporte.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -23,11 +26,47 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _ubicacionController = TextEditingController();
 
-  int? _tipoAnimalId;
+  String? _tipoAnimal;
   String _raza = '';
   String? _tamano;
-  int? _tipoReporteId;
-  int? _urgenciaId;
+  String? _tipoReporte;
+  String? _urgencia;
+
+  int _animalToId(String animal) {
+    if (animal == 'Perro') return 1;
+    if (animal == 'Gato') return 2;
+    throw Exception('Animal no válido');
+  }
+
+  int _tipoReporteToId(String tipo) {
+    switch (tipo) {
+      case 'Mascota perdida':
+        return 1;
+      case 'Mascota encontrada':
+        return 2;
+      case 'Animal en abandono/riesgo':
+        return 3;
+      case 'Maltrato animal':
+        return 4;
+      default:
+        throw Exception('Tipo de reporte no válido');
+    }
+  }
+
+  int _urgenciaToId(String urgencia) {
+    switch (urgencia) {
+      case 'Baja':
+        return 1;
+      case 'Media':
+        return 2;
+      case 'Alta':
+        return 3;
+      case 'Crítica':
+        return 4;
+      default:
+        throw Exception('Urgencia no válida');
+    }
+  }
 
   List<File> _evidenceImages = [];
   final ImagePicker _picker = ImagePicker();
@@ -549,12 +588,12 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       ),
       child: Column(
         children: _nivelesUrgencia.map((nivel) {
-          final isSelected = _nivelUrgencia == nivel['value'];
+          final isSelected = _urgencia == nivel['value'];
           return RadioListTile<String>(
             value: nivel['value'],
-            groupValue: _nivelUrgencia,
+            groupValue: _urgencia,
             onChanged: (value) {
-              setState(() => _nivelUrgencia = value!);
+              setState(() => _urgencia = value!);
             },
             activeColor: nivel['color'] as Color,
             title: Text(
@@ -678,13 +717,22 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   }
 
   void _submitReport() {
+    if (_tipoAnimal == null ||
+        _tipoReporte == null ||
+        _urgencia == null ||
+        _tamano == null) {
+      _showErrorDialog('Por favor completa todos los campos');
+      return;
+    }
+
     final reporte = Reporte(
-      tipoAnimalId: _tipoAnimalId!,
+      tipoAnimalId: _animalToId(_tipoAnimal!),
       tamano: _tamano!,
-      tipoReporteId: _tipoReporteId!,
-      urgenciaId: _urgenciaId!,
+      tipoReporteId: _tipoReporteToId(_tipoReporte!),
+      urgenciaId: _urgenciaToId(_urgencia!),
       descripcion: _descripcionController.text,
       ubicacion: _ubicacionController.text,
+      usuarioId: 1, // temporal
     );
 
     context.read<ReporteBloc>().add(SubmitReporte(reporte));
