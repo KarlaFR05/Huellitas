@@ -3,7 +3,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../../styles/constantes/app_colors.dart';
 import 'report_success_screen.dart';
-import '../../../../componentes/home/home_screen.dart';
+import '../../home/home_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -13,15 +14,21 @@ class ReportFormScreen extends StatefulWidget {
 }
 
 class _ReportFormScreenState extends State<ReportFormScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<ReporteBloc>().add(LoadCatalogsEvent());
+  }
+
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _ubicacionController = TextEditingController();
 
-  String? _tipoAnimal;
+  int? _tipoAnimalId;
   String _raza = '';
   String? _tamano;
-  String? _tipoReporte;  
-  String _nivelUrgencia = '';
-  
+  int? _tipoReporteId;
+  int? _urgenciaId;
+
   List<File> _evidenceImages = [];
   final ImagePicker _picker = ImagePicker();
 
@@ -31,14 +38,34 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     'Mascota perdida',
     'Mascota encontrada',
     'Animal en abandono/riesgo',
-    'Maltrato animal'
+    'Maltrato animal',
   ];
-  
+
   final List<Map<String, dynamic>> _nivelesUrgencia = [
-    {'label': 'Baja', 'value': 'Baja', 'color': const Color.fromARGB(255, 255, 238, 0), 'desc': 'Animal estable'},
-    {'label': 'Media', 'value': 'Media', 'color': Colors.orange, 'desc': 'Requiere atención pronto'},
-    {'label': 'Alta', 'value': 'Alta', 'color': Colors.red, 'desc': 'Riesgo inminente'},
-    {'label': 'Crítica', 'value': 'Crítica', 'color': const Color(0xFF800020), 'desc': 'Vida en peligro'},
+    {
+      'label': 'Baja',
+      'value': 'Baja',
+      'color': const Color.fromARGB(255, 255, 238, 0),
+      'desc': 'Animal estable',
+    },
+    {
+      'label': 'Media',
+      'value': 'Media',
+      'color': Colors.orange,
+      'desc': 'Requiere atención pronto',
+    },
+    {
+      'label': 'Alta',
+      'value': 'Alta',
+      'color': Colors.red,
+      'desc': 'Riesgo inminente',
+    },
+    {
+      'label': 'Crítica',
+      'value': 'Crítica',
+      'color': const Color(0xFF800020),
+      'desc': 'Vida en peligro',
+    },
   ];
 
   List<String> _getTamanosPorAnimal(String? animal) {
@@ -48,6 +75,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       return ['Robusto/Compacto', 'Esbelto/Alargado', 'Moderado'];
     }
   }
+
   @override
   void dispose() {
     _descripcionController.dispose();
@@ -63,7 +91,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           maxHeight: 1800,
           imageQuality: 85,
         );
-        
+
         if (images.isNotEmpty) {
           setState(() {
             for (var image in images) {
@@ -78,7 +106,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           maxHeight: 1800,
           imageQuality: 85,
         );
-        
+
         if (image != null) {
           setState(() {
             _evidenceImages.add(File(image.path));
@@ -122,7 +150,10 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library, color: AppColors.primary),
+                leading: const Icon(
+                  Icons.photo_library,
+                  color: AppColors.primary,
+                ),
                 title: const Text('Seleccionar de galería'),
                 onTap: () {
                   Navigator.pop(context);
@@ -176,29 +207,13 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             child: const Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.home_outlined,
-                  color: Colors.white,
-                  size: 28,
-                ),
+                Icon(Icons.home_outlined, color: Colors.white, size: 28),
               ],
             ),
           ),
-          const Icon(
-            Icons.notifications_none,
-            color: Colors.white,
-            size: 28,
-          ),
-          const Icon(
-            Icons.assignment_outlined,
-            color: Colors.white,
-            size: 28,
-          ),
-          const Icon(
-            Icons.person_outline,
-            color: Colors.white,
-            size: 28,
-          ),
+          const Icon(Icons.notifications_none, color: Colors.white, size: 28),
+          const Icon(Icons.assignment_outlined, color: Colors.white, size: 28),
+          const Icon(Icons.person_outline, color: Colors.white, size: 28),
         ],
       ),
     );
@@ -238,24 +253,31 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            
-            _buildDropdownField('Tipo de animal', _tipoAnimal, _tiposAnimal, (value) {
+
+            _buildDropdownField('Tipo de animal', _tipoAnimal, _tiposAnimal, (
+              value,
+            ) {
               setState(() {
                 _tipoAnimal = value;
                 _tamano = null; // ← Reinicia el tamaño cuando cambia el animal
               });
             }),
-            
+
             const SizedBox(height: 16),
             _buildTextField('Raza', _raza, (value) {
               setState(() => _raza = value);
             }),
-            
+
             const SizedBox(height: 16),
-            _buildDropdownField('Tamaño', _tamano, _getTamanosPorAnimal(_tipoAnimal), (value) {
-              setState(() => _tamano = value);
-            }),
-            
+            _buildDropdownField(
+              'Tamaño',
+              _tamano,
+              _getTamanosPorAnimal(_tipoAnimal),
+              (value) {
+                setState(() => _tamano = value);
+              },
+            ),
+
             const SizedBox(height: 24),
             const Text(
               'Descripción',
@@ -266,7 +288,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             ),
             const SizedBox(height: 8),
             _buildTextArea(_descripcionController),
-            
+
             const SizedBox(height: 24),
             const Text(
               'Ubicación',
@@ -277,12 +299,11 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             ),
             const SizedBox(height: 8),
             _buildLocationField(_ubicacionController),
-            
-            
+
             const SizedBox(height: 32),
             const Divider(color: Colors.grey, height: 1),
             const SizedBox(height: 32),
-            
+
             const Text(
               'Tipo de reporte',
               style: TextStyle(
@@ -293,15 +314,15 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             ),
             const SizedBox(height: 16),
             _buildDropdownField(
-              'Tipo de reporte', 
-              _tipoReporte, 
-              _tiposReporte, 
+              'Tipo de reporte',
+              _tipoReporte,
+              _tiposReporte,
               (value) {
                 setState(() => _tipoReporte = value);
               },
               hintText: 'Seleccione una opción',
             ),
-            
+
             const SizedBox(height: 24),
             const Text(
               'Nivel de urgencia',
@@ -312,7 +333,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             ),
             const SizedBox(height: 12),
             _buildUrgencySelector(),
-            
+
             const SizedBox(height: 24),
             const Text(
               'Evidencia',
@@ -323,17 +344,21 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             ),
             const SizedBox(height: 12),
             _buildEvidenceSection(),
-            
+
             const SizedBox(height: 40),
-            
+
             SizedBox(
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
                 onPressed: _evidenceImages.isEmpty
-                  ? () => _showErrorDialog('Por favor agrega al menos una evidencia fotográfica')
-                  : _tipoAnimal == null || _tamano == null
-                    ? () => _showErrorDialog('Por favor completa todos los campos')
+                    ? () => _showErrorDialog(
+                        'Por favor agrega al menos una evidencia fotográfica',
+                      )
+                    : _tipoAnimal == null || _tamano == null
+                    ? () => _showErrorDialog(
+                        'Por favor completa todos los campos',
+                      )
                     : _submitReport,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -360,7 +385,11 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String value, Function(String) onChanged) {
+  Widget _buildTextField(
+    String label,
+    String value,
+    Function(String) onChanged,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -389,10 +418,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               hintText: 'Ingresa $label',
               hintStyle: const TextStyle(color: AppColors.textSecondary),
             ),
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
           ),
         ),
       ],
@@ -400,58 +426,58 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   }
 
   Widget _buildDropdownField(
-  String label, 
-  String? value, 
-  List<String> items, 
-  Function(String?) onChanged,
-  {String? hintText}  // ← AGREGA ESTO
-) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          color: AppColors.textPrimary,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        ),
-      ),
-      const SizedBox(height: 8),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: AppColors.secondary.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.secondary),
-        ),
-        child: DropdownButton<String>(
-          value: value,
-          isExpanded: true,
-          underline: const SizedBox(),
-          hint: Text(
-            hintText ?? 'Seleccione $label', // HINT PERSONALIZADO
-            style: const TextStyle(color: AppColors.textSecondary),
+    String label,
+    String? value,
+    List<String> items,
+    Function(String?) onChanged, {
+    String? hintText, // ← AGREGA ESTO
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
           ),
-          icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
-          items: items.map((String item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(
-                item,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                ),
-              ),
-            );
-          }).toList(),
-          onChanged: onChanged,
         ),
-      ),
-    ],
-  );
-}
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppColors.secondary.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.secondary),
+          ),
+          child: DropdownButton<String>(
+            value: value,
+            isExpanded: true,
+            underline: const SizedBox(),
+            hint: Text(
+              hintText ?? 'Seleccione $label', // HINT PERSONALIZADO
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+            icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
+            items: items.map((String item) {
+              return DropdownMenuItem<String>(
+                value: item,
+                child: Text(
+                  item,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: onChanged,
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _buildTextArea(TextEditingController controller) {
     return Container(
@@ -540,10 +566,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             ),
             subtitle: Text(
               nivel['desc'],
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
             ),
             contentPadding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
@@ -647,10 +670,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           const SizedBox(height: 8),
           Text(
             '${_evidenceImages.length} imagen${_evidenceImages.length == 1 ? '' : 'es'} agregada${_evidenceImages.length == 1 ? '' : 's'}',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
           ),
         ],
       ],
@@ -658,13 +678,18 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   }
 
   void _submitReport() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ReportSuccessScreen(isSuccess: true),
-      ),
+    final reporte = Reporte(
+      tipoAnimalId: _tipoAnimalId!,
+      tamano: _tamano!,
+      tipoReporteId: _tipoReporteId!,
+      urgenciaId: _urgenciaId!,
+      descripcion: _descripcionController.text,
+      ubicacion: _ubicacionController.text,
     );
+
+    context.read<ReporteBloc>().add(SubmitReporte(reporte));
   }
+
   void _showExitConfirmationDialog() {
     showDialog(
       context: context,
@@ -686,10 +711,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           content: const Text(
             'No se guardará la información del formulario',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
+            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
           ),
           actions: [
             Row(
