@@ -6,6 +6,7 @@ class Reporte {
   final String descripcion;
   final String ubicacion;
   final int usuarioId;
+  final String raza;
 
   Reporte({
     required this.tipoAnimalId,
@@ -15,5 +16,6 @@ class Reporte {
     required this.descripcion,
     required this.ubicacion,
     required this.usuarioId,
+    required this.raza,
   });
 }

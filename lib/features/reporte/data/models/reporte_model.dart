@@ -9,6 +9,7 @@ class ReporteModel extends Reporte {
     required super.descripcion,
     required super.ubicacion,
     required super.usuarioId,
+    required super.raza,
   });
 
   factory ReporteModel.fromEntity(Reporte reporte) {
@@ -20,17 +21,21 @@ class ReporteModel extends Reporte {
       descripcion: reporte.descripcion,
       ubicacion: reporte.ubicacion,
       usuarioId: reporte.usuarioId,
+      raza: reporte.raza,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'tipo_animal_id': tipoAnimalId,
-      'tipo_reporte_id': tipoReporteId,
+      'tipo_animal': tipoAnimalId, // ✅ sin _id al final
+      'raza_id': raza, // ✅ temporal, ajusta según tu lógica
+      'tipo_reporte': tipoReporteId, // ✅ sin _id al final
       'urgencia_id': urgenciaId,
       'tamano': tamano,
       'descripcion': descripcion,
       'ubicacion': ubicacion,
+      'evidencia': '', // ✅ temporal, ajusta cuando implementes imágenes
+      'usuario_id_fk': usuarioId, // ✅ cambia el nombre
     };
   }
 }

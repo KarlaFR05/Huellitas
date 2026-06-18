@@ -8,6 +8,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'bloc/reporte_bloc.dart';
 import 'bloc/reporte_event.dart';
 import '../domain/entities/reporte.dart';
+import 'package:go_router/go_router.dart';
+import 'bloc/reporte_state.dart';
+import 'package:go_router/go_router.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -20,7 +23,9 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ReporteBloc>().add(LoadCatalogsEvent());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ReporteBloc>().add(LoadCatalogsEvent());
+    });
   }
 
   final TextEditingController _descripcionController = TextEditingController();
@@ -240,7 +245,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Ícono de inicio - Muestra diálogo de confirmación
           GestureDetector(
             onTap: _showExitConfirmationDialog,
             child: const Column(
@@ -260,167 +264,171 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return BlocListener<ReporteBloc, ReporteState>(
+      listener: (context, state) {
+        if (state is ReporteSuccess) {
+          context.go('/report-success');
+        } else if (state is ReporteError) {
+          _showErrorDialog(state.message);
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-          onPressed: () => Navigator.pop(context),
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
+          title: const Text(
+            'Reporte',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
         ),
-        title: const Text(
-          'Reporte',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Datos del animal',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildDropdownField('Tipo de animal', _tipoAnimal, _tiposAnimal, (
+                value,
+              ) {
+                setState(() {
+                  _tipoAnimal = value;
+                  _tamano = null;
+                });
+              }),
+              const SizedBox(height: 16),
+              _buildTextField('Raza', _raza, (value) {
+                setState(() => _raza = value);
+              }),
+              const SizedBox(height: 16),
+              _buildDropdownField(
+                'Tamaño',
+                _tamano,
+                _getTamanosPorAnimal(_tipoAnimal),
+                (value) {
+                  setState(() => _tamano = value);
+                },
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Descripción',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildTextArea(_descripcionController),
+              const SizedBox(height: 24),
+              const Text(
+                'Ubicación',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildLocationField(_ubicacionController),
+              const SizedBox(height: 32),
+              const Divider(color: Colors.grey, height: 1),
+              const SizedBox(height: 32),
+              const Text(
+                'Tipo de reporte',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildDropdownField(
+                'Tipo de reporte',
+                _tipoReporte,
+                _tiposReporte,
+                (value) {
+                  setState(() => _tipoReporte = value);
+                },
+                hintText: 'Seleccione una opción',
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Nivel de urgencia',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildUrgencySelector(),
+              const SizedBox(height: 24),
+              const Text(
+                'Evidencia',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildEvidenceSection(),
+              const SizedBox(height: 40),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _evidenceImages.isEmpty
+                      ? () => _showErrorDialog(
+                          'Por favor agrega al menos una evidencia fotográfica',
+                        )
+                      : _tipoAnimal == null || _tamano == null
+                      ? () => _showErrorDialog(
+                          'Por favor completa todos los campos',
+                        )
+                      : _submitReport,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 4,
+                  ),
+                  child: const Text(
+                    'Enviar Reporte',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
           ),
         ),
-        centerTitle: true,
+        bottomNavigationBar: _buildBottomBar(),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Datos del animal',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            _buildDropdownField('Tipo de animal', _tipoAnimal, _tiposAnimal, (
-              value,
-            ) {
-              setState(() {
-                _tipoAnimal = value;
-                _tamano = null; // ← Reinicia el tamaño cuando cambia el animal
-              });
-            }),
-
-            const SizedBox(height: 16),
-            _buildTextField('Raza', _raza, (value) {
-              setState(() => _raza = value);
-            }),
-
-            const SizedBox(height: 16),
-            _buildDropdownField(
-              'Tamaño',
-              _tamano,
-              _getTamanosPorAnimal(_tipoAnimal),
-              (value) {
-                setState(() => _tamano = value);
-              },
-            ),
-
-            const SizedBox(height: 24),
-            const Text(
-              'Descripción',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _buildTextArea(_descripcionController),
-
-            const SizedBox(height: 24),
-            const Text(
-              'Ubicación',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _buildLocationField(_ubicacionController),
-
-            const SizedBox(height: 32),
-            const Divider(color: Colors.grey, height: 1),
-            const SizedBox(height: 32),
-
-            const Text(
-              'Tipo de reporte',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildDropdownField(
-              'Tipo de reporte',
-              _tipoReporte,
-              _tiposReporte,
-              (value) {
-                setState(() => _tipoReporte = value);
-              },
-              hintText: 'Seleccione una opción',
-            ),
-
-            const SizedBox(height: 24),
-            const Text(
-              'Nivel de urgencia',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildUrgencySelector(),
-
-            const SizedBox(height: 24),
-            const Text(
-              'Evidencia',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildEvidenceSection(),
-
-            const SizedBox(height: 40),
-
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: _evidenceImages.isEmpty
-                    ? () => _showErrorDialog(
-                        'Por favor agrega al menos una evidencia fotográfica',
-                      )
-                    : _tipoAnimal == null || _tamano == null
-                    ? () => _showErrorDialog(
-                        'Por favor completa todos los campos',
-                      )
-                    : _submitReport,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 4,
-                ),
-                child: const Text(
-                  'Enviar Reporte',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
@@ -469,7 +477,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     String? value,
     List<String> items,
     Function(String?) onChanged, {
-    String? hintText, // ← AGREGA ESTO
+    String? hintText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -495,7 +503,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             isExpanded: true,
             underline: const SizedBox(),
             hint: Text(
-              hintText ?? 'Seleccione $label', // HINT PERSONALIZADO
+              hintText ?? 'Seleccione $label',
               style: const TextStyle(color: AppColors.textSecondary),
             ),
             icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
@@ -605,7 +613,10 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             ),
             subtitle: Text(
               nivel['desc'],
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
             ),
             contentPadding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
@@ -629,7 +640,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               border: Border.all(
                 color: AppColors.primary.withOpacity(0.5),
                 width: 2,
-                style: BorderStyle.solid,
               ),
             ),
             child: Column(
@@ -709,7 +719,10 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           const SizedBox(height: 8),
           Text(
             '${_evidenceImages.length} imagen${_evidenceImages.length == 1 ? '' : 'es'} agregada${_evidenceImages.length == 1 ? '' : 's'}',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+            ),
           ),
         ],
       ],
@@ -732,7 +745,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       urgenciaId: _urgenciaToId(_urgencia!),
       descripcion: _descripcionController.text,
       ubicacion: _ubicacionController.text,
-      usuarioId: 1, // temporal
+      usuarioId: 1,
+      raza: _raza,
     );
 
     context.read<ReporteBloc>().add(SubmitReporte(reporte));
@@ -741,8 +755,9 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   void _showExitConfirmationDialog() {
     showDialog(
       context: context,
-      barrierDismissible: false, // No se cierra al tocar fuera
-      builder: (BuildContext context) {
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        // ✅ Renombrado a dialogContext para evitar colisiones
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -767,9 +782,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               children: [
                 Expanded(
                   child: TextButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Cierra el diálogo (Continuar)
-                    },
+                    onPressed: () =>
+                        Navigator.pop(dialogContext), // Cierra solo el diálogo
                     style: TextButton.styleFrom(
                       backgroundColor: AppColors.secondary.withOpacity(0.3),
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -791,12 +805,10 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                 Expanded(
                   child: TextButton(
                     onPressed: () {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                          builder: (context) => const HomeScreen(),
-                        ),
-                        (route) => false,
-                      );
+                      Navigator.pop(dialogContext); // 1. Cierra el diálogo
+                      context.go(
+                        '/home',
+                      ); // 2. Redirecciona usando GoRouter limpio
                     },
                     style: TextButton.styleFrom(
                       backgroundColor: AppColors.primary,

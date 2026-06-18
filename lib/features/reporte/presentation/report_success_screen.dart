@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../home/home_screen.dart';
 import '../../../../styles/constantes/app_colors.dart';
+import 'package:go_router/go_router.dart';
 
 class ReportSuccessScreen extends StatelessWidget {
   final bool isSuccess;
@@ -23,14 +24,7 @@ class ReportSuccessScreen extends StatelessWidget {
                       Icons.arrow_back,
                       color: AppColors.primary,
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                          builder: (context) => const HomeScreen(),
-                        ),
-                        (route) => false,
-                      );
-                    },
+                    onPressed: () => context.go('/home'),
                   ),
                   const Expanded(
                     child: Text(

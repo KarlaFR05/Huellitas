@@ -9,7 +9,7 @@ class CatalogRemoteDataSourceImpl implements CatalogRemoteDataSource {
 
   @override
   Future<List<CatalogModel>> getAnimalTypes() async {
-    final response = await dio.get('/catalogos/tipo-animal');
+    final response = await dio.get('/catalogos/tipos-animal');
     return (response.data as List)
         .map((e) => CatalogModel.fromJson(e))
         .toList();
@@ -17,7 +17,7 @@ class CatalogRemoteDataSourceImpl implements CatalogRemoteDataSource {
 
   @override
   Future<List<CatalogModel>> getReportTypes() async {
-    final response = await dio.get('/catalogos/tipo-reporte');
+    final response = await dio.get('/catalogos/tipos-reporte');
     return (response.data as List)
         .map((e) => CatalogModel.fromJson(e))
         .toList();
@@ -25,7 +25,7 @@ class CatalogRemoteDataSourceImpl implements CatalogRemoteDataSource {
 
   @override
   Future<List<CatalogModel>> getUrgencyLevels() async {
-    final response = await dio.get('/catalogos/urgencia');
+    final response = await dio.get('/catalogos/urgencias');
     return (response.data as List)
         .map((e) => CatalogModel.fromJson(e))
         .toList();
