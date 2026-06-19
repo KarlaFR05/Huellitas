@@ -54,7 +54,7 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) {
         final dio = Dio(
           BaseOptions(
-            baseUrl: 'http://192.168.1.68:8000',
+            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
             connectTimeout: const Duration(seconds: 7),
             receiveTimeout: const Duration(seconds: 5),
           ),
