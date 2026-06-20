@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../../componentes/home/home_screen.dart';
+import '../../home/home_screen.dart';
 import '../../../../styles/constantes/app_colors.dart';
+import 'package:go_router/go_router.dart';
 
 class ReportSuccessScreen extends StatelessWidget {
   final bool isSuccess;
-  
-  const ReportSuccessScreen({
-    super.key, 
-    this.isSuccess = true,
-  });
+
+  const ReportSuccessScreen({super.key, this.isSuccess = true});
 
   @override
   Widget build(BuildContext context) {
@@ -22,15 +20,11 @@ class ReportSuccessScreen extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-                    onPressed: () {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                          builder: (context) => const HomeScreen(),
-                        ),
-                        (route) => false,
-                      );
-                    },
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: AppColors.primary,
+                    ),
+                    onPressed: () => context.go('/home'),
                   ),
                   const Expanded(
                     child: Text(
@@ -55,8 +49,8 @@ class ReportSuccessScreen extends StatelessWidget {
                     width: 160,
                     height: 160,
                     decoration: BoxDecoration(
-                      color: isSuccess 
-                          ? AppColors.secondary 
+                      color: isSuccess
+                          ? AppColors.secondary
                           : Colors.red.shade50,
                       shape: BoxShape.circle,
                     ),
@@ -70,14 +64,16 @@ class ReportSuccessScreen extends StatelessWidget {
                       child: Icon(
                         isSuccess ? Icons.check : Icons.close,
                         size: 80,
-                        color: isSuccess ? AppColors.primary : Colors.red.shade700,
+                        color: isSuccess
+                            ? AppColors.primary
+                            : Colors.red.shade700,
                       ),
                     ),
                   ),
                   const SizedBox(height: 40),
                   Text(
-                    isSuccess 
-                        ? 'Tu reporte ha sido enviado' 
+                    isSuccess
+                        ? 'Tu reporte ha sido enviado'
                         : 'Hubo un error al generar el reporte',
                     style: const TextStyle(
                       color: AppColors.textPrimary,
@@ -88,8 +84,8 @@ class ReportSuccessScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    isSuccess 
-                        ? 'Se atenderá lo antes posible' 
+                    isSuccess
+                        ? 'Se atenderá lo antes posible'
                         : 'Vuelve a intentarlo',
                     style: const TextStyle(
                       color: AppColors.textSecondary,
@@ -112,10 +108,7 @@ class ReportSuccessScreen extends StatelessWidget {
                         ),
                         child: const Text(
                           'Intentar de nuevo',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
+                          style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
                       ),
                     ),
@@ -145,38 +138,20 @@ class ReportSuccessScreen extends StatelessWidget {
           GestureDetector(
             onTap: () {
               Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(
-                  builder: (context) => const HomeScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
                 (route) => false,
               );
             },
             child: const Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.home_outlined,
-                  color: Colors.white,
-                  size: 28,
-                ),
+                Icon(Icons.home_outlined, color: Colors.white, size: 28),
               ],
             ),
           ),
-          const Icon(
-            Icons.notifications_none,
-            color: Colors.white,
-            size: 28,
-          ),
-          const Icon(
-            Icons.assignment_outlined,
-            color: Colors.white,
-            size: 28,
-          ),
-          const Icon(
-            Icons.person_outline,
-            color: Colors.white,
-            size: 28,
-          ),
+          const Icon(Icons.notifications_none, color: Colors.white, size: 28),
+          const Icon(Icons.assignment_outlined, color: Colors.white, size: 28),
+          const Icon(Icons.person_outline, color: Colors.white, size: 28),
         ],
       ),
     );

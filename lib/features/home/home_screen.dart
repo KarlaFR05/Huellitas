@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import '../reporte/presentation/report_form_screen.dart'; // ← AGREGA ESTE IMPORT
+import 'package:go_router/go_router.dart';
+import '../reporte/presentation/report_form_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final reportLocation = LatLng(
-      19.0414,
-      -98.2063,
-    );
+    final reportLocation = LatLng(19.0414, -98.2063);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -33,8 +31,7 @@ class HomeScreen extends StatelessWidget {
                       TileLayer(
                         urlTemplate:
                             'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName:
-                            'com.huellitas.app',
+                        userAgentPackageName: 'com.huellitas.app',
                       ),
 
                       MarkerLayer(
@@ -45,9 +42,8 @@ class HomeScreen extends StatelessWidget {
                             height: 80,
                             child: GestureDetector(
                               onTap: () {
-                                debugPrint(
-                                  'Reporte seleccionado',
-                                );
+                                debugPrint('Reporte seleccionado');
+                                context.push('/report-form');
                               },
                               child: const Icon(
                                 Icons.location_on,
@@ -70,12 +66,7 @@ class HomeScreen extends StatelessWidget {
               bottom: 20,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ReportFormScreen(),
-                    ),
-                  );
+                  context.push('/report-form');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF57C29A),
@@ -83,9 +74,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 child: const Text(
                   'Realizar Reporte',
-                  style: TextStyle(
-                    fontSize: 18,
-                  ),
+                  style: TextStyle(fontSize: 18),
                 ),
               ),
             ),
@@ -104,39 +93,27 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 10,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
           const CircleAvatar(
             radius: 24,
-            backgroundImage: AssetImage(
-              'assets/images/perfil.png',
-            ),
+            backgroundImage: AssetImage('assets/images/perfil.png'),
           ),
 
           const SizedBox(width: 10),
 
           const Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Bienvenido',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
                 Text(
                   'Marlene',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ],
             ),
@@ -145,15 +122,11 @@ class _Header extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               color: const Color(0xFF57C29A),
-              borderRadius:
-                  BorderRadius.circular(50),
+              borderRadius: BorderRadius.circular(50),
             ),
             child: IconButton(
               onPressed: () {},
-              icon: const Icon(
-                Icons.notifications_none,
-                color: Colors.white,
-              ),
+              icon: const Icon(Icons.notifications_none, color: Colors.white),
             ),
           ),
 
@@ -162,15 +135,11 @@ class _Header extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               color: const Color(0xFF57C29A),
-              borderRadius:
-                  BorderRadius.circular(50),
+              borderRadius: BorderRadius.circular(50),
             ),
             child: IconButton(
               onPressed: () {},
-              icon: const Icon(
-                Icons.settings,
-                color: Colors.white,
-              ),
+              icon: const Icon(Icons.settings, color: Colors.white),
             ),
           ),
         ],
@@ -189,29 +158,15 @@ class _BottomBar extends StatelessWidget {
       margin: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFF57C29A),
-        borderRadius:
-            BorderRadius.circular(40),
+        borderRadius: BorderRadius.circular(40),
       ),
       child: const Row(
-        mainAxisAlignment:
-            MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Icon(
-            Icons.home_outlined,
-            color: Colors.white,
-          ),
-          Icon(
-            Icons.notifications_none,
-            color: Colors.white,
-          ),
-          Icon(
-            Icons.assignment_outlined,
-            color: Colors.white,
-          ),
-          Icon(
-            Icons.person_outline,
-            color: Colors.white,
-          ),
+          Icon(Icons.home_outlined, color: Colors.white),
+          Icon(Icons.notifications_none, color: Colors.white),
+          Icon(Icons.assignment_outlined, color: Colors.white),
+          Icon(Icons.person_outline, color: Colors.white),
         ],
       ),
     );

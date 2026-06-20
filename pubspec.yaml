@@ -17,6 +17,12 @@ dependencies:
 
   flutter_map: ^8.2.1
   latlong2: ^0.9.1
+  http: ^1.6.0
+  flutter_bloc: ^9.1.1
+  fpdart: ^1.2.0
+  get_it: ^9.2.1
+  dio: ^5.9.2
+  equatable: ^2.0.8
 
 dev_dependencies:
   flutter_test:
