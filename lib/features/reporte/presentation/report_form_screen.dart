@@ -59,7 +59,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   @override
   void initState() {
     super.initState();
-    
   }
 
   @override
@@ -91,7 +90,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       return;
     }
     try {
-      // Usar pickImage para una sola imagen (más compatible)
       final XFile? image = await _picker.pickImage(
         source: source,
         maxWidth: 1800,
@@ -133,14 +131,14 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
   // --- WIDGETS DE UI ---
 
-  Widget _buildInfoIcon(String title, String content) {
+  Widget _buildInfoIcon(String title, Widget content) {
     return GestureDetector(
       onTap: () => showDialog(
         context: context,
         builder: (context) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(children: [Icon(Icons.info_outline, color: AppColors.primary, size: 28), const SizedBox(width: 8), Expanded(child: Text(title, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)))]),
-          content: Text(content, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.5)),
+          content: content, // Ahora recibe un Widget
           actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Entendido', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)))],
         ),
       ),
@@ -306,16 +304,36 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               const SizedBox(height: 16),
               _buildDropdownField('Tipo de reporte', _tipoReporte, ['Mascota perdida', 'Mascota encontrada', 'Animal en abandono/riesgo', 'Maltrato animal'], (value) => setState(() => _tipoReporte = value), hintText: 'Seleccione una opción'),
               const SizedBox(height: 24),
+              
               Row(children: [
                 const Text('Nivel de urgencia', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
                 _buildInfoIcon(
                   'Niveles de Urgencia',
-                  '• Baja: Animal consciente, camina bien, sin heridas visibles. Solo necesita alimento o refugio.\n'
-                  '• Media: Heridas leves, cojea, deshidratación o desnutrición evidente. Requiere atención en las próximas horas.\n'
-                  '• Alta: No puede moverse, sangrado visible, heridas graves o signos de maltrato. Riesgo de empeorar pronto.\n'
-                  '• Crítica: Inconsciente, hemorragia severa, respiración muy difícil o convulsiones. Necesita veterinario YA!',
+                  RichText(
+                    text: const TextSpan(
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.5),
+                      children: [
+                        TextSpan(text: '• ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: 'Baja: ', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                        TextSpan(text: 'Animal consciente, camina bien, sin heridas visibles. Solo necesita alimento o refugio.\n\n'),
+                        
+                        TextSpan(text: '• ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: 'Media: ', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                        TextSpan(text: 'Heridas leves, cojea, deshidratación o desnutrición evidente. Requiere atención en las próximas horas.\n\n'),
+
+                        TextSpan(text: '• ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: 'Alta: ', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                        TextSpan(text: 'No puede moverse, sangrado visible, heridas graves o signos de maltrato. Riesgo de empeorar pronto.\n\n'),
+
+                        TextSpan(text: '• ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: 'Crítica: ', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                        TextSpan(text: 'Inconsciente, hemorragia severa, respiración muy difícil o convulsiones. Necesita veterinario YA!'),
+                      ],
+                    ),
+                  ),
                 ),
               ]),
+              
               const SizedBox(height: 12),
               _buildUrgencySelector(),
               const SizedBox(height: 32),
@@ -332,7 +350,24 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               const SizedBox(height: 16),
               _buildDropdownField('Tamaño', _tamano, _getTamanosPorAnimal(_tipoAnimal), (value) => setState(() => _tamano = value)),
               const SizedBox(height: 24),
-              Row(children: [const Text('Descripción', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500)), _buildInfoIcon('Información Importante', 'Describe características que ayuden a identificar al animal:\n\n• Peso aproximado\n• Color del pelaje\n• Si usa ropa, collar u otros accesorios\n• Señas particulares (cicatrices, manchas, etc.)\n• Comportamiento o condición especial')]),
+              
+            
+              Row(children: [
+                const Text('Descripción', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
+                _buildInfoIcon(
+                  'Información Importante',
+                  const Text(
+                    'Describe características que ayuden a identificar al animal:\n\n'
+                    '• Peso aproximado\n'
+                    '• Color del pelaje\n'
+                    '• Si usa ropa, collar u otros accesorios\n'
+                    '• Señas particulares (cicatrices, manchas, etc.)\n'
+                    '• Comportamiento o condición especial',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.5),
+                  ),
+                ),
+              ]),
+              
               const SizedBox(height: 8),
               _buildTextArea(_descripcionController),
               const SizedBox(height: 24),
@@ -359,7 +394,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             ],
           ),
         ),
-        bottomNavigationBar: const BottomBarWidget(),
+        bottomNavigationBar: BottomBarWidget(onHomePressed: _showExitConfirmationDialog),
       ),
     );
   }

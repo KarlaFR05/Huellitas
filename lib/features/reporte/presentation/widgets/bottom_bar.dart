@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../../styles/constantes/app_colors.dart';
 
 class BottomBarWidget extends StatelessWidget {
-  const BottomBarWidget({super.key});
+  final VoidCallback? onHomePressed; // ← AGREGA ESTO
+  
+  const BottomBarWidget({super.key, this.onHomePressed});
 
   @override
   Widget build(BuildContext context) {
@@ -13,13 +15,24 @@ class BottomBarWidget extends StatelessWidget {
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(40),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Icon(Icons.home_outlined, color: Colors.white),
-          Icon(Icons.notifications_none, color: Colors.white),
-          Icon(Icons.assignment_outlined, color: Colors.white),
-          Icon(Icons.person_outline, color: Colors.white),
+          GestureDetector(
+            onTap: onHomePressed ?? () {
+              // Comportamiento por defecto si no se proporciona callback
+              // Navegar al home directamente
+            },
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.home_outlined, color: Colors.white, size: 28),
+              ],
+            ),
+          ),
+          const Icon(Icons.notifications_none, color: Colors.white, size: 28),
+          const Icon(Icons.assignment_outlined, color: Colors.white, size: 28),
+          const Icon(Icons.person_outline, color: Colors.white, size: 28),
         ],
       ),
     );
