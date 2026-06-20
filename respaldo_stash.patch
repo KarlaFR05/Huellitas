@@ -1,0 +1,608 @@
+diff --git a/lib/app/rutas.dart b/lib/app/rutas.dart
+index 164a6b6..535100d 100644
+--- a/lib/app/rutas.dart
++++ b/lib/app/rutas.dart
+@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
+ import 'package:dio/dio.dart';
+ import 'package:flutter/material.dart';
+ 
+-import 'package:huellitas/features/splash/splash_screen.dart';
+-import 'package:huellitas/features/welcome/welcome_screen.dart';
+-import 'package:huellitas/features/auth/login_screen.dart';
+-import 'package:huellitas/features/auth/registro_screen.dart';
+-import 'package:huellitas/features/auth/password_screen.dart';
+-import 'package:huellitas/features/home/home_screen.dart';
++import 'package:huellitas/features/splash/presentation/screens/splash_screen.dart';
++import 'package:huellitas/features/welcome/presentation/screens/welcome_screen.dart';
++import 'package:huellitas/features/auth/presentation/screens/login_screen.dart';
++import 'package:huellitas/features/auth/presentation/screens/registro_screen.dart';
++import 'package:huellitas/features/auth/presentation/screens/password_screen.dart';
++import 'package:huellitas/features/home/presentation/screens/home_screen.dart';
+ 
+ import 'package:huellitas/features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
+ import 'package:huellitas/features/reporte/data/repositories/reporte_repository_impl.dart';
+diff --git a/lib/features/auth/login_screen.dart b/lib/features/auth/login_screen.dart
+deleted file mode 100644
+index 7127b62..0000000
+--- a/lib/features/auth/login_screen.dart
++++ /dev/null
+@@ -1,60 +0,0 @@
+-import 'package:flutter/material.dart';
+-import 'package:go_router/go_router.dart';
+-
+-class LoginScreen extends StatelessWidget {
+-  const LoginScreen({super.key});
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    return Scaffold(
+-      appBar: AppBar(),
+-
+-      body: Padding(
+-        padding: const EdgeInsets.all(24),
+-        child: Column(
+-          children: [
+-            const Align(
+-              alignment: Alignment.centerLeft,
+-              child: Text(
+-                'Inicio Sesión',
+-                style: TextStyle(
+-                  fontSize: 26,
+-                  fontWeight: FontWeight.bold,
+-                ),
+-              ),
+-            ),
+-
+-            const SizedBox(height: 30),
+-
+-            const TextField(
+-              decoration: InputDecoration(
+-                labelText: 'Correo',
+-              ),
+-            ),
+-
+-            const SizedBox(height: 16),
+-
+-            const TextField(
+-              obscureText: true,
+-              decoration: InputDecoration(
+-                labelText: 'Contraseña',
+-              ),
+-            ),
+-
+-            const SizedBox(height: 30),
+-
+-            ElevatedButton(
+-              onPressed: () => context.go('/home'),
+-              child: const Text('Iniciar Sesión'),
+-            ),
+-
+-            TextButton(
+-              onPressed: () => context.go('/register'),
+-              child: const Text('Crear Cuenta'),
+-            ),
+-          ],
+-        ),
+-      ),
+-    );
+-  }
+-}
+\ No newline at end of file
+diff --git a/lib/features/auth/password_screen.dart b/lib/features/auth/password_screen.dart
+deleted file mode 100644
+index ee50d47..0000000
+--- a/lib/features/auth/password_screen.dart
++++ /dev/null
+@@ -1,56 +0,0 @@
+-import 'package:flutter/material.dart';
+-import 'package:go_router/go_router.dart';
+-
+-class PasswordScreen extends StatelessWidget {
+-  const PasswordScreen({super.key});
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    return Scaffold(
+-      appBar: AppBar(),
+-
+-      body: Padding(
+-        padding: const EdgeInsets.all(24),
+-        child: Column(
+-          children: [
+-            const Align(
+-              alignment: Alignment.centerLeft,
+-              child: Text(
+-                'Establecer Contraseña',
+-                style: TextStyle(
+-                  fontSize: 26,
+-                  fontWeight: FontWeight.bold,
+-                ),
+-              ),
+-            ),
+-
+-            const SizedBox(height: 30),
+-
+-            const TextField(
+-              obscureText: true,
+-              decoration: InputDecoration(
+-                labelText: 'Contraseña',
+-              ),
+-            ),
+-
+-            const SizedBox(height: 16),
+-
+-            const TextField(
+-              obscureText: true,
+-              decoration: InputDecoration(
+-                labelText: 'Confirmar Contraseña',
+-              ),
+-            ),
+-
+-            const SizedBox(height: 30),
+-
+-            ElevatedButton(
+-              onPressed: () => context.go('/home'),
+-              child: const Text('Crear Cuenta'),
+-            ),
+-          ],
+-        ),
+-      ),
+-    );
+-  }
+-}
+\ No newline at end of file
+diff --git a/lib/features/auth/registro_screen.dart b/lib/features/auth/registro_screen.dart
+deleted file mode 100644
+index 87f3096..0000000
+--- a/lib/features/auth/registro_screen.dart
++++ /dev/null
+@@ -1,118 +0,0 @@
+-import 'package:flutter/material.dart';
+-import 'package:go_router/go_router.dart';
+-
+-class RegistroScreen extends StatefulWidget {
+-  const RegistroScreen({super.key});
+-
+-  @override
+-  State<RegistroScreen> createState() => _RegistroScreenState();
+-}
+-
+-class _RegistroScreenState extends State<RegistroScreen> {
+-  final TextEditingController fechaController = TextEditingController();
+-
+-  DateTime? fechaNacimiento;
+-
+-  Future<void> seleccionarFecha() async {
+-    final DateTime? fecha = await showDatePicker(
+-      context: context,
+-      initialDate: DateTime(
+-        DateTime.now().year - 18,
+-        DateTime.now().month,
+-        DateTime.now().day,
+-      ),
+-      firstDate: DateTime(1900),
+-
+-      // Solo permite mayores de edad
+-      lastDate: DateTime(
+-        DateTime.now().year - 18,
+-        DateTime.now().month,
+-        DateTime.now().day,
+-      ),
+-    );
+-
+-    if (fecha != null) {
+-      setState(() {
+-        fechaNacimiento = fecha;
+-        fechaController.text =
+-            "${fecha.day}/${fecha.month}/${fecha.year}";
+-      });
+-    }
+-  }
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    return Scaffold(
+-      appBar: AppBar(),
+-
+-      body: SingleChildScrollView(
+-        padding: const EdgeInsets.all(24),
+-        child: Column(
+-          children: [
+-            const Align(
+-              alignment: Alignment.centerLeft,
+-              child: Text(
+-                'Nueva Cuenta',
+-                style: TextStyle(
+-                  fontSize: 26,
+-                  fontWeight: FontWeight.bold,
+-                ),
+-              ),
+-            ),
+-
+-            const SizedBox(height: 24),
+-
+-            const TextField(
+-              decoration: InputDecoration(
+-                labelText: 'Nombre(s)',
+-              ),
+-            ),
+-
+-            const SizedBox(height: 16),
+-
+-            const TextField(
+-              decoration: InputDecoration(
+-                labelText: 'Apellidos',
+-              ),
+-            ),
+-
+-            const SizedBox(height: 16),
+-
+-            const TextField(
+-              decoration: InputDecoration(
+-                labelText: 'Número Telefónico',
+-              ),
+-            ),
+-
+-            const SizedBox(height: 16),
+-
+-            const TextField(
+-              decoration: InputDecoration(
+-                labelText: 'Correo',
+-              ),
+-            ),
+-
+-            const SizedBox(height: 16),
+-
+-            TextField(
+-              controller: fechaController,
+-              readOnly: true,
+-              onTap: seleccionarFecha,
+-              decoration: const InputDecoration(
+-                labelText: 'Fecha de Nacimiento',
+-                suffixIcon: Icon(Icons.calendar_month),
+-              ),
+-            ),
+-
+-            const SizedBox(height: 30),
+-
+-            ElevatedButton(
+-              onPressed: () => context.go('/password'),
+-              child: const Text('Crear Cuenta'),
+-            ),
+-          ],
+-        ),
+-      ),
+-    );
+-  }
+-}
+\ No newline at end of file
+diff --git a/lib/features/home/home_screen.dart b/lib/features/home/home_screen.dart
+deleted file mode 100644
+index 1bf60df..0000000
+--- a/lib/features/home/home_screen.dart
++++ /dev/null
+@@ -1,174 +0,0 @@
+-import 'package:flutter/material.dart';
+-import 'package:flutter_map/flutter_map.dart';
+-import 'package:latlong2/latlong.dart';
+-import 'package:go_router/go_router.dart';
+-import '../reporte/presentation/report_form_screen.dart';
+-
+-class HomeScreen extends StatelessWidget {
+-  const HomeScreen({super.key});
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    final reportLocation = LatLng(19.0414, -98.2063);
+-
+-    return Scaffold(
+-      backgroundColor: Colors.white,
+-
+-      body: SafeArea(
+-        child: Stack(
+-          children: [
+-            Column(
+-              children: [
+-                const _Header(),
+-
+-                Expanded(
+-                  child: FlutterMap(
+-                    options: MapOptions(
+-                      initialCenter: reportLocation,
+-                      initialZoom: 15,
+-                    ),
+-                    children: [
+-                      TileLayer(
+-                        urlTemplate:
+-                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+-                        userAgentPackageName: 'com.huellitas.app',
+-                      ),
+-
+-                      MarkerLayer(
+-                        markers: [
+-                          Marker(
+-                            point: reportLocation,
+-                            width: 80,
+-                            height: 80,
+-                            child: GestureDetector(
+-                              onTap: () {
+-                                debugPrint('Reporte seleccionado');
+-                                context.push('/report-form');
+-                              },
+-                              child: const Icon(
+-                                Icons.location_on,
+-                                color: Colors.red,
+-                                size: 45,
+-                              ),
+-                            ),
+-                          ),
+-                        ],
+-                      ),
+-                    ],
+-                  ),
+-                ),
+-              ],
+-            ),
+-
+-            Positioned(
+-              left: 20,
+-              right: 20,
+-              bottom: 20,
+-              child: ElevatedButton(
+-                onPressed: () {
+-                  context.push('/report-form');
+-                },
+-                style: ElevatedButton.styleFrom(
+-                  backgroundColor: const Color(0xFF57C29A),
+-                  minimumSize: const Size(double.infinity, 60),
+-                ),
+-                child: const Text(
+-                  'Realizar Reporte',
+-                  style: TextStyle(fontSize: 18),
+-                ),
+-              ),
+-            ),
+-          ],
+-        ),
+-      ),
+-
+-      bottomNavigationBar: const _BottomBar(),
+-    );
+-  }
+-}
+-
+-class _Header extends StatelessWidget {
+-  const _Header();
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    return Padding(
+-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+-      child: Row(
+-        children: [
+-          const CircleAvatar(
+-            radius: 24,
+-            backgroundImage: AssetImage('assets/images/perfil.png'),
+-          ),
+-
+-          const SizedBox(width: 10),
+-
+-          const Expanded(
+-            child: Column(
+-              crossAxisAlignment: CrossAxisAlignment.start,
+-              children: [
+-                Text(
+-                  'Bienvenido',
+-                  style: TextStyle(color: Colors.grey, fontSize: 12),
+-                ),
+-                Text(
+-                  'Marlene',
+-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+-                ),
+-              ],
+-            ),
+-          ),
+-
+-          Container(
+-            decoration: BoxDecoration(
+-              color: const Color(0xFF57C29A),
+-              borderRadius: BorderRadius.circular(50),
+-            ),
+-            child: IconButton(
+-              onPressed: () {},
+-              icon: const Icon(Icons.notifications_none, color: Colors.white),
+-            ),
+-          ),
+-
+-          const SizedBox(width: 8),
+-
+-          Container(
+-            decoration: BoxDecoration(
+-              color: const Color(0xFF57C29A),
+-              borderRadius: BorderRadius.circular(50),
+-            ),
+-            child: IconButton(
+-              onPressed: () {},
+-              icon: const Icon(Icons.settings, color: Colors.white),
+-            ),
+-          ),
+-        ],
+-      ),
+-    );
+-  }
+-}
+-
+-class _BottomBar extends StatelessWidget {
+-  const _BottomBar();
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    return Container(
+-      height: 75,
+-      margin: const EdgeInsets.all(12),
+-      decoration: BoxDecoration(
+-        color: const Color(0xFF57C29A),
+-        borderRadius: BorderRadius.circular(40),
+-      ),
+-      child: const Row(
+-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+-        children: [
+-          Icon(Icons.home_outlined, color: Colors.white),
+-          Icon(Icons.notifications_none, color: Colors.white),
+-          Icon(Icons.assignment_outlined, color: Colors.white),
+-          Icon(Icons.person_outline, color: Colors.white),
+-        ],
+-      ),
+-    );
+-  }
+-}
+diff --git a/lib/features/reporte/presentation/report_form_screen.dart b/lib/features/reporte/presentation/report_form_screen.dart
+index a01bd3b..fcf4e27 100644
+--- a/lib/features/reporte/presentation/report_form_screen.dart
++++ b/lib/features/reporte/presentation/report_form_screen.dart
+@@ -3,7 +3,7 @@ import 'package:image_picker/image_picker.dart';
+ import 'dart:io';
+ import '../../../../styles/constantes/app_colors.dart';
+ import 'report_success_screen.dart';
+-import '../../home/home_screen.dart';
++import '../../home/presentation/screens/home_screen.dart';
+ import 'package:flutter_bloc/flutter_bloc.dart';
+ import 'bloc/reporte_bloc.dart';
+ import 'bloc/reporte_event.dart';
+diff --git a/lib/features/reporte/presentation/report_success_screen.dart b/lib/features/reporte/presentation/report_success_screen.dart
+index 4726fba..76909b9 100644
+--- a/lib/features/reporte/presentation/report_success_screen.dart
++++ b/lib/features/reporte/presentation/report_success_screen.dart
+@@ -1,5 +1,5 @@
+ import 'package:flutter/material.dart';
+-import '../../home/home_screen.dart';
++import '../../home/presentation/screens/home_screen.dart';
+ import '../../../../styles/constantes/app_colors.dart';
+ import 'package:go_router/go_router.dart';
+ 
+diff --git a/lib/features/splash/splash_screen.dart b/lib/features/splash/splash_screen.dart
+deleted file mode 100644
+index 68e32f0..0000000
+--- a/lib/features/splash/splash_screen.dart
++++ /dev/null
+@@ -1,34 +0,0 @@
+-import 'dart:async';
+-
+-import 'package:flutter/material.dart';
+-import 'package:go_router/go_router.dart';
+-
+-class SplashScreen extends StatefulWidget {
+-  const SplashScreen({super.key});
+-
+-  @override
+-  State<SplashScreen> createState() => _SplashScreenState();
+-}
+-
+-class _SplashScreenState extends State<SplashScreen> {
+-  @override
+-  void initState() {
+-    super.initState();
+-
+-    Timer(const Duration(seconds: 2), () {
+-      context.go('/welcome');
+-    });
+-  }
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    return Scaffold(
+-      body: Center(
+-        child: Image.asset(
+-          'assets/images/logoo.png',
+-          width: 180,
+-        ),
+-      ),
+-    );
+-  }
+-}
+\ No newline at end of file
+diff --git a/lib/features/welcome/welcome_screen.dart b/lib/features/welcome/welcome_screen.dart
+deleted file mode 100644
+index 027fdc0..0000000
+--- a/lib/features/welcome/welcome_screen.dart
++++ /dev/null
+@@ -1,57 +0,0 @@
+-import 'package:flutter/material.dart';
+-import 'package:go_router/go_router.dart';
+-
+-class WelcomeScreen extends StatelessWidget {
+-  const WelcomeScreen({super.key});
+-
+-  @override
+-  Widget build(BuildContext context) {
+-    return Scaffold(
+-      body: SafeArea(
+-        child: Padding(
+-          padding: const EdgeInsets.all(24),
+-          child: Column(
+-            mainAxisAlignment: MainAxisAlignment.center,
+-            children: [
+-              Image.asset(
+-                'assets/images/logoo.png',
+-                width: 180,
+-              ),
+-
+-              const SizedBox(height: 20),
+-
+-              const Text(
+-                'HUELLITAS',
+-                style: TextStyle(
+-                  fontSize: 28,
+-                  fontWeight: FontWeight.bold,
+-                ),
+-              ),
+-
+-              const SizedBox(height: 10),
+-
+-              const Text(
+-                'Acción real por vidas reales',
+-                textAlign: TextAlign.center,
+-              ),
+-
+-              const SizedBox(height: 40),
+-
+-              ElevatedButton(
+-                onPressed: () => context.go('/login'),
+-                child: const Text('Log In'),
+-              ),
+-
+-              const SizedBox(height: 12),
+-
+-              OutlinedButton(
+-                onPressed: () => context.go('/register'),
+-                child: const Text('Sign Up'),
+-              ),
+-            ],
+-          ),
+-        ),
+-      ),
+-    );
+-  }
+-}
+\ No newline at end of file
+diff --git a/lib/main.dart b/lib/main.dart
+index 7ec7649..9ad6e90 100644
+--- a/lib/main.dart
++++ b/lib/main.dart
+@@ -1,6 +1,13 @@
+ import 'package:flutter/material.dart';
+ import 'app/app.dart';
++import 'package:flutter_bloc/flutter_bloc.dart';
++import 'features/auth/presentation/bloc/auth_bloc.dart';
+ 
+ void main() {
+-  runApp(const HuellitasApp());
+-}
++  runApp(
++    BlocProvider(
++      create: (_) => AuthBloc(),
++      child: const HuellitasApp(),
++    ),
++  );
++}
+\ No newline at end of file

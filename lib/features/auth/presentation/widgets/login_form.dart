@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -77,14 +74,7 @@ class _LoginFormState extends State<LoginForm> {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-
-              context.read<AuthBloc>().add(
-                LoginPressed(
-                  email: emailController.text,
-                  password: passwordController.text,
-                ),
-              );
-
+              context.go('/home');
             },
             child: const Text(
               'Iniciar Sesión',
