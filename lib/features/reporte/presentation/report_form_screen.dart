@@ -747,9 +747,10 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       ubicacion: _ubicacionController.text,
       usuarioId: 1,
       raza: _raza,
+      evidencia: '',
     );
 
-    context.read<ReporteBloc>().add(SubmitReporte(reporte));
+    context.read<ReporteBloc>().add(SubmitReporte(reporte, _evidenceImages));
   }
 
   void _showExitConfirmationDialog() {
