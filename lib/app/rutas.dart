@@ -13,6 +13,7 @@ import 'package:huellitas/features/home/presentation/screens/home_screen.dart';
 import 'package:huellitas/features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/create_reporte_usecase.dart';
+import 'package:huellitas/features/reporte/domain/usecases/get_reportes_usecase.dart';
 import 'package:huellitas/features/reporte/presentation/report_success_screen.dart';
 import 'package:huellitas/features/reporte/presentation/report_form_screen.dart';
 
@@ -43,7 +44,28 @@ final GoRouter router = GoRouter(
       path: '/password',
       builder: (context, state) => const PasswordScreen(),
     ),
-    GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+    GoRoute(
+      path: '/home',
+      pageBuilder: (context, state) {
+        final dio = Dio(
+          BaseOptions(
+            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
+            connectTimeout: const Duration(seconds: 7),
+            receiveTimeout: const Duration(seconds: 5),
+          ),
+        );
+
+        final reporteRepository = ReporteRepositoryImpl(
+          ReporteRemoteDataSourceImpl(dio),
+        );
+
+        return MaterialPage(
+          child: HomeScreen(
+            getReportesUseCase: GetReportesUseCase(reporteRepository),
+          ),
+        );
+      },
+    ),
     GoRoute(
       path: '/report-success',
       builder: (context, state) => const ReportSuccessScreen(),

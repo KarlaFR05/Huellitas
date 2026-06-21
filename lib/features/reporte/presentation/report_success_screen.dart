@@ -137,10 +137,7 @@ class ReportSuccessScreen extends StatelessWidget {
           // Ícono de inicio - Navega al Home
           GestureDetector(
             onTap: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-                (route) => false,
-              );
+              context.go('/home');
             },
             child: const Column(
               mainAxisAlignment: MainAxisAlignment.center,

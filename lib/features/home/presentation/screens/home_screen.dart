@@ -1,17 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
+import 'package:huellitas/features/reporte/domain/usecases/get_reportes_usecase.dart';
 import '../../../reporte/presentation/widgets/map_widget.dart';
-import '../../../reporte/presentation/report_form_screen.dart';
+import '../../../reporte/presentation/widgets/reporte_marker.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+
+class HomeScreen extends StatefulWidget {
+  final GetReportesUseCase getReportesUseCase;
+
+  const HomeScreen({super.key, required this.getReportesUseCase});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late final Future<List<ReportMapMarker>> _markersFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _markersFuture = _loadReportMarkers();
+  }
+
+  Future<List<ReportMapMarker>> _loadReportMarkers() async {
+    final reportes = await widget.getReportesUseCase();
+    return reportes
+        .where((reporte) => reporte.latitud != null && reporte.longitud != null)
+        .map(ReportMapMarker.fromReporte)
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final reportLocation = LatLng(19.0414, -98.2063);
-
     return Scaffold(
       backgroundColor: Colors.white,
 
@@ -23,39 +45,24 @@ class HomeScreen extends StatelessWidget {
                 const _Header(),
 
                 Expanded(
-                  child: FlutterMap(
-                    options: MapOptions(
-                      initialCenter: reportLocation,
-                      initialZoom: 15,
-                    ),
-                    children: [
-                      TileLayer(
-                        urlTemplate:
-                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.huellitas.app',
-                      ),
+                  child: FutureBuilder<List<ReportMapMarker>>(
+                    future: _markersFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            point: reportLocation,
-                            width: 80,
-                            height: 80,
-                            child: GestureDetector(
-                              onTap: () {
-                                debugPrint('Reporte seleccionado');
-                                context.push('/report-form');
-                              },
-                              child: const Icon(
-                                Icons.location_on,
-                                color: Colors.red,
-                                size: 45,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                      if (snapshot.hasError) {
+                        return MapWidget(markers: demoReportMarkers);
+                      }
+
+                      final markers = snapshot.data;
+                      return MapWidget(
+                        markers: markers != null && markers.isNotEmpty
+                            ? markers
+                            : demoReportMarkers,
+                      );
+                    },
                   ),
                 ),
               ],

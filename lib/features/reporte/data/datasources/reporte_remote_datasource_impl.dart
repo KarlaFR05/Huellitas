@@ -18,4 +18,29 @@ class ReporteRemoteDataSourceImpl implements ReporteRemoteDataSource {
       rethrow;
     }
   }
+
+  @override
+  Future<List<ReporteModel>> obtenerReportes() async {
+    final response = await dio.get('/reportes');
+    final data = response.data;
+
+    if (data is List) {
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(ReporteModel.fromJson)
+          .toList();
+    }
+
+    if (data is Map<String, dynamic>) {
+      final reportes = data['reportes'] ?? data['data'] ?? data['results'];
+      if (reportes is List) {
+        return reportes
+            .whereType<Map<String, dynamic>>()
+            .map(ReporteModel.fromJson)
+            .toList();
+      }
+    }
+
+    return [];
+  }
 }

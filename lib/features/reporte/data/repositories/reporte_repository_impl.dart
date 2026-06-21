@@ -13,4 +13,9 @@ class ReporteRepositoryImpl implements ReporteRepository {
     final model = ReporteModel.fromEntity(reporte);
     return remote.crearReporte(model);
   }
+
+  @override
+  Future<List<Reporte>> obtenerReportes() {
+    return remote.obtenerReportes();
+  }
 }
