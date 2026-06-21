@@ -2,12 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
-<<<<<<<< HEAD:lib/features/home/presentation/screens/home_screen.dart
-import '../../../reporte/presentation/screens/report_success_screen.dart';
 import '../../../reporte/presentation/widgets/map_widget.dart';
-========
-import '../reporte/presentation/report_form_screen.dart';
->>>>>>>> Karla:lib/features/home/home_screen.dart
+import '../../../reporte/presentation/report_form_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

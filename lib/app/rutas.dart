@@ -3,25 +3,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-<<<<<<< HEAD
 import 'package:huellitas/features/splash/presentation/screens/splash_screen.dart';
 import 'package:huellitas/features/welcome/presentation/screens/welcome_screen.dart';
 import 'package:huellitas/features/auth/presentation/screens/login_screen.dart';
 import 'package:huellitas/features/auth/presentation/screens/registro_screen.dart';
 import 'package:huellitas/features/auth/presentation/screens/password_screen.dart';
 import 'package:huellitas/features/home/presentation/screens/home_screen.dart';
-=======
-import 'package:huellitas/features/splash/splash_screen.dart';
-import 'package:huellitas/features/welcome/welcome_screen.dart';
-import 'package:huellitas/features/auth/login_screen.dart';
-import 'package:huellitas/features/auth/registro_screen.dart';
-import 'package:huellitas/features/auth/password_screen.dart';
-import 'package:huellitas/features/home/home_screen.dart';
->>>>>>> Karla
 
 import 'package:huellitas/features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/create_reporte_usecase.dart';
+import 'package:huellitas/features/reporte/presentation/report_success_screen.dart';
+import 'package:huellitas/features/reporte/presentation/report_form_screen.dart';
 
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_event.dart';
 import 'package:huellitas/features/reporte/data/datasources/catalog_remote_datasource_impl.dart';
@@ -30,16 +23,8 @@ import 'package:huellitas/features/reporte/domain/usecases/get_animal_types.dart
 import 'package:huellitas/features/reporte/domain/usecases/get_report_types.dart';
 import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.dart';
 
+
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
-<<<<<<< HEAD
-import 'package:huellitas/features/reporte/presentation/screens/report_form_screen.dart';
-
-import 'package:huellitas/features/reporte/presentation/screens/report_success_screen.dart';
-=======
-import 'package:huellitas/features/reporte/presentation/report_form_screen.dart';
-
-import 'package:huellitas/features/reporte/presentation/report_success_screen.dart';
->>>>>>> Karla
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -69,11 +54,9 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) {
         final dio = Dio(
           BaseOptions(
-<<<<<<< HEAD
-            baseUrl: 'http://192.168.1.68:8000',
-=======
+
             baseUrl: 'https://huellitas-backend-xekn.onrender.com',
->>>>>>> Karla
+
             connectTimeout: const Duration(seconds: 7),
             receiveTimeout: const Duration(seconds: 5),
           ),

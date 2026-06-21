@@ -3,7 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../../styles/constantes/app_colors.dart';
 import 'report_success_screen.dart';
-import '../../home/home_screen.dart';
+import '../../home/presentation/screens/home_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'bloc/reporte_bloc.dart';
 import 'bloc/reporte_event.dart';

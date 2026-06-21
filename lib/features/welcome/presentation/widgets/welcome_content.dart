@@ -43,7 +43,7 @@ class WelcomeContent extends StatelessWidget {
                 context.go('/login');
               },
               icon: const Icon(Icons.login),
-              label: const Text('Crear Cuenta'),
+              label: const Text('Iniciar Sesión'),
             ),
           ),
 
