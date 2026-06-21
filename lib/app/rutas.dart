@@ -26,13 +26,9 @@ import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.da
 
 
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
-import 'package:huellitas/features/reporte/presentation/report_success_screen.dart';
-//registro e incio de sesion
-import 'package:huellitas/features/auth/data/datasources/auth_remote_datasource_impl.dart';
-import 'package:huellitas/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:huellitas/features/auth/domain/usecases/registro_usecase.dart';
-import 'package:huellitas/features/auth/domain/usecases/login_usecase.dart';
-import 'package:huellitas/features/auth/presentation/bloc/auth_bloc.dart';
+
+
+
 
 
 final GoRouter router = GoRouter(
@@ -43,11 +39,7 @@ final GoRouter router = GoRouter(
       path: '/welcome',
       builder: (context, state) => const WelcomeScreen(),
     ),
-    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-    GoRoute(
-      path: '/register',
-      builder: (context, state) => const RegistroScreen(),
-    ),
+    
     GoRoute(
       path: '/password',
       builder: (context, state) => const PasswordScreen(),
@@ -57,9 +49,9 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) {
         final dio = Dio(
           BaseOptions(
-            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
-            connectTimeout: const Duration(seconds: 7),
-            receiveTimeout: const Duration(seconds: 5),
+            baseUrl: 'http://192.168.18.11:8000',
+            connectTimeout: const Duration(seconds: 50),
+            receiveTimeout: const Duration(seconds: 50),
           ),
         );
 
@@ -85,10 +77,10 @@ final GoRouter router = GoRouter(
         final dio = Dio(
           BaseOptions(
 
-            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
+            baseUrl: 'http://192.168.18.11:8000',
 
-            connectTimeout: const Duration(seconds: 7),
-            receiveTimeout: const Duration(seconds: 5),
+            connectTimeout: const Duration(seconds: 50),
+            receiveTimeout: const Duration(seconds: 50),
           ),
         );
 
@@ -112,6 +104,14 @@ final GoRouter router = GoRouter(
           ),
         );
       },
+    ),
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegistroScreen(),
     ),
   ],
 );

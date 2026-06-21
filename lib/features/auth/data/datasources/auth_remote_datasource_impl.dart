@@ -13,7 +13,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final body = {
         'correo': usuario.correo,
-        'password': password,
+        'contrasenia': password,
         'nombre': usuario.nombre,
         'apellidos': usuario.apellidos,
         'num_telefono': usuario.numTelefono,
@@ -40,7 +40,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final body = {
         'correo': correo,
-        'password': password,
+        'contrasenia': password,
       };
 
       final response = await dio.post('/usuarios/login', data: body);

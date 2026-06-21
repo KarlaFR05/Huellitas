@@ -31,91 +31,60 @@ class ReporteModel extends Reporte {
     );
   }
 
+  // =========================
+  // 🔥 FROM JSON (SAFE READ)
+  // =========================
   factory ReporteModel.fromJson(Map<String, dynamic> json) {
     return ReporteModel(
-      tipoAnimalId: _readAnimalId(json, ['tipo_animal', 'tipo_animal_id', 'tipoAnimalId']),
-      tipoReporteId: _readInt(json, ['tipo_reporte', 'tipo_reporte_id', 'tipoReporteId']),
-      urgenciaId: _readUrgencyId(json, ['urgencia_id', 'nivel_urgencia', 'urgenciaId']),
-      tamano: _readString(json, ['tamano', 'tamaño']),
-      descripcion: _readString(json, ['descripcion', 'descripcion_reporte']),
-      ubicacion: _readString(json, ['ubicacion', 'direccion']),
-      usuarioId: _readInt(json, ['usuario_id_fk', 'usuario_id', 'usuarioId']),
-      raza: _readString(json, ['raza_id', 'raza']),
-      latitud: _readDouble(json, ['latitud', 'latitude', 'lat']),
-      longitud: _readDouble(json, ['longitud', 'longitude', 'lng', 'lon']),
-      evidencia: _readString(json, ['evidencia', 'foto', 'foto_url', 'imageUrl']),
+      tipoAnimalId: _readInt(json, ['tipo_animal']),
+      tipoReporteId: _readInt(json, ['tipo_reporte']),
+      urgenciaId: _readInt(json, ['urgencia_id']),
+      tamano: _readString(json, ['tamano']),
+      descripcion: _readString(json, ['descripcion']),
+      ubicacion: _readString(json, ['ubicacion']),
+      usuarioId: _readInt(json, ['usuario_id_fk']),
+      raza: _readString(json, ['raza_id']),
+      latitud: _readDouble(json, ['latitud']),
+      longitud: _readDouble(json, ['longitud']),
+      evidencia: _readString(json, ['evidencia']),
     );
   }
 
+  // =========================
+  // 🔥 TO JSON (FIX REAL)
+  // =========================
   Map<String, dynamic> toJson() {
     return {
-      'tipo_animal': tipoAnimalId,
-      'raza_id': raza,
-      'tipo_reporte': tipoReporteId,
-      'urgencia_id': urgenciaId,
-      'tamano': tamano,
-      'descripcion': descripcion,
-      'ubicacion': ubicacion,
-      'evidencia': evidencia ?? '',
-      'usuario_id_fk': usuarioId,
-      if (latitud != null) 'latitud': latitud,
-      if (longitud != null) 'longitud': longitud,
-    };
+      "tipo_animal": tipoAnimalId,
+      "tipo_reporte": tipoReporteId,
+      "urgencia_id": urgenciaId,
+      "raza_id": raza,
+      "tamano": tamano,
+      "descripcion": descripcion,
+      "ubicacion": ubicacion,
+      "usuario_id_fk": usuarioId,
+      "evidencia": (evidencia != null && evidencia!.isNotEmpty)
+          ? evidencia
+          : null,
+      "latitud": latitud,
+      "longitud": longitud,
+    }..removeWhere((key, value) => value == null);
   }
 
+  // =========================
+  // 🔥 SAFE PARSERS
+  // =========================
   static int _readInt(Map<String, dynamic> json, List<String> keys) {
     for (final key in keys) {
       final value = json[key];
+
       if (value is int) return value;
       if (value is num) return value.toInt();
-      if (value is String) return int.tryParse(value) ?? 0;
-      if (value is Map<String, dynamic>) {
-        final id = value['id'];
-        if (id is int) return id;
-        if (id is num) return id.toInt();
-        if (id is String) return int.tryParse(id) ?? 0;
+      if (value is String) {
+        final parsed = int.tryParse(value);
+        if (parsed != null) return parsed;
       }
     }
-    return 0;
-  }
-
-  static int _readAnimalId(Map<String, dynamic> json, List<String> keys) {
-    final value = _readRawValue(json, keys);
-    final id = _toInt(value);
-    if (id != 0) return id;
-
-    final text = value.toString().toLowerCase();
-    if (text.contains('perro')) return 1;
-    if (text.contains('gato')) return 2;
-    return 0;
-  }
-
-  static int _readUrgencyId(Map<String, dynamic> json, List<String> keys) {
-    final value = _readRawValue(json, keys);
-    final id = _toInt(value);
-    if (id != 0) return id;
-
-    final text = value.toString().toLowerCase();
-    if (text.contains('baja')) return 1;
-    if (text.contains('media')) return 2;
-    if (text.contains('alta')) return 3;
-    if (text.contains('critica') || text.contains('crítica')) return 4;
-    return 0;
-  }
-
-  static dynamic _readRawValue(Map<String, dynamic> json, List<String> keys) {
-    for (final key in keys) {
-      final value = json[key];
-      if (value != null) return value;
-    }
-    return null;
-  }
-
-  static int _toInt(dynamic value) {
-    if (value is int) return value;
-    if (value is num) return value.toInt();
-    if (value is String) return int.tryParse(value) ?? 0;
-    if (value is Map<String, dynamic>) return _toInt(value['id']);
     return 0;
   }
 
@@ -132,10 +101,13 @@ class ReporteModel extends Reporte {
   static String _readString(Map<String, dynamic> json, List<String> keys) {
     for (final key in keys) {
       final value = json[key];
+
       if (value == null) continue;
+
       if (value is Map<String, dynamic>) {
-        return (value['nombre'] ?? value['name'] ?? value['label'] ?? '').toString();
+        return (value['nombre'] ?? value['name'] ?? '').toString();
       }
+
       return value.toString();
     }
     return '';
