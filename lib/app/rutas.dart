@@ -13,11 +13,11 @@ import 'package:huellitas/features/home/presentation/screens/home_screen.dart';
 import 'package:huellitas/features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/create_reporte_usecase.dart';
-import 'package:huellitas/features/reporte/domain/usecases/get_reportes_usecase.dart';
+// removed unused GetReportesUseCase import (HomeScreen no longer requires it)
 import 'package:huellitas/features/reporte/presentation/report_success_screen.dart';
 import 'package:huellitas/features/reporte/presentation/report_form_screen.dart';
 
-import 'package:huellitas/features/reporte/presentation/bloc/reporte_event.dart';
+// removed unused import
 import 'package:huellitas/features/reporte/data/datasources/catalog_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/catalog_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/get_animal_types.dart';
@@ -46,25 +46,7 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: '/home',
-      pageBuilder: (context, state) {
-        final dio = Dio(
-          BaseOptions(
-            baseUrl: 'http://192.168.18.11:8000',
-            connectTimeout: const Duration(seconds: 50),
-            receiveTimeout: const Duration(seconds: 50),
-          ),
-        );
-
-        final reporteRepository = ReporteRepositoryImpl(
-          ReporteRemoteDataSourceImpl(dio),
-        );
-
-        return MaterialPage(
-          child: HomeScreen(
-            getReportesUseCase: GetReportesUseCase(reporteRepository),
-          ),
-        );
-      },
+      builder: (context, state) => const HomeScreen(),
     ),
     GoRoute(
       path: '/report-success',

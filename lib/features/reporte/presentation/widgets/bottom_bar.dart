@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../styles/constantes/app_colors.dart';
 
 class BottomBarWidget extends StatelessWidget {
-  final VoidCallback? onHomePressed; // ← AGREGA ESTO
-  
+  final VoidCallback? onHomePressed;
+
   const BottomBarWidget({super.key, this.onHomePressed});
 
   @override
@@ -19,10 +19,12 @@ class BottomBarWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           GestureDetector(
-            onTap: onHomePressed ?? () {
-              // Comportamiento por defecto si no se proporciona callback
-              // Navegar al home directamente
-            },
+            onTap:
+                onHomePressed ??
+                () {
+                  // Comportamiento por defecto si no se proporciona callback
+                  // Navegar al home directamente
+                },
             child: const Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

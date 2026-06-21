@@ -1,37 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
-import 'package:huellitas/features/reporte/domain/usecases/get_reportes_usecase.dart';
 import '../../../reporte/presentation/widgets/map_widget.dart';
 import '../../../reporte/presentation/widgets/reporte_marker.dart';
 
 
 class HomeScreen extends StatefulWidget {
-  final GetReportesUseCase getReportesUseCase;
-
-  const HomeScreen({super.key, required this.getReportesUseCase});
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late final Future<List<ReportMapMarker>> _markersFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _markersFuture = _loadReportMarkers();
-  }
-
-  Future<List<ReportMapMarker>> _loadReportMarkers() async {
-    final reportes = await widget.getReportesUseCase();
-    return reportes
-        .where((reporte) => reporte.latitud != null && reporte.longitud != null)
-        .map(ReportMapMarker.fromReporte)
-        .toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,25 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const _Header(),
 
                 Expanded(
-                  child: FutureBuilder<List<ReportMapMarker>>(
-                    future: _markersFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      if (snapshot.hasError) {
-                        return MapWidget(markers: demoReportMarkers);
-                      }
-
-                      final markers = snapshot.data;
-                      return MapWidget(
-                        markers: markers != null && markers.isNotEmpty
-                            ? markers
-                            : demoReportMarkers,
-                      );
-                    },
-                  ),
+                  child: MapWidget(markers: demoReportMarkers),
                 ),
               ],
             ),

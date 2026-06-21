@@ -52,7 +52,7 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
     emit(ReporteSubmitting());
 
     try {
-      await crearReporte(event.reporte);
+      await crearReporte(event.reporte, event.imagenes);
       emit(ReporteSuccess());
     } catch (e) {
       emit(ReporteError(message: e.toString()));

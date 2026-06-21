@@ -1,3 +1,4 @@
+import 'dart:io';
 import '../../domain/entities/reporte.dart';
 import '../../domain/repositories/reporte_repository.dart';
 import '../datasources/reporte_remote_datasource.dart';
@@ -15,7 +16,7 @@ class ReporteRepositoryImpl implements ReporteRepository {
   }
 
   @override
-  Future<List<Reporte>> obtenerReportes() {
-    return remote.obtenerReportes();
+  Future<String> subirEvidencia(File imagen) {
+    return remote.subirEvidencia(imagen);
   }
 }
