@@ -11,6 +11,8 @@ class ReporteModel extends Reporte {
     required super.usuarioId,
     required super.raza,
     required super.evidencia,
+    required super.latitud,
+    required super.longitud,
   });
 
   factory ReporteModel.fromEntity(Reporte reporte) {
@@ -24,6 +26,8 @@ class ReporteModel extends Reporte {
       usuarioId: reporte.usuarioId,
       raza: reporte.raza,
       evidencia: reporte.evidencia,
+      latitud: reporte.latitud,
+      longitud: reporte.longitud,
     );
   }
 
@@ -38,6 +42,8 @@ class ReporteModel extends Reporte {
       'ubicacion': ubicacion,
       'evidencia': evidencia,
       'usuario_id_fk': usuarioId,
+      'latitud': latitud,
+      'longitud': longitud,
     };
   }
 }

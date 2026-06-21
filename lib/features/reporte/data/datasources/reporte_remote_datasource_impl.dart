@@ -11,6 +11,7 @@ class ReporteRemoteDataSourceImpl implements ReporteRemoteDataSource {
   @override
   Future<void> crearReporte(ReporteModel reporte) async {
     try {
+      print('JSON A ENVIAR: ${reporte.toJson()}');
       await dio.post('/reportes', data: reporte.toJson());
     } on DioException catch (e) {
       print('STATUS: ${e.response?.statusCode}');

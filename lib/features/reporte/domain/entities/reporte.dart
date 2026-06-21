@@ -8,6 +8,8 @@ class Reporte {
   final int usuarioId;
   final String raza;
   final String evidencia;
+  final double latitud;
+  final double longitud;
 
   Reporte({
     required this.tipoAnimalId,
@@ -19,5 +21,7 @@ class Reporte {
     required this.usuarioId,
     required this.raza,
     required this.evidencia,
+    required this.latitud,
+    required this.longitud,
   });
 }

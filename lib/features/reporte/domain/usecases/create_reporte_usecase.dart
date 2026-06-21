@@ -23,6 +23,8 @@ class CreateReporteUseCase {
       usuarioId: reporte.usuarioId,
       raza: reporte.raza,
       evidencia: evidenciaUrl,
+      latitud: reporte.latitud,
+      longitud: reporte.longitud,
     );
     return repository.crearReporte(reporteConEvidencia);
   }

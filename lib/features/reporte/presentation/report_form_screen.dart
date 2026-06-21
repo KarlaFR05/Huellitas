@@ -11,6 +11,7 @@ import 'bloc/reporte_state.dart';
 import '../domain/entities/reporte.dart';
 import 'package:go_router/go_router.dart';
 import 'widgets/bottom_bar.dart';
+import 'location_service.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -32,6 +33,11 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   String? _tipoReporte;
   String? _urgencia;
   bool _mostrarOtraRaza = false;
+  double? _latitud;
+  double? _longitud;
+  bool _obteniendoUbicacion = false;
+
+  final LocationService _locationService = LocationService();
 
   // Evidencia (Límite de 1 imagen)
   List<File> _evidenceImages = [];
@@ -117,6 +123,23 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     if (animal == 'Perro') return _razasPerro;
     if (animal == 'Gato') return _razasGato;
     return [];
+  }
+
+  Future<void> _obtenerUbicacionActual() async {
+    setState(() => _obteniendoUbicacion = true);
+    try {
+      final posicion = await _locationService.obtenerUbicacionActual();
+      if (posicion != null) {
+        setState(() {
+          _latitud = posicion.latitude;
+          _longitud = posicion.longitude;
+        });
+      }
+    } catch (e) {
+      _showErrorDialog(e.toString());
+    } finally {
+      setState(() => _obteniendoUbicacion = false);
+    }
   }
 
   // --- IMÁGENES ---
@@ -418,6 +441,10 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       _showErrorDialog('Por favor completa todos los campos');
       return;
     }
+    if (_latitud == null || _longitud == null) {
+      _showErrorDialog('Por favor captura tu ubicación actual');
+      return;
+    }
 
     final reporte = Reporte(
       tipoAnimalId: _animalToId(_tipoAnimal!),
@@ -429,6 +456,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       usuarioId: 1,
       raza: _mostrarOtraRaza ? _otraRazaController.text : (_raza ?? ''),
       evidencia: '',
+      latitud: _latitud!,
+      longitud: _longitud!,
     );
 
     context.read<ReporteBloc>().add(SubmitReporte(reporte, _evidenceImages));
@@ -924,35 +953,66 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   }
 
   Widget _buildLocationField(TextEditingController controller) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.secondary.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.secondary),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.location_on, color: AppColors.primary, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-                hintText: 'Calle #98',
-                hintStyle: TextStyle(color: AppColors.textSecondary),
-              ),
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-              ),
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppColors.secondary.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.secondary),
           ),
-        ],
-      ),
+          child: Row(
+            children: [
+              const Icon(Icons.location_on, color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    hintText: 'Calle #98',
+                    hintStyle: TextStyle(color: AppColors.textSecondary),
+                  ),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: _obteniendoUbicacion ? null : _obtenerUbicacionActual,
+          child: Row(
+            children: [
+              Icon(
+                _latitud != null ? Icons.check_circle : Icons.my_location,
+                color: _latitud != null ? Colors.green : AppColors.primary,
+                size: 18,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                _obteniendoUbicacion
+                    ? 'Obteniendo ubicación...'
+                    : _latitud != null
+                    ? 'Ubicación capturada ✓'
+                    : 'Usar mi ubicación actual',
+                style: TextStyle(
+                  color: _latitud != null ? Colors.green : AppColors.primary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
