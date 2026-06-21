@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
-import '../../../reporte/presentation/report_success_screen.dart';
+import '../../../reporte/presentation/screens/report_success_screen.dart';
+import '../../../reporte/presentation/widgets/map_widget.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

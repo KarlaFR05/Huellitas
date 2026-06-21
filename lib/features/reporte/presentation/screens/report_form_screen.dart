@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import '../../../../styles/constantes/app_colors.dart';
+import '../../../../../styles/constantes/app_colors.dart';
 import 'report_success_screen.dart';
-import '../../home/presentation/screens/home_screen.dart';
+import 'package:huellitas/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'bloc/reporte_bloc.dart';
-import 'bloc/reporte_event.dart';
-import 'bloc/reporte_state.dart';
-import '../domain/entities/reporte.dart';
+import '../bloc/reporte_bloc.dart';
+import '../bloc/reporte_event.dart';
+import '../bloc/reporte_state.dart';
+import '../../domain/entities/reporte.dart';
 import 'package:go_router/go_router.dart';
-import 'widgets/bottom_bar.dart';
+import '../widgets/bottom_bar.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});

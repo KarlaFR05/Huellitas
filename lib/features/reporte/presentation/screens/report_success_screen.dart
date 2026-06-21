@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../home/presentation/screens/home_screen.dart';
-import '../../../../styles/constantes/app_colors.dart';
+import 'package:huellitas/features/home/presentation/screens/home_screen.dart';
+import '../../../../../styles/constantes/app_colors.dart';
 import 'package:go_router/go_router.dart';
 
 class ReportSuccessScreen extends StatelessWidget {

@@ -22,9 +22,9 @@ import 'package:huellitas/features/reporte/domain/usecases/get_report_types.dart
 import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.dart';
 
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
-import 'package:huellitas/features/reporte/presentation/report_form_screen.dart';
+import 'package:huellitas/features/reporte/presentation/screens/report_form_screen.dart';
 
-import 'package:huellitas/features/reporte/presentation/report_success_screen.dart';
+import 'package:huellitas/features/reporte/presentation/screens/report_success_screen.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
