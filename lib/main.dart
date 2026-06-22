@@ -8,11 +8,10 @@ import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/usecases/registro_usecase.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
 
-
 void main() {
-  final dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.18.11:8000',
-  ));
+  final dio = Dio(
+    BaseOptions(baseUrl: 'https://huellitas-backend-xekn.onrender.com'),
+  );
 
   final authDataSource = AuthRemoteDataSourceImpl(dio);
   final authRepository = AuthRepositoryImpl(authDataSource);
@@ -20,18 +19,16 @@ void main() {
   runApp(
     MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<AuthRepositoryImpl>.value(
-          value: authRepository,
-        ),
+        RepositoryProvider<AuthRepositoryImpl>.value(value: authRepository),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
             create: (context) => AuthBloc(
-              registerUseCase:
-                  RegisterUseCase(context.read<AuthRepositoryImpl>()),
-              loginUseCase:
-                  LoginUseCase(context.read<AuthRepositoryImpl>()),
+              registerUseCase: RegisterUseCase(
+                context.read<AuthRepositoryImpl>(),
+              ),
+              loginUseCase: LoginUseCase(context.read<AuthRepositoryImpl>()),
             ),
           ),
         ],
