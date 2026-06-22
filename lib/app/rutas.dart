@@ -3,18 +3,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-import 'package:huellitas/features/splash/splash_screen.dart';
-import 'package:huellitas/features/welcome/welcome_screen.dart';
-import 'package:huellitas/features/auth/login_screen.dart';
-import 'package:huellitas/features/auth/registro_screen.dart';
-import 'package:huellitas/features/auth/password_screen.dart';
-import 'package:huellitas/features/home/home_screen.dart';
+import 'package:huellitas/features/splash/presentation/screens/splash_screen.dart';
+import 'package:huellitas/features/welcome/presentation/screens/welcome_screen.dart';
+import 'package:huellitas/features/auth/presentation/screens/login_screen.dart';
+import 'package:huellitas/features/auth/presentation/screens/registro_screen.dart';
+import 'package:huellitas/features/auth/presentation/screens/password_screen.dart';
+import 'package:huellitas/features/home/presentation/screens/home_screen.dart';
 
 import 'package:huellitas/features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/create_reporte_usecase.dart';
+import 'package:huellitas/features/reporte/presentation/report_success_screen.dart';
+import 'package:huellitas/features/reporte/presentation/report_form_screen.dart';
 
-import 'package:huellitas/features/reporte/presentation/bloc/reporte_event.dart';
 import 'package:huellitas/features/reporte/data/datasources/catalog_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/catalog_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/get_animal_types.dart';
@@ -22,9 +23,6 @@ import 'package:huellitas/features/reporte/domain/usecases/get_report_types.dart
 import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.dart';
 
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
-import 'package:huellitas/features/reporte/presentation/report_form_screen.dart';
-
-import 'package:huellitas/features/reporte/presentation/report_success_screen.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -34,11 +32,7 @@ final GoRouter router = GoRouter(
       path: '/welcome',
       builder: (context, state) => const WelcomeScreen(),
     ),
-    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-    GoRoute(
-      path: '/register',
-      builder: (context, state) => const RegistroScreen(),
-    ),
+
     GoRoute(
       path: '/password',
       builder: (context, state) => const PasswordScreen(),
@@ -55,9 +49,9 @@ final GoRouter router = GoRouter(
         final dio = Dio(
           BaseOptions(
             baseUrl: 'http://192.168.100.28:8000',
-            connectTimeout: const Duration(seconds: 15),
-            receiveTimeout: const Duration(seconds: 30),
-            sendTimeout: const Duration(seconds: 30),
+            connectTimeout: const Duration(seconds: 7),
+            receiveTimeout: const Duration(seconds: 15),
+            sendTimeout: const Duration(seconds: 20),
           ),
         );
 
@@ -81,6 +75,11 @@ final GoRouter router = GoRouter(
           ),
         );
       },
+    ),
+    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegistroScreen(),
     ),
   ],
 );

@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
-import '../reporte/presentation/report_form_screen.dart';
+import '../../../reporte/presentation/widgets/map_widget.dart';
+import '../../../reporte/presentation/widgets/reporte_marker.dart';
 
-class HomeScreen extends StatelessWidget {
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final reportLocation = LatLng(19.0414, -98.2063);
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
 
@@ -22,40 +25,7 @@ class HomeScreen extends StatelessWidget {
                 const _Header(),
 
                 Expanded(
-                  child: FlutterMap(
-                    options: MapOptions(
-                      initialCenter: reportLocation,
-                      initialZoom: 15,
-                    ),
-                    children: [
-                      TileLayer(
-                        urlTemplate:
-                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.huellitas.app',
-                      ),
-
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            point: reportLocation,
-                            width: 80,
-                            height: 80,
-                            child: GestureDetector(
-                              onTap: () {
-                                debugPrint('Reporte seleccionado');
-                                context.push('/report-form');
-                              },
-                              child: const Icon(
-                                Icons.location_on,
-                                color: Colors.red,
-                                size: 45,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                  child: MapWidget(markers: demoReportMarkers),
                 ),
               ],
             ),
