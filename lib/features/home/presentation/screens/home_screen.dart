@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../reporte/presentation/widgets/map_widget.dart';
 import '../../../reporte/presentation/widgets/reporte_marker.dart';
-
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../auth/domain/entities/usuario.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,20 +19,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SafeArea(
         child: Stack(
           children: [
             Column(
               children: [
                 const _Header(),
-
                 Expanded(
                   child: MapWidget(markers: demoReportMarkers),
                 ),
               ],
             ),
-
             Positioned(
               left: 20,
               right: 20,
@@ -51,7 +51,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-
       bottomNavigationBar: const _BottomBar(),
     );
   }
@@ -70,22 +69,36 @@ class _Header extends StatelessWidget {
             radius: 24,
             backgroundImage: AssetImage('assets/images/perfil.png'),
           ),
-
           const SizedBox(width: 10),
+          
+          // 👇 BlocBuilder para mostrar el nombre dinámicamente
+          Expanded(
+            child: BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                String nombreUsuario = 'Usuario';
+                
+                if (state is AuthSuccess && state.data is Usuario) {
+                  final usuario = state.data as Usuario;
+                  nombreUsuario = usuario.nombre ?? 'Usuario';
+                }
 
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Bienvenido',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-                Text(
-                  'Marlene',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ],
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Bienvenido',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                    Text(
+                      nombreUsuario,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
 
@@ -99,9 +112,7 @@ class _Header extends StatelessWidget {
               icon: const Icon(Icons.notifications_none, color: Colors.white),
             ),
           ),
-
           const SizedBox(width: 8),
-
           Container(
             decoration: BoxDecoration(
               color: const Color(0xFF57C29A),
@@ -134,8 +145,8 @@ class _BottomBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Icon(Icons.home_outlined, color: Colors.white),
-          Icon(Icons.notifications_none, color: Colors.white),
-          Icon(Icons.assignment_outlined, color: Colors.white),
+          Icon(Icons.chat_bubble_outline, color: Colors.white, size: 22),
+          Icon(Icons.volunteer_activism_outlined, color: Colors.white, size: 28),
           Icon(Icons.person_outline, color: Colors.white),
         ],
       ),
