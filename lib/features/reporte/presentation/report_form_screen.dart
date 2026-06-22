@@ -134,6 +134,15 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           _latitud = posicion.latitude;
           _longitud = posicion.longitude;
         });
+
+        final direccion = await _locationService
+            .obtenerDireccionDesdeCoordenadas(
+              posicion.latitude,
+              posicion.longitude,
+            );
+        setState(() {
+          _ubicacionController.text = direccion;
+        });
       }
     } catch (e) {
       _showErrorDialog(e.toString());
@@ -986,30 +995,43 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: _obteniendoUbicacion ? null : _obtenerUbicacionActual,
-          child: Row(
-            children: [
-              Icon(
-                _latitud != null ? Icons.check_circle : Icons.my_location,
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _obteniendoUbicacion ? null : _obtenerUbicacionActual,
+            icon: _obteniendoUbicacion
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(
+                    _latitud != null ? Icons.check_circle : Icons.my_location,
+                    color: _latitud != null ? Colors.green : AppColors.primary,
+                    size: 18,
+                  ),
+            label: Text(
+              _obteniendoUbicacion
+                  ? 'Obteniendo ubicación...'
+                  : _latitud != null
+                  ? 'Ubicación capturada — Volver a capturar'
+                  : 'Usar mi ubicación actual',
+              style: TextStyle(
                 color: _latitud != null ? Colors.green : AppColors.primary,
-                size: 18,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
               ),
-              const SizedBox(width: 6),
-              Text(
-                _obteniendoUbicacion
-                    ? 'Obteniendo ubicación...'
-                    : _latitud != null
-                    ? 'Ubicación capturada ✓'
-                    : 'Usar mi ubicación actual',
-                style: TextStyle(
-                  color: _latitud != null ? Colors.green : AppColors.primary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              side: BorderSide(
+                color: _latitud != null ? Colors.green : AppColors.primary,
               ),
-            ],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
           ),
         ),
       ],
