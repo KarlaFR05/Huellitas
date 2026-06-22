@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dio/dio.dart';
 import '../../../reporte/presentation/widgets/map_widget.dart';
 import '../../../reporte/presentation/widgets/reporte_marker.dart';
-
+import '../../../reporte/data/datasources/reporte_remote_datasource_impl.dart';
+import '../../../reporte/data/repositories/reporte_repository_impl.dart';
+import '../../../reporte/domain/usecases/get_reportes_usecase.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,24 +15,73 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  List<ReportMapMarker> _markers = [];
+  bool _cargando = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarReportes();
+  }
+
+  Future<void> _cargarReportes() async {
+    try {
+      final dio = Dio(
+        BaseOptions(
+          baseUrl: 'https://huellitas-backend-xekn.onrender.com',
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30),
+        ),
+      );
+
+      final repository = ReporteRepositoryImpl(
+        ReporteRemoteDataSourceImpl(dio),
+      );
+
+      final getReportes = GetReportesUseCase(repository);
+      final reportes = await getReportes();
+
+      print('REPORTES OBTENIDOS: ${reportes.length}');
+      for (var r in reportes) {
+        print('  - lat: ${r.latitud}, lng: ${r.longitud}');
+      }
+
+      setState(() {
+        _markers = reportes
+            .where(
+              (r) =>
+                  r.latitud != 0.0 &&
+                  r.longitud != 0.0 &&
+                  !r.latitud.isNaN &&
+                  !r.longitud.isNaN,
+            )
+            .map((r) => ReportMapMarker.fromReporte(r))
+            .toList();
+        _cargando = false;
+      });
+    } catch (e) {
+      print('ERROR AL CARGAR REPORTES: $e');
+      setState(() => _cargando = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SafeArea(
         child: Stack(
           children: [
             Column(
               children: [
                 const _Header(),
-
                 Expanded(
-                  child: MapWidget(markers: demoReportMarkers),
+                  child: _cargando
+                      ? const Center(child: CircularProgressIndicator())
+                      : MapWidget(markers: _markers),
                 ),
               ],
             ),
-
             Positioned(
               left: 20,
               right: 20,
@@ -51,7 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-
       bottomNavigationBar: const _BottomBar(),
     );
   }

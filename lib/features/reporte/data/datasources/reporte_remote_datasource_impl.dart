@@ -40,4 +40,18 @@ class ReporteRemoteDataSourceImpl implements ReporteRemoteDataSource {
       rethrow;
     }
   }
+
+  @override
+  Future<List<ReporteModel>> obtenerReportes() async {
+    try {
+      final response = await dio.get('/reportes');
+      return (response.data as List)
+          .map((json) => ReporteModel.fromJson(json))
+          .toList();
+    } on DioException catch (e) {
+      print('STATUS: ${e.response?.statusCode}');
+      print('ERROR DETAIL: ${e.response?.data}');
+      rethrow;
+    }
+  }
 }

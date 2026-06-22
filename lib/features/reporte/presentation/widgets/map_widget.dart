@@ -7,10 +7,7 @@ import 'reporte_marker.dart';
 class MapWidget extends StatelessWidget {
   final List<ReportMapMarker> markers;
 
-  const MapWidget({
-    super.key,
-    required this.markers,
-  });
+  const MapWidget({super.key, required this.markers});
 
   @override
   Widget build(BuildContext context) {
@@ -19,14 +16,13 @@ class MapWidget extends StatelessWidget {
         : LatLng(19.0414, -98.2063);
 
     return FlutterMap(
-      options: MapOptions(
-        initialCenter: initialCenter,
-        initialZoom: 14,
-      ),
+      options: MapOptions(initialCenter: initialCenter, initialZoom: 14),
 
       children: [
         TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          urlTemplate:
+              'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+          subdomains: const ['a', 'b', 'c', 'd'],
           userAgentPackageName: 'com.huellitas.app',
         ),
         CircleLayer(
@@ -115,7 +111,10 @@ class MapWidget extends StatelessWidget {
               _InfoRow(label: 'Animal', value: report.animal.label),
               _InfoRow(label: 'Tamano', value: report.tamano),
               _InfoRow(label: 'Ubicacion', value: report.ubicacion),
-              _InfoRow(label: 'Radio', value: '${report.radiusMeters.round()} m'),
+              _InfoRow(
+                label: 'Radio',
+                value: '${report.radiusMeters.round()} m',
+              ),
               const SizedBox(height: 12),
               Text(
                 report.description,
@@ -137,35 +136,25 @@ class MapWidget extends StatelessWidget {
 class _ReportPin extends StatelessWidget {
   final ReportMapMarker report;
 
-  const _ReportPin({
-    required this.report,
-  });
+  const _ReportPin({required this.report});
 
   @override
   Widget build(BuildContext context) {
-    return ReporteMarker(
-      animal: report.animal,
-      urgency: report.urgency,
-    );
+    return ReporteMarker(animal: report.animal, urgency: report.urgency);
   }
 }
 
 class _StatusDot extends StatelessWidget {
   final Color color;
 
-  const _StatusDot({
-    required this.color,
-  });
+  const _StatusDot({required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 14,
       height: 14,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }
@@ -174,10 +163,7 @@ class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _InfoRow({
-    required this.label,
-    required this.value,
-  });
+  const _InfoRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {

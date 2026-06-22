@@ -46,4 +46,21 @@ class ReporteModel extends Reporte {
       'longitud': longitud,
     };
   }
+
+  factory ReporteModel.fromJson(Map<String, dynamic> json) {
+    // ✅ Agregar
+    return ReporteModel(
+      tipoAnimalId: json['tipo_animal'] ?? 0,
+      tipoReporteId: json['tipo_reporte'] ?? 0,
+      urgenciaId: json['urgencia_id'] ?? 0,
+      tamano: json['tamano'] ?? '',
+      descripcion: json['descripcion'] ?? '',
+      ubicacion: json['ubicacion'] ?? '',
+      usuarioId: json['usuario_id_fk'] ?? 0,
+      raza: json['raza_id'] ?? '',
+      evidencia: json['evidencia'] ?? '',
+      latitud: (json['latitud'] ?? 0).toDouble(),
+      longitud: (json['longitud'] ?? 0).toDouble(),
+    );
+  }
 }
