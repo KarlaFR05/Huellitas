@@ -50,4 +50,12 @@ class LocationService {
       return 'Ubicación capturada (sin dirección disponible)';
     }
   }
+
+  Stream<Position> obtenerStreamUbicacion() {
+    const locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 3, // metros minimos de movimiento para emitir actualizacion
+    );
+    return Geolocator.getPositionStream(locationSettings: locationSettings);
+  }
 }

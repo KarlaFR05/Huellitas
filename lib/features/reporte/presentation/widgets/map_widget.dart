@@ -4,20 +4,42 @@ import 'package:latlong2/latlong.dart';
 
 import 'reporte_marker.dart';
 
-class MapWidget extends StatelessWidget {
+class MapWidget extends StatefulWidget {
   final List<ReportMapMarker> markers;
+  final LatLng? userLocation;
+  final MapController? mapController;
 
-  const MapWidget({super.key, required this.markers});
+  const MapWidget({
+    super.key,
+    required this.markers,
+    this.userLocation,
+    this.mapController,
+  });
+
+  @override
+  State<MapWidget> createState() => _MapWidgetState();
+}
+
+class _MapWidgetState extends State<MapWidget> {
+  late MapController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.mapController ?? MapController();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final initialCenter = markers.isNotEmpty
-        ? markers.first.location
-        : LatLng(19.0414, -98.2063);
+    final initialCenter =
+        widget.userLocation ??
+        (widget.markers.isNotEmpty
+            ? widget.markers.first.location
+            : LatLng(19.0414, -98.2063));
 
     return FlutterMap(
-      options: MapOptions(initialCenter: initialCenter, initialZoom: 14),
-
+      mapController: _controller,
+      options: MapOptions(initialCenter: initialCenter, initialZoom: 16),
       children: [
         TileLayer(
           urlTemplate:
@@ -26,7 +48,7 @@ class MapWidget extends StatelessWidget {
           userAgentPackageName: 'com.huellitas.app',
         ),
         CircleLayer(
-          circles: markers
+          circles: widget.markers
               .map(
                 (marker) => CircleMarker(
                   point: marker.location,
@@ -40,19 +62,26 @@ class MapWidget extends StatelessWidget {
               .toList(),
         ),
         MarkerLayer(
-          markers: markers
-              .map(
-                (report) => Marker(
-                  point: report.location,
-                  width: 60,
-                  height: 60,
-                  child: GestureDetector(
-                    onTap: () => _showReportInfo(context, report),
-                    child: _ReportPin(report: report),
-                  ),
+          markers: [
+            ...widget.markers.map(
+              (report) => Marker(
+                point: report.location,
+                width: 60,
+                height: 60,
+                child: GestureDetector(
+                  onTap: () => _showReportInfo(context, report),
+                  child: _ReportPin(report: report),
                 ),
-              )
-              .toList(),
+              ),
+            ),
+            if (widget.userLocation != null) // ✅ Punto azul del usuario
+              Marker(
+                point: widget.userLocation!,
+                width: 24,
+                height: 24,
+                child: const _UserLocationDot(),
+              ),
+          ],
         ),
       ],
     );
@@ -129,6 +158,34 @@ class MapWidget extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _UserLocationDot extends StatelessWidget {
+  const _UserLocationDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.blue.withOpacity(0.3),
+      ),
+      child: Center(
+        child: Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.blue,
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

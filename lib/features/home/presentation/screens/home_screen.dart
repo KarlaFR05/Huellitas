@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
+import 'dart:async';
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../reporte/presentation/widgets/map_widget.dart';
 import '../../../reporte/presentation/widgets/reporte_marker.dart';
 import '../../../reporte/data/datasources/reporte_remote_datasource_impl.dart';
@@ -10,6 +14,7 @@ import '../../../reporte/domain/usecases/get_reportes_usecase.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/domain/entities/usuario.dart';
+import '../../../reporte/presentation/location_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,10 +27,40 @@ class _HomeScreenState extends State<HomeScreen> {
   List<ReportMapMarker> _markers = [];
   bool _cargando = true;
 
+  final LocationService _locationService = LocationService();
+  final MapController _mapController = MapController();
+  LatLng? _userLocation;
+  StreamSubscription<Position>? _positionStream;
+
   @override
   void initState() {
     super.initState();
     _cargarReportes();
+    _iniciarSeguimientoUbicacion();
+  }
+
+  @override
+  void dispose() {
+    _positionStream?.cancel(); // para no dejar el GPS encendido
+    super.dispose();
+  }
+
+  Future<void> _iniciarSeguimientoUbicacion() async {
+    try {
+      // Solicita permiso una vez (reutiliza lógica que ya tienes)
+      await _locationService.obtenerUbicacionActual();
+
+      _positionStream = _locationService.obtenerStreamUbicacion().listen((
+        position,
+      ) {
+        final nuevaUbicacion = LatLng(position.latitude, position.longitude);
+        setState(() => _userLocation = nuevaUbicacion);
+        _mapController.move(nuevaUbicacion, _mapController.camera.zoom);
+      });
+    } catch (e) {
+      // Si el usuario no da permiso, simplemente no se muestra el punto azul
+      print('No se pudo iniciar seguimiento de ubicación: $e');
+    }
   }
 
   Future<void> _cargarReportes() async {
@@ -82,7 +117,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: _cargando
                       ? const Center(child: CircularProgressIndicator())
-                      : MapWidget(markers: _markers),
+                      : MapWidget(
+                          markers: _markers,
+                          userLocation: _userLocation,
+                          mapController: _mapController,
+                        ),
                 ),
               ],
             ),
