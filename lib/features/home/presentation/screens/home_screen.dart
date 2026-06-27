@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
 import '../../../reporte/presentation/widgets/map_widget.dart';
@@ -6,6 +7,9 @@ import '../../../reporte/presentation/widgets/reporte_marker.dart';
 import '../../../reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import '../../../reporte/data/repositories/reporte_repository_impl.dart';
 import '../../../reporte/domain/usecases/get_reportes_usecase.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../auth/domain/entities/usuario.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -121,22 +125,35 @@ class _Header extends StatelessWidget {
             radius: 24,
             backgroundImage: AssetImage('assets/images/perfil.png'),
           ),
-
           const SizedBox(width: 10),
 
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Bienvenido',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-                Text(
-                  'Marlene',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ],
+          Expanded(
+            child: BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                String nombreUsuario = 'Usuario';
+
+                if (state is AuthSuccess && state.data is Usuario) {
+                  final usuario = state.data as Usuario;
+                  nombreUsuario = usuario.nombre ?? 'Usuario';
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Bienvenido',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                    Text(
+                      nombreUsuario,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
 
@@ -150,9 +167,7 @@ class _Header extends StatelessWidget {
               icon: const Icon(Icons.notifications_none, color: Colors.white),
             ),
           ),
-
           const SizedBox(width: 8),
-
           Container(
             decoration: BoxDecoration(
               color: const Color(0xFF57C29A),
@@ -185,8 +200,12 @@ class _BottomBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Icon(Icons.home_outlined, color: Colors.white),
-          Icon(Icons.notifications_none, color: Colors.white),
-          Icon(Icons.assignment_outlined, color: Colors.white),
+          Icon(Icons.chat_bubble_outline, color: Colors.white, size: 22),
+          Icon(
+            Icons.volunteer_activism_outlined,
+            color: Colors.white,
+            size: 28,
+          ),
           Icon(Icons.person_outline, color: Colors.white),
         ],
       ),
