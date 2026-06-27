@@ -86,7 +86,7 @@ class _RegistroFormState extends State<RegistroForm> {
             textCapitalization: TextCapitalization.words,
             inputFormatters: [
               FilteringTextInputFormatter.allow(
-                RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]'),
+                RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ ]'),
               ),
               LengthLimitingTextInputFormatter(30),
             ],
@@ -94,6 +94,21 @@ class _RegistroFormState extends State<RegistroForm> {
               if (value == null || value.isEmpty) {
                 return 'Ingresa tu nombre';
               }
+
+              if (value.startsWith(' ') || value.endsWith(' ')) {
+                return 'No puede iniciar o terminar con espacios';
+              }
+
+              if (value.contains(RegExp(r' {2,}'))) {
+                return 'Solo un espacio entre nombres';
+              }
+
+              if (!RegExp(
+                r'^[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,}( [A-Za-zÁÉÍÓÚáéíóúÑñ]{2,})*$',
+              ).hasMatch(value)) {
+                return 'Cada nombre debe tener al menos 2 letras';
+              }
+
               return null;
             },
             decoration: const InputDecoration(
@@ -109,7 +124,7 @@ class _RegistroFormState extends State<RegistroForm> {
             textCapitalization: TextCapitalization.words,
             inputFormatters: [
               FilteringTextInputFormatter.allow(
-                RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]'),
+                RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ ]'),
               ),
               LengthLimitingTextInputFormatter(50),
             ],
@@ -117,6 +132,21 @@ class _RegistroFormState extends State<RegistroForm> {
               if (value == null || value.trim().isEmpty) {
                 return 'Ingresa tus apellidos';
               }
+
+              if (value.startsWith(' ') || value.endsWith(' ')) {
+                return 'No puede iniciar o terminar con espacios';
+              }
+
+              if (value.contains(RegExp(r' {2,}'))) {
+                return 'Solo un espacio entre apellidos';
+              }
+
+              if (!RegExp(
+                r'^[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,}( [A-Za-zÁÉÍÓÚáéíóúÑñ]{2,})*$',
+              ).hasMatch(value)) {
+                return 'Cada apellido debe tener al menos 2 letras';
+              }
+
               return null;
             },
             decoration: const InputDecoration(

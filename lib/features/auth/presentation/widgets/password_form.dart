@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
@@ -150,9 +151,11 @@ class _PasswordFormState extends State<PasswordForm> {
                 TextFormField(
                   controller: passwordController,
                   obscureText: obscurePassword,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                  ],
                   validator: (value) {
-                    if (value == null ||
-                        value.isEmpty) {
+                    if (value == null || value.isEmpty) {
                       return 'Ingresa una contraseña';
                     }
 
@@ -160,17 +163,15 @@ class _PasswordFormState extends State<PasswordForm> {
                       return 'Mínimo 8 caracteres';
                     }
 
-                    if (!RegExp(r'[A-Z]')
-                        .hasMatch(value)) {
+                    if (!RegExp(r'[A-Z]').hasMatch(value)) {
                       return 'Debe contener una mayúscula';
                     }
 
-                    if (!RegExp(r'[0-9]')
-                        .hasMatch(value)) {
+                    if (!RegExp(r'[0-9]').hasMatch(value)) {
                       return 'Debe contener un número';
                     }
 
-                    if (!RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(value)) {
+                    if (!RegExp(r'[!@#\$%^&*(),.?":{}|<>_\-+=/\\]').hasMatch(value)) {
                       return 'Debe contener un carácter especial';
                     }
 
@@ -178,14 +179,11 @@ class _PasswordFormState extends State<PasswordForm> {
                   },
                   decoration: InputDecoration(
                     labelText: 'Contraseña',
-                    prefixIcon: const Icon(
-                      Icons.lock_outline,
-                    ),
+                    prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
-                          obscurePassword =
-                              !obscurePassword;
+                          obscurePassword = !obscurePassword;
                         });
                       },
                       icon: Icon(
@@ -202,30 +200,27 @@ class _PasswordFormState extends State<PasswordForm> {
                 TextFormField(
                   controller: confirmController,
                   obscureText: obscureConfirm,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                  ],
                   validator: (value) {
-                    if (value == null ||
-                        value.isEmpty) {
+                    if (value == null || value.isEmpty) {
                       return 'Confirma tu contraseña';
                     }
 
-                    if (value !=
-                        passwordController.text) {
+                    if (value != passwordController.text) {
                       return 'Las contraseñas no coinciden';
                     }
 
                     return null;
                   },
                   decoration: InputDecoration(
-                    labelText:
-                        'Confirmar Contraseña',
-                    prefixIcon: const Icon(
-                      Icons.lock_outline,
-                    ),
+                    labelText: 'Confirmar Contraseña',
+                    prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
-                          obscureConfirm =
-                              !obscureConfirm;
+                          obscureConfirm = !obscureConfirm;
                         });
                       },
                       icon: Icon(

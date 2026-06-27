@@ -62,15 +62,11 @@ class _LoginFormState extends State<LoginForm> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthSuccess) {
-          context.go('/home');
-        } else if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
-        }
-      },
+    listener: (context, state) {
+      if (state is AuthSuccess) {
+        context.go('/home');
+      }
+    },
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           final isLoading = state is AuthLoading;
@@ -127,6 +123,21 @@ class _LoginFormState extends State<LoginForm> {
                 ),
 
                 const SizedBox(height: 30),
+
+                if (state is AuthError)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        state.message,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
 
                 SizedBox(
                   width: double.infinity,
