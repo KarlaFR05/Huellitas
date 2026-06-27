@@ -30,4 +30,5 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Token> login(String correo, String password) async {
     return await remoteDataSource.login(correo, password);
   }
+
 }
