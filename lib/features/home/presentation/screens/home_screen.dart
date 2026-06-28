@@ -31,18 +31,28 @@ class _HomeScreenState extends State<HomeScreen> {
   final MapController _mapController = MapController();
   LatLng? _userLocation;
   StreamSubscription<Position>? _positionStream;
+  Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
-    _cargarReportes();
+    _cargarReportes(esCargaInicial: true);
     _iniciarSeguimientoUbicacion();
+    _iniciarPolling();
   }
 
   @override
   void dispose() {
     _positionStream?.cancel(); // para no dejar el GPS encendido
+    _pollingTimer
+        ?.cancel(); // importante para no dejarlo corriendo en background
     super.dispose();
+  }
+
+  void _iniciarPolling() {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 12), (_) {
+      _cargarReportes();
+    });
   }
 
   Future<void> _iniciarSeguimientoUbicacion() async {
@@ -63,7 +73,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _cargarReportes() async {
+  Future<void> _cargarReportes({bool esCargaInicial = false}) async {
+    if (esCargaInicial) setState(() => _cargando = true);
     try {
       final dio = Dio(
         BaseOptions(
