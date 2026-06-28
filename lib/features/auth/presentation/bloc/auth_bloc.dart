@@ -35,15 +35,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
+
     try {
-      final tokenResponse = await loginUseCase.call(event.correo, event.password);
-      if (tokenResponse.user != null) {
-        emit(AuthSuccess(message: 'Login exitoso', data: tokenResponse.user));
-      } else {
-        emit(AuthError(message: 'No se pudieron obtener los datos del usuario'));
-      }
+      final token = await loginUseCase(
+        event.correo,
+        event.password,
+      );
+
+      emit(
+        AuthSuccess(
+          message: 'Inicio de sesión exitoso',
+          data: token.user,
+        ),
+      );
     } catch (e) {
-      emit(AuthError(message: e.toString()));
+      emit(
+        AuthError(
+          message: 'Correo o contraseña incorrectos.',
+        ),
+      );
     }
   }
 }

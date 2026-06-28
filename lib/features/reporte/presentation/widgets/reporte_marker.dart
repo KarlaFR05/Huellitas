@@ -161,11 +161,11 @@ enum ReportUrgency {
   Color get color {
     switch (this) {
       case ReportUrgency.baja:
-        return const Color(0xFF43A047);
-      case ReportUrgency.media:
         return const Color(0xFFFBC02D);
+      case ReportUrgency.media:
+        return const Color.fromARGB(255, 210, 94, 48);
       case ReportUrgency.alta:
-        return const Color(0xFFE53935);
+        return const Color.fromARGB(255, 215, 38, 35);
       case ReportUrgency.critica:
         return const Color(0xFF8B0000);
     }
