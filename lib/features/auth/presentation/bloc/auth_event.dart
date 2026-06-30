@@ -27,3 +27,5 @@ class RegisterEvent extends AuthEvent {
     required this.fechaNacimiento,
   });
 }
+
+class LogoutEvent extends AuthEvent {}

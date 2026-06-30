@@ -14,6 +14,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }) : super(AuthInitial()) {
     on<RegisterEvent>(_onRegister);
     on<LoginEvent>(_onLogin);
+    on<LogoutEvent>((event, emit) async {
+      emit(AuthInitial());
+    });
   }
 
   Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {

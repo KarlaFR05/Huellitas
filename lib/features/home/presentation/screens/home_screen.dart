@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
-import '../../../reporte/presentation/widgets/map_widget.dart';
-import '../../../reporte/presentation/widgets/reporte_marker.dart';
+import '../widgets/map_widget.dart';
+import '../widgets/reporte_marker.dart';
 import '../../../reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import '../../../reporte/data/repositories/reporte_repository_impl.dart';
 import '../../../reporte/domain/usecases/get_reportes_usecase.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/domain/entities/usuario.dart';
+import '../widgets/bottom_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -107,7 +108,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const _BottomBar(),
+      bottomNavigationBar: const BottomBarWidget(
+        currentIndex: 0,
+      ),
     );
   }
 }
@@ -184,31 +187,3 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _BottomBar extends StatelessWidget {
-  const _BottomBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 75,
-      margin: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF57C29A),
-        borderRadius: BorderRadius.circular(40),
-      ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Icon(Icons.home_outlined, color: Colors.white),
-          Icon(Icons.chat_bubble_outline, color: Colors.white, size: 22),
-          Icon(
-            Icons.volunteer_activism_outlined,
-            color: Colors.white,
-            size: 28,
-          ),
-          Icon(Icons.person_outline, color: Colors.white),
-        ],
-      ),
-    );
-  }
-}
