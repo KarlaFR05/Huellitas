@@ -6,8 +6,10 @@ import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import '../../../reporte/presentation/widgets/map_widget.dart';
-import '../../../reporte/presentation/widgets/reporte_marker.dart';
+import '../../../home/presentation/widgets/map_widget.dart';
+import '../../../home/presentation/widgets/reporte_marker.dart';
+import '../widgets/map_widget.dart';
+import '../widgets/reporte_marker.dart';
 import '../../../reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import '../../../reporte/data/repositories/reporte_repository_impl.dart';
 import '../../../reporte/domain/usecases/get_reportes_usecase.dart';
@@ -15,6 +17,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../reporte/presentation/location_service.dart';
+import '../widgets/bottom_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -157,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const _BottomBar(),
+      bottomNavigationBar: const BottomBarWidget(currentIndex: 0),
     );
   }
 }

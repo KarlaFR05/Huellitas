@@ -8,7 +8,7 @@ import 'bloc/reporte_event.dart';
 import 'bloc/reporte_state.dart';
 import '../domain/entities/reporte.dart';
 import 'package:go_router/go_router.dart';
-import 'widgets/bottom_bar.dart';
+import '../../home/presentation/widgets/bottom_bar.dart';
 import 'location_service.dart';
 
 class ReportFormScreen extends StatefulWidget {
@@ -826,8 +826,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             ],
           ),
         ),
-        bottomNavigationBar: BottomBarWidget(
-          onHomePressed: _showExitConfirmationDialog,
+        bottomNavigationBar: const BottomBarWidget(
+          currentIndex: 0,
         ),
       ),
     );

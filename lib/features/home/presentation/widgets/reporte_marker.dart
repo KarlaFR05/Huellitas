@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../domain/entities/reporte.dart';
+import '../../../reporte/domain/entities/reporte.dart';
 
 final List<ReportMapMarker> demoReportMarkers = [
   ReportMapMarker(
@@ -163,7 +163,7 @@ enum ReportUrgency {
       case ReportUrgency.baja:
         return const Color(0xFFFBC02D);
       case ReportUrgency.media:
-        return const Color.fromARGB(255, 210, 94, 48);
+        return const Color.fromARGB(255, 209, 105, 63);
       case ReportUrgency.alta:
         return const Color.fromARGB(255, 215, 38, 35);
       case ReportUrgency.critica:

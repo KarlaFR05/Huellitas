@@ -9,6 +9,18 @@ import 'package:huellitas/features/auth/presentation/screens/login_screen.dart';
 import 'package:huellitas/features/auth/presentation/screens/registro_screen.dart';
 import 'package:huellitas/features/auth/presentation/screens/password_screen.dart';
 import 'package:huellitas/features/home/presentation/screens/home_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/perfil_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/editar_perfil_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/privacidad_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/insignias_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/configuracion_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/ayuda_screen.dart';
+import 'package:huellitas/features/completar_registro/presentation/screens/completar_perfil_screen.dart';
+import 'package:huellitas/features/completar_registro/presentation/screens/verificar_frente_screen.dart';
+import 'package:huellitas/features/completar_registro/presentation/screens/verificar_reverso_screen.dart';
+import 'package:huellitas/features/completar_registro/presentation/screens/selfie_screen.dart';
+import 'package:huellitas/features/completar_registro/presentation/screens/perfil_completo_screen.dart';
+
 
 import 'package:huellitas/features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_repository_impl.dart';
@@ -27,7 +39,11 @@ import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
 final GoRouter router = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+    GoRoute(
+      path: '/', 
+      builder: (context, state) => const SplashScreen()
+    ),
+
     GoRoute(
       path: '/welcome',
       builder: (context, state) => const WelcomeScreen(),
@@ -37,10 +53,80 @@ final GoRouter router = GoRouter(
       path: '/password',
       builder: (context, state) => const PasswordScreen(),
     ),
-    GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+
+    GoRoute(
+      path: '/home', 
+      builder: (context, state) => const HomeScreen()
+    ),
+
     GoRoute(
       path: '/report-success',
       builder: (context, state) => const ReportSuccessScreen(),
+    ),
+
+    GoRoute(
+      path: '/login', 
+      builder: (context, state) => const LoginScreen()
+    ),
+
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegistroScreen(),
+    ),
+
+    GoRoute(
+      path: '/perfil',
+      builder: (context, state) => const PerfilScreen(),
+    ),
+
+    GoRoute(
+      path: '/editar-perfil',
+      builder: (context, state) => const EditarPerfilScreen(),
+    ),
+
+    GoRoute(
+      path: '/insignias',
+      builder: (context, state) => const InsigniasScreen(),
+    ),
+
+    GoRoute(
+      path: '/privacidad',
+      builder: (context, state) => const PrivacidadScreen(),
+    ),
+
+    GoRoute(
+      path: '/configuracion',
+      builder: (context, state) => const ConfiguracionScreen(),
+    ),
+
+    GoRoute(
+      path: '/ayuda',
+      builder: (context, state) => const AyudaScreen(),
+    ),
+
+    GoRoute(
+      path: '/completar-perfil',
+      builder: (context, state) => const CompletarPerfilScreen(),
+    ),
+
+    GoRoute(
+      path: '/verificar-frente',
+      builder: (context, state) => const VerificarFrenteScreen(),
+    ),
+
+    GoRoute(
+      path: '/verificar-reverso',
+      builder: (context, state) => const VerificarReversoScreen(),
+    ),
+
+    GoRoute(
+      path: '/selfie',
+      builder: (context, state) => const SelfieScreen(),
+    ),
+
+    GoRoute(
+      path: '/perfil_completo',
+      builder: (context, state) => const PerfilCompletoScreen(),
     ),
 
     GoRoute(
@@ -75,11 +161,6 @@ final GoRouter router = GoRouter(
           ),
         );
       },
-    ),
-    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-    GoRoute(
-      path: '/register',
-      builder: (context, state) => const RegistroScreen(),
     ),
   ],
 );
