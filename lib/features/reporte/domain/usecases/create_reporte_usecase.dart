@@ -14,6 +14,7 @@ class CreateReporteUseCase {
       evidenciaUrl = await repository.subirEvidencia(imagenes.first);
     }
     final reporteConEvidencia = Reporte(
+      id: reporte.id,
       tipoAnimalId: reporte.tipoAnimalId,
       tipoReporteId: reporte.tipoReporteId,
       urgenciaId: reporte.urgenciaId,

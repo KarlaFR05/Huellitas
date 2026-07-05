@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-
+import 'package:go_router/go_router.dart';
 import 'reporte_marker.dart';
 
 class MapWidget extends StatefulWidget {
@@ -74,7 +74,7 @@ class _MapWidgetState extends State<MapWidget> {
                 ),
               ),
             ),
-            if (widget.userLocation != null) // ✅ Punto azul del usuario
+            if (widget.userLocation != null)
               Marker(
                 point: widget.userLocation!,
                 width: 24,
@@ -91,70 +91,105 @@ class _MapWidgetState extends State<MapWidget> {
     showModalBottomSheet(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  _StatusDot(color: report.urgency.color),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      report.tipoReporte,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    _StatusDot(color: report.urgency.color),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        report.tipoReporte,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  Icon(
-                    report.animal.icon,
-                    color: report.urgency.color,
-                    size: 28,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              if (report.fotoUrl != null) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    report.fotoUrl!,
-                    height: 150,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                  ),
+                    Icon(
+                      report.animal.icon,
+                      color: report.urgency.color,
+                      size: 28,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
+                if (report.fotoUrl != null) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      report.fotoUrl!,
+                      height: 150,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                _InfoRow(label: 'Tipo', value: report.tipoReporte),
+                _InfoRow(label: 'Urgencia', value: report.urgency.label),
+                _InfoRow(label: 'Animal', value: report.animal.label),
+                _InfoRow(label: 'Tamano', value: report.tamano),
+                _InfoRow(label: 'Ubicacion', value: report.ubicacion),
+                _InfoRow(
+                  label: 'Radio',
+                  value: '${report.radiusMeters.round()} m',
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  report.description,
+                  style: const TextStyle(fontSize: 15, height: 1.35),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Ubicacion aproximada por seguridad.',
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    if (report.reporteId == null) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Este reporte no tiene ID válido'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+                    Navigator.pop(context);
+                    context.push('/reporte-estado/${report.reporteId}');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF57C29A),
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Ver estado del reporte',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
               ],
-              _InfoRow(label: 'Tipo', value: report.tipoReporte),
-              _InfoRow(label: 'Urgencia', value: report.urgency.label),
-              _InfoRow(label: 'Animal', value: report.animal.label),
-              _InfoRow(label: 'Tamano', value: report.tamano),
-              _InfoRow(label: 'Ubicacion', value: report.ubicacion),
-              _InfoRow(
-                label: 'Radio',
-                value: '${report.radiusMeters.round()} m',
-              ),
-              const SizedBox(height: 12),
-              Text(
-                report.description,
-                style: const TextStyle(fontSize: 15, height: 1.35),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Ubicacion aproximada por seguridad.',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-            ],
+            ),
           ),
         );
       },
