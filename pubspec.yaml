@@ -34,3 +34,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/insignias/donacion/
+    - assets/images/insignias/reporte/
+    - assets/images/insignias/rescate/

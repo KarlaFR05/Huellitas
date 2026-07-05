@@ -70,25 +70,27 @@ class InsigniaCard extends StatelessWidget {
   }
 
   Widget _buildInsigniaImage() {
-    if (insignia.imagenUrl != null && insignia.imagenUrl!.isNotEmpty) {
-      return Image.network(
-        insignia.imagenUrl!,
-        width: 60,
-        height: 60,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Icon(
+    final rutaImagen = _getRutaImagen();
+    
+    return Image.asset(
+      rutaImagen,
+      width: 60,
+      height: 60,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) {
+        return Icon(
           _getIconoPorCategoria(),
           size: 40,
           color: _getColorPorCategoria(),
-        ),
-      );
-    }
-    
-    return Icon(
-      _getIconoPorCategoria(),
-      size: 40,
-      color: _getColorPorCategoria(),
+        );
+      },
     );
+  }
+
+  String _getRutaImagen() {
+    final categoria = insignia.categoria.name.toLowerCase();
+    final nivel = insignia.nivel;
+    return 'assets/images/insignias/$categoria/${categoria}_$nivel.png';
   }
 
   IconData _getIconoPorCategoria() {
@@ -123,6 +125,12 @@ class InsigniaCard extends StatelessWidget {
         return '5ta';
       case 10:
         return '10ma';
+      case 25:
+        return '25';
+      case 50:
+        return '50';
+      case 100:
+        return '100';
       default:
         return '${insignia.nivel}';
     }
