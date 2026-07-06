@@ -3,18 +3,29 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-import 'package:huellitas/features/splash/splash_screen.dart';
-import 'package:huellitas/features/welcome/welcome_screen.dart';
-import 'package:huellitas/features/auth/presentation/login_screen.dart';
-import 'package:huellitas/features/auth/registro_screen.dart';
-import 'package:huellitas/features/auth/password_screen.dart';
-import 'package:huellitas/features/home/home_screen.dart';
-
+import 'package:huellitas/features/splash/presentation/screens/splash_screen.dart';
+import 'package:huellitas/features/welcome/presentation/screens/welcome_screen.dart';
+import 'package:huellitas/features/auth/presentation/screens/login_screen.dart';
+import 'package:huellitas/features/auth/presentation/screens/registro_screen.dart';
+import 'package:huellitas/features/auth/presentation/screens/password_screen.dart';
+import 'package:huellitas/features/home/presentation/screens/home_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/perfil_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/editar_perfil_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/privacidad_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/configuracion_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/ayuda_screen.dart';
+import 'package:huellitas/features/completar_registro/presentation/screens/completar_perfil_screen.dart';
+import 'package:huellitas/features/completar_registro/presentation/screens/verificar_frente_screen.dart';
+import 'package:huellitas/features/completar_registro/presentation/screens/verificar_reverso_screen.dart';
+import 'package:huellitas/features/completar_registro/presentation/screens/selfie_screen.dart';
+import 'package:huellitas/features/completar_registro/presentation/screens/perfil_completo_screen.dart';
 import 'package:huellitas/features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/create_reporte_usecase.dart';
 
-import 'package:huellitas/features/reporte/presentation/bloc/reporte_event.dart';
+import 'package:huellitas/features/reporte/presentation/report_success_screen.dart';
+import 'package:huellitas/features/reporte/presentation/report_form_screen.dart';
+
 import 'package:huellitas/features/reporte/data/datasources/catalog_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/catalog_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/get_animal_types.dart';
@@ -22,9 +33,7 @@ import 'package:huellitas/features/reporte/domain/usecases/get_report_types.dart
 import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.dart';
 
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
-import 'package:huellitas/features/reporte/presentation/report_form_screen.dart';
 
-import 'package:huellitas/features/reporte/presentation/report_success_screen.dart';
 //registro e incio de sesion
 import 'package:huellitas/features/auth/data/datasources/auth_remote_datasource_impl.dart';
 import 'package:huellitas/features/auth/data/repositories/auth_repository_impl.dart';
@@ -32,27 +41,98 @@ import 'package:huellitas/features/auth/domain/usecases/registro_usecase.dart';
 import 'package:huellitas/features/auth/domain/usecases/login_usecase.dart';
 import 'package:huellitas/features/auth/presentation/bloc/auth_bloc.dart';
 
+import 'package:huellitas/features/insignias/data/datasources/insignia_remote_datasource.dart';
+import 'package:huellitas/features/insignias/data/repositories/insignia_repository_impl.dart';
+import 'package:huellitas/features/insignias/domain/usecases/get_insignias_usuario_usecase.dart';
+import 'package:huellitas/features/insignias/presentation/bloc/insignia_bloc.dart';
+import 'package:huellitas/features/insignias/presentation/screens/insignias_screen.dart';
+
 final GoRouter router = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+    GoRoute(
+      path: '/', 
+      builder: (context, state) => const SplashScreen(),
+    ),
+
     GoRoute(
       path: '/welcome',
       builder: (context, state) => const WelcomeScreen(),
     ),
-    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-    GoRoute(
-      path: '/register',
-      builder: (context, state) => const RegistroScreen(),
-    ),
+
     GoRoute(
       path: '/password',
       builder: (context, state) => const PasswordScreen(),
     ),
-    GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+
+    GoRoute(
+      path: '/home', 
+      builder: (context, state) => const HomeScreen(),
+    ),
+
     GoRoute(
       path: '/report-success',
       builder: (context, state) => const ReportSuccessScreen(),
+    ),
+
+    GoRoute(
+      path: '/login', 
+      builder: (context, state) => const LoginScreen(),
+    ),
+
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegistroScreen(),
+    ),
+
+    GoRoute(
+      path: '/perfil',
+      builder: (context, state) => const PerfilScreen(),
+    ),
+
+    GoRoute(
+      path: '/editar-perfil',
+      builder: (context, state) => const EditarPerfilScreen(),
+    ),
+
+    GoRoute(
+      path: '/privacidad',
+      builder: (context, state) => const PrivacidadScreen(),
+    ),
+
+    GoRoute(
+      path: '/configuracion',
+      builder: (context, state) => const ConfiguracionScreen(),
+    ),
+
+    GoRoute(
+      path: '/ayuda',
+      builder: (context, state) => const AyudaScreen(),
+    ),
+
+    GoRoute(
+      path: '/completar-perfil',
+      builder: (context, state) => const CompletarPerfilScreen(),
+    ),
+
+    GoRoute(
+      path: '/verificar-frente',
+      builder: (context, state) => const VerificarFrenteScreen(),
+    ),
+
+    GoRoute(
+      path: '/verificar-reverso',
+      builder: (context, state) => const VerificarReversoScreen(),
+    ),
+
+    GoRoute(
+      path: '/selfie',
+      builder: (context, state) => const SelfieScreen(),
+    ),
+
+    GoRoute(
+      path: '/perfil_completo',
+      builder: (context, state) => const PerfilCompletoScreen(),
     ),
 
     GoRoute(
@@ -61,8 +141,9 @@ final GoRouter router = GoRouter(
         final dio = Dio(
           BaseOptions(
             baseUrl: 'https://huellitas-backend-xekn.onrender.com',
-            connectTimeout: const Duration(seconds: 7),
-            receiveTimeout: const Duration(seconds: 5),
+            connectTimeout: const Duration(seconds: 30),
+            receiveTimeout: const Duration(seconds: 30),
+            sendTimeout: const Duration(seconds: 30),
           ),
         );
 
@@ -83,6 +164,30 @@ final GoRouter router = GoRouter(
               getUrgencyLevels: GetUrgencyLevels(catalogRepository),
             ),
             child: const ReportFormScreen(),
+          ),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: '/insignias',
+      pageBuilder: (context, state) {
+        final dio = Dio(
+          BaseOptions(
+            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
+            connectTimeout: const Duration(seconds: 30),
+            receiveTimeout: const Duration(seconds: 30),
+          ),
+        );
+
+        final dataSource = InsigniaRemoteDataSourceImpl(dio);
+        final repository = InsigniaRepositoryImpl(dataSource);
+        final useCase = GetInsigniasUsuarioUseCase(repository);
+
+        return MaterialPage(
+          child: BlocProvider(
+            create: (_) => InsigniaBloc(getInsignias: useCase),
+            child: const InsigniasScreen(),
           ),
         );
       },

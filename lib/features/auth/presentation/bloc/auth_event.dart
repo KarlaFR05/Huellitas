@@ -1,25 +1,31 @@
 abstract class AuthEvent {}
 
-class LoginPressed extends AuthEvent {
-  final String email;
+class LoginEvent extends AuthEvent {
+  final String correo;
   final String password;
 
-  LoginPressed({
-    required this.email,
+  LoginEvent({
+    required this.correo,
     required this.password,
   });
 }
 
-class RegisterPressed extends AuthEvent {
-  final String nombres;
-  final String apellidos;
-  final String telefono;
+class RegisterEvent extends AuthEvent {
   final String correo;
+  final String password;
+  final String nombre;
+  final String apellidos;
+  final String numTelefono;
+  final DateTime fechaNacimiento;
 
-  RegisterPressed({
-    required this.nombres,
-    required this.apellidos,
-    required this.telefono,
+  RegisterEvent({
     required this.correo,
+    required this.password,
+    required this.nombre,
+    required this.apellidos,
+    required this.numTelefono,
+    required this.fechaNacimiento,
   });
 }
+
+class LogoutEvent extends AuthEvent {}
