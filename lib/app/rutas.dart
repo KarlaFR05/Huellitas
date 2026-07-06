@@ -12,7 +12,6 @@ import 'package:huellitas/features/home/presentation/screens/home_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/perfil_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/editar_perfil_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/privacidad_screen.dart';
-import 'package:huellitas/features/perfil/presentation/screens/insignias_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/configuracion_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/ayuda_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/completar_perfil_screen.dart';
@@ -20,7 +19,6 @@ import 'package:huellitas/features/completar_registro/presentation/screens/verif
 import 'package:huellitas/features/completar_registro/presentation/screens/verificar_reverso_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/selfie_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/perfil_completo_screen.dart';
-
 
 import 'package:huellitas/features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_repository_impl.dart';
@@ -36,12 +34,18 @@ import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.da
 
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
 
+import 'package:huellitas/features/insignias/data/datasources/insignia_remote_datasource.dart';
+import 'package:huellitas/features/insignias/data/repositories/insignia_repository_impl.dart';
+import 'package:huellitas/features/insignias/domain/usecases/get_insignias_usuario_usecase.dart';
+import 'package:huellitas/features/insignias/presentation/bloc/insignia_bloc.dart';
+import 'package:huellitas/features/insignias/presentation/screens/insignias_screen.dart';
+
 final GoRouter router = GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(
       path: '/', 
-      builder: (context, state) => const SplashScreen()
+      builder: (context, state) => const SplashScreen(),
     ),
 
     GoRoute(
@@ -56,7 +60,7 @@ final GoRouter router = GoRouter(
 
     GoRoute(
       path: '/home', 
-      builder: (context, state) => const HomeScreen()
+      builder: (context, state) => const HomeScreen(),
     ),
 
     GoRoute(
@@ -66,7 +70,7 @@ final GoRouter router = GoRouter(
 
     GoRoute(
       path: '/login', 
-      builder: (context, state) => const LoginScreen()
+      builder: (context, state) => const LoginScreen(),
     ),
 
     GoRoute(
@@ -82,11 +86,6 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/editar-perfil',
       builder: (context, state) => const EditarPerfilScreen(),
-    ),
-
-    GoRoute(
-      path: '/insignias',
-      builder: (context, state) => const InsigniasScreen(),
     ),
 
     GoRoute(
@@ -158,6 +157,30 @@ final GoRouter router = GoRouter(
               getUrgencyLevels: GetUrgencyLevels(catalogRepository),
             ),
             child: const ReportFormScreen(),
+          ),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: '/insignias',
+      pageBuilder: (context, state) {
+        final dio = Dio(
+          BaseOptions(
+            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
+            connectTimeout: const Duration(seconds: 30),
+            receiveTimeout: const Duration(seconds: 30),
+          ),
+        );
+
+        final dataSource = InsigniaRemoteDataSourceImpl(dio);
+        final repository = InsigniaRepositoryImpl(dataSource);
+        final useCase = GetInsigniasUsuarioUseCase(repository);
+
+        return MaterialPage(
+          child: BlocProvider(
+            create: (_) => InsigniaBloc(getInsignias: useCase),
+            child: const InsigniasScreen(),
           ),
         );
       },

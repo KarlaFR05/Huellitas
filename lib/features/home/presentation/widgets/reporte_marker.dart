@@ -51,6 +51,7 @@ final List<ReportMapMarker> demoReportMarkers = [
 ];
 
 class ReportMapMarker {
+  final int? reporteId;
   final String tipoReporte;
   final String description;
   final String ubicacion;
@@ -62,6 +63,7 @@ class ReportMapMarker {
   final ReportUrgency urgency;
 
   const ReportMapMarker({
+    this.reporteId,
     required this.tipoReporte,
     required this.description,
     required this.ubicacion,
@@ -75,6 +77,7 @@ class ReportMapMarker {
 
   factory ReportMapMarker.fromReporte(Reporte reporte) {
     return ReportMapMarker(
+      reporteId: reporte.id,
       tipoReporte: _tipoReporteLabel(reporte.tipoReporteId),
       description: reporte.descripcion,
       ubicacion: reporte.ubicacion,

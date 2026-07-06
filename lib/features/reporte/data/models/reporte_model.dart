@@ -2,6 +2,7 @@ import '../../domain/entities/reporte.dart';
 
 class ReporteModel extends Reporte {
   ReporteModel({
+    super.id,
     required super.tipoAnimalId,
     required super.tipoReporteId,
     required super.urgenciaId,
@@ -17,6 +18,7 @@ class ReporteModel extends Reporte {
 
   factory ReporteModel.fromEntity(Reporte reporte) {
     return ReporteModel(
+      id: reporte.id,
       tipoAnimalId: reporte.tipoAnimalId,
       tipoReporteId: reporte.tipoReporteId,
       urgenciaId: reporte.urgenciaId,
@@ -33,6 +35,7 @@ class ReporteModel extends Reporte {
 
   Map<String, dynamic> toJson() {
     return {
+      if (id !=null)'id':id,
       'tipo_animal': tipoAnimalId,
       'raza_id': raza,
       'tipo_reporte': tipoReporteId,
@@ -48,8 +51,8 @@ class ReporteModel extends Reporte {
   }
 
   factory ReporteModel.fromJson(Map<String, dynamic> json) {
-    // ✅ Agregar
     return ReporteModel(
+      id: json['id'],
       tipoAnimalId: json['tipo_animal'] ?? 0,
       tipoReporteId: json['tipo_reporte'] ?? 0,
       urgenciaId: json['urgencia_id'] ?? 0,

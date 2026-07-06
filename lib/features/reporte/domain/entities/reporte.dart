@@ -1,4 +1,5 @@
 class Reporte {
+  final int? id;
   final int tipoAnimalId;
   final int tipoReporteId;
   final int urgenciaId;
@@ -12,6 +13,7 @@ class Reporte {
   final double longitud;
 
   Reporte({
+    this.id,
     required this.tipoAnimalId,
     required this.tipoReporteId,
     required this.urgenciaId,
