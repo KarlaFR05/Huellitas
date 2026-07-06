@@ -54,8 +54,8 @@ class _MapWidgetState extends State<MapWidget> {
                   point: marker.location,
                   radius: marker.radiusMeters,
                   useRadiusInMeter: true,
-                  color: marker.urgency.color.withOpacity(.18),
-                  borderColor: marker.urgency.color.withOpacity(.45),
+                  color: marker.urgency.color.withValues(alpha: .18),
+                  borderColor: marker.urgency.color.withValues(alpha: .45),
                   borderStrokeWidth: 2,
                 ),
               )
@@ -132,7 +132,7 @@ class _MapWidgetState extends State<MapWidget> {
                       height: 150,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -205,7 +205,7 @@ class _UserLocationDot extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.blue.withOpacity(0.3),
+        color: Colors.blue.withValues(alpha: 0.3),
       ),
       child: Center(
         child: Container(
@@ -216,7 +216,7 @@ class _UserLocationDot extends StatelessWidget {
             color: Colors.blue,
             border: Border.all(color: Colors.white, width: 2),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4),
             ],
           ),
         ),

@@ -1,99 +1,148 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:async';
 import '../../../../styles/constantes/app_colors.dart';
+import '../../home/presentation/widgets/bottom_bar.dart';
 
-class ActualizarEstadoErrorScreen extends StatelessWidget {
+class ActualizarEstadoErrorScreen extends StatefulWidget {
   const ActualizarEstadoErrorScreen({super.key});
+
+  @override
+  State<ActualizarEstadoErrorScreen> createState() =>
+      _ActualizarEstadoErrorScreenState();
+}
+
+class _ActualizarEstadoErrorScreenState
+    extends State<ActualizarEstadoErrorScreen> {
+  int _secondsRemaining = 5;
+  late Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_secondsRemaining > 1) {
+        setState(() {
+          _secondsRemaining--;
+        });
+      } else {
+        timer.cancel();
+        context.go('/home');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          onPressed: () {
+            _timer.cancel();
+            context.pop();
+          },
+        ),
+        title: const Text(
+          'Error',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-                    onPressed: () => context.pop(),
-                  ),
-                  const Expanded(
-                    child: Text(
-                      'Reporte',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(width: 48),
-                ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 120,
+                color: Colors.red,
               ),
-            ),
-            Expanded(
-              child: Column(
+              const SizedBox(height: 32),
+              const Text(
+                'Error al Actualizar',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'No se pudo actualizar el estado del reporte.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 48),
+              // Contador regresivo
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const CircleAvatar(
-                    radius: 80,
-                    backgroundColor: Color(0xFFFDECEA),
-                    child: CircleAvatar(
-                      radius: 70,
-                      backgroundColor: AppColors.background,
-                      child: Icon(Icons.close,
-                          size: 80, color: Color(0xFFC62828)),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
                   const Text(
-                    'La actualización falló',
+                    'Regresando al inicio en ',
                     style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Vuelve a intentarlo',
-                    style: TextStyle(
+                      fontSize: 14,
                       color: AppColors.textSecondary,
-                      fontSize: 16,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: 200,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () => context.pop(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Intentar de nuevo',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
+                  Text(
+                    '$_secondsRemaining',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const Text(
+                    ' segundos...',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: 200,
+                child: LinearProgressIndicator(
+                  value: (5 - _secondsRemaining) / 5,
+                  backgroundColor: Colors.grey.shade200,
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    AppColors.primary,
+                  ),
+                  minHeight: 6,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+      bottomNavigationBar: const BottomBarWidget(
+        currentIndex: 0,
       ),
     );
   }

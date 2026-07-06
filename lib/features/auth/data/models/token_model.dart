@@ -2,6 +2,7 @@ import '../../domain/entities/token.dart';
 import 'usuario_model.dart';
 
 class TokenModel extends Token {
+  @override
   final UsuarioModel? user; 
 
   TokenModel({

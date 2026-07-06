@@ -71,7 +71,7 @@ class BottomBarWidget extends StatelessWidget {
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: selected
-              ? Colors.white.withOpacity(.20)
+              ? Colors.white.withValues(alpha: .20)
               : Colors.transparent,
           shape: BoxShape.circle,
         ),

@@ -40,7 +40,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   final LocationService _locationService = LocationService();
 
   // Evidencia (Límite de 1 imagen)
-  List<File> _evidenceImages = [];
+  final List<File> _evidenceImages = [];
   final ImagePicker _picker = ImagePicker();
 
   // Listas locales (Mantenidas para que tu UI funcione perfectamente)
@@ -153,7 +153,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   // --- IMÁGENES ---
 
   Future<void> _pickImage(ImageSource source) async {
-    if (_evidenceImages.length >= 1) {
+    if (_evidenceImages.isNotEmpty) {
       _showErrorDialog('Solo puedes subir 1 imagen');
       return;
     }
@@ -269,7 +269,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         margin: const EdgeInsets.only(left: 8),
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
+          color: AppColors.primary.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(Icons.info_outline, color: AppColors.primary, size: 18),
@@ -282,18 +282,18 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GestureDetector(
-          onTap: _evidenceImages.length >= 1 ? null : _showImageSourceDialog,
+          onTap: _evidenceImages.isNotEmpty ? null : _showImageSourceDialog,
           child: Container(
             height: 120,
             decoration: BoxDecoration(
-              color: _evidenceImages.length >= 1
-                  ? Colors.grey.withOpacity(0.2)
-                  : AppColors.secondary.withOpacity(0.3),
+              color: _evidenceImages.isNotEmpty
+                  ? Colors.grey.withValues(alpha: 0.2)
+                  : AppColors.secondary.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _evidenceImages.length >= 1
-                    ? Colors.grey.withOpacity(0.4)
-                    : AppColors.primary.withOpacity(0.5),
+                color: _evidenceImages.isNotEmpty
+                    ? Colors.grey.withValues(alpha: 0.4)
+                    : AppColors.primary.withValues(alpha: 0.5),
                 width: 2,
               ),
             ),
@@ -303,28 +303,28 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: _evidenceImages.length >= 1
-                        ? Colors.grey.withOpacity(0.2)
-                        : AppColors.primary.withOpacity(0.1),
+                    color: _evidenceImages.isNotEmpty
+                        ? Colors.grey.withValues(alpha: 0.2)
+                        : AppColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    _evidenceImages.length >= 1
+                    _evidenceImages.isNotEmpty
                         ? Icons.block
                         : Icons.add_a_photo,
                     size: 36,
-                    color: _evidenceImages.length >= 1
+                    color: _evidenceImages.isNotEmpty
                         ? Colors.grey
                         : AppColors.primary,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _evidenceImages.length >= 1
+                  _evidenceImages.isNotEmpty
                       ? 'Límite alcanzado'
                       : 'Agregar foto',
                   style: TextStyle(
-                    color: _evidenceImages.length >= 1
+                    color: _evidenceImages.isNotEmpty
                         ? Colors.grey
                         : AppColors.textPrimary,
                     fontSize: 14,
@@ -499,7 +499,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                 child: TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
                   style: TextButton.styleFrom(
-                    backgroundColor: AppColors.secondary.withOpacity(0.3),
+                    backgroundColor: AppColors.secondary.withValues(alpha: 0.3),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -857,7 +857,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: AppColors.secondary.withOpacity(0.3),
+            color: AppColors.secondary.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.secondary),
           ),
@@ -899,7 +899,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: AppColors.secondary.withOpacity(0.3),
+            color: AppColors.secondary.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.secondary),
           ),
@@ -937,7 +937,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.secondary.withOpacity(0.3),
+        color: AppColors.secondary.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.secondary),
       ),
@@ -967,7 +967,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: AppColors.secondary.withOpacity(0.3),
+            color: AppColors.secondary.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.secondary),
           ),

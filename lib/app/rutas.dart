@@ -40,6 +40,13 @@ import 'package:huellitas/features/auth/data/repositories/auth_repository_impl.d
 import 'package:huellitas/features/auth/domain/usecases/registro_usecase.dart';
 import 'package:huellitas/features/auth/domain/usecases/login_usecase.dart';
 import 'package:huellitas/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:huellitas/features/reporte/presentation/bloc/reporte_estado_bloc.dart';
+import 'package:huellitas/features/reporte/presentation/reporte_estado_screen.dart';
+import 'package:huellitas/features/reporte/presentation/reporte_detalle_screen.dart';
+import 'package:huellitas/features/reporte/presentation/actualizar_estado_screen.dart';
+import 'package:huellitas/features/reporte/presentation/actualizar_estado_success_screen.dart';
+import 'package:huellitas/features/reporte/presentation/actualizar_estado_error_screen.dart';
+import 'package:huellitas/features/reporte/domain/entities/reporte_estado.dart';
 
 import 'package:huellitas/features/insignias/data/datasources/insignia_remote_datasource.dart';
 import 'package:huellitas/features/insignias/data/repositories/insignia_repository_impl.dart';
@@ -191,6 +198,51 @@ final GoRouter router = GoRouter(
           ),
         );
       },
+    ),
+
+    GoRoute(
+      path: '/reporte-estado/:id',
+      pageBuilder: (context, state) {
+        final reporteId = int.parse(state.pathParameters['id']!);
+        
+        return MaterialPage(
+          child: BlocProvider(
+            create: (_) => ReporteEstadoBloc(),
+            child: ReporteEstadoScreen(reporteId: reporteId),
+          ),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: '/reporte-detalle',
+      builder: (context, state) {
+        final reporte = state.extra as ReporteEstado;
+        return ReporteDetalleScreen(reporte: reporte);
+      },
+    ),
+
+    GoRoute(
+      path: '/actualizar-estado',
+      pageBuilder: (context, state) {
+        final reporte = state.extra as ReporteEstado;
+        
+        return MaterialPage(
+          child: BlocProvider(
+            create: (_) => ReporteEstadoBloc(),
+            child: ActualizarEstadoScreen(reporte: reporte),
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/actualizar-estado-success',
+      builder: (context, state) => const ActualizarEstadoSuccessScreen(),
+    ),
+
+    GoRoute(
+      path: '/actualizar-estado-error',
+      builder: (context, state) => const ActualizarEstadoErrorScreen(),
     ),
   ],
 );
