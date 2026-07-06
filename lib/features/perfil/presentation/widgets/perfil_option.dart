@@ -25,7 +25,7 @@ class PerfilOption extends StatelessWidget {
       ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: AppColors.primary.withOpacity(.15),
+          backgroundColor: AppColors.primary.withValues(alpha: .15),
           child: Icon(
             icon,
             color: AppColors.primary,

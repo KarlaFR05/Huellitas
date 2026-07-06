@@ -90,7 +90,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                     final authState = context.read<AuthBloc>().state;
                     if (authState is AuthSuccess) {
                       context.read<InsigniaBloc>().add(
-                        CargarInsignias((authState as AuthSuccess).data.usuarioIdPk),
+                        CargarInsignias((authState).data.usuarioIdPk),
                       );
                     }
                   },
@@ -132,7 +132,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                         final authState = context.read<AuthBloc>().state;
                         if (authState is AuthSuccess) {
                           context.read<InsigniaBloc>().add(
-                            CargarInsignias((authState as AuthSuccess).data.usuarioIdPk),
+                            CargarInsignias((authState).data.usuarioIdPk),
                           );
                         }
                       },
@@ -178,7 +178,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                       final authState = context.read<AuthBloc>().state;
                       if (authState is AuthSuccess) {
                         context.read<InsigniaBloc>().add(
-                          CargarInsignias((authState as AuthSuccess).data.usuarioIdPk),
+                          CargarInsignias((authState).data.usuarioIdPk),
                         );
                       }
                     },
@@ -244,7 +244,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.secondary.withOpacity(0.3),
+        color: AppColors.secondary.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(25),
       ),
       child: Row(

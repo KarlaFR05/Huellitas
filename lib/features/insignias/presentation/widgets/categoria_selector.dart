@@ -73,8 +73,8 @@ class _CategoriaChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withOpacity(0.2)
-              : AppColors.secondary.withOpacity(0.3),
+              ? AppColors.primary.withValues(alpha: 0.2)
+              : AppColors.secondary.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? AppColors.primary : Colors.transparent,

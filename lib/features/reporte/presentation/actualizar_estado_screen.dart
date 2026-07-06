@@ -16,8 +16,7 @@ class ActualizarEstadoScreen extends StatefulWidget {
   const ActualizarEstadoScreen({super.key, required this.reporte});
 
   @override
-  State<ActualizarEstadoScreen> createState() =>
-      _ActualizarEstadoScreenState();
+  State<ActualizarEstadoScreen> createState() => _ActualizarEstadoScreenState();
 }
 
 class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
@@ -29,7 +28,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
     final faseActualIndex = FaseReporte.values.indexOf(widget.reporte.faseActual);
     return FaseReporte.values.where((f) {
       final index = FaseReporte.values.indexOf(f);
-      return index >= faseActualIndex; // No permite regresar
+      return index >= faseActualIndex;
     }).toList();
   }
 
@@ -193,22 +192,48 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: cargando ? null : _pickImage,
-                    child: Container(
-                      height: 180,
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.primary, width: 2),
+                  
+                  Center(
+                    child: GestureDetector(
+                      onTap: cargando ? null : _pickImage,
+                      child: Container(
+                        width: double.infinity,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.primary, width: 2),
+                        ),
+                        child: _evidencia != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.file(
+                                  _evidencia!,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                ),
+                              )
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.camera_alt,
+                                    size: 48,
+                                    color: AppColors.primary,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Toca para agregar foto',
+                                    style: TextStyle(
+                                      color: AppColors.primary,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
                       ),
-                      child: _evidencia != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.file(_evidencia!, fit: BoxFit.cover),
-                            )
-                          : const Icon(Icons.camera_alt,
-                              size: 48, color: AppColors.primary),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -229,8 +254,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
                           : const Text(
@@ -257,7 +281,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
       case FaseReporte.requiereAtencion:
         return Colors.red;
       case FaseReporte.recibiendoAtencion:
-        return Colors.orange;
+        return const Color.fromARGB(255, 255, 247, 0);
       case FaseReporte.seEncuentraASalvo:
         return Colors.green;
     }

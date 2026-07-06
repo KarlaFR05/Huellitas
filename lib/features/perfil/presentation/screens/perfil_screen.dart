@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../home/presentation/widgets/bottom_bar.dart';
 import '../../../../styles/constantes/app_colors.dart';
 import '../widgets/perfil_option.dart';

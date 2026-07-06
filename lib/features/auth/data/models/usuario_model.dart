@@ -39,7 +39,7 @@ class UsuarioModel extends Usuario {
       'num_telefono': numTelefono,
       'fecha_nacimiento': fechaNacimiento.toIso8601String().split('T')[0],
       'verificado': verificado,
-      'fecha_registro_usuario': fechaRegistroUsuario?.toIso8601String(),
+      'fecha_registro_usuario': fechaRegistroUsuario.toIso8601String(),
       'rol_usuario': rolUsuario,
     };
   }
