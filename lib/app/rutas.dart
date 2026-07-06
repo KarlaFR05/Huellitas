@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-import 'package:huellitas/features/splash/presentation/screens/splash_screen.dart';
-import 'package:huellitas/features/welcome/presentation/screens/welcome_screen.dart';
-import 'package:huellitas/features/auth/presentation/screens/login_screen.dart';
-import 'package:huellitas/features/auth/presentation/screens/registro_screen.dart';
-import 'package:huellitas/features/auth/presentation/screens/password_screen.dart';
-import 'package:huellitas/features/home/presentation/screens/home_screen.dart';
+import 'package:huellitas/features/splash/splash_screen.dart';
+import 'package:huellitas/features/welcome/welcome_screen.dart';
+import 'package:huellitas/features/auth/presentation/login_screen.dart';
+import 'package:huellitas/features/auth/registro_screen.dart';
+import 'package:huellitas/features/auth/password_screen.dart';
+import 'package:huellitas/features/home/home_screen.dart';
 
 import 'package:huellitas/features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_repository_impl.dart';
@@ -31,7 +31,6 @@ import 'package:huellitas/features/auth/data/repositories/auth_repository_impl.d
 import 'package:huellitas/features/auth/domain/usecases/registro_usecase.dart';
 import 'package:huellitas/features/auth/domain/usecases/login_usecase.dart';
 import 'package:huellitas/features/auth/presentation/bloc/auth_bloc.dart';
-
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -61,7 +60,7 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) {
         final dio = Dio(
           BaseOptions(
-            baseUrl: 'http://192.168.1.68:8000',
+            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
             connectTimeout: const Duration(seconds: 7),
             receiveTimeout: const Duration(seconds: 5),
           ),
