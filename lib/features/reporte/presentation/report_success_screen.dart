@@ -1,12 +1,45 @@
 import 'package:flutter/material.dart';
-
+import 'dart:async';
 import '../../../../styles/constantes/app_colors.dart';
 import 'package:go_router/go_router.dart';
 
-class ReportSuccessScreen extends StatelessWidget {
+class ReportSuccessScreen extends StatefulWidget {
   final bool isSuccess;
 
   const ReportSuccessScreen({super.key, this.isSuccess = true});
+
+  @override
+  State<ReportSuccessScreen> createState() => _ReportSuccessScreenState();
+}
+
+class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
+  int _secondsRemaining = 5;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startCountdown();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startCountdown() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_secondsRemaining > 1) {
+        setState(() {
+          _secondsRemaining--;
+        });
+      } else {
+        timer.cancel();
+        context.go('/home');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +57,10 @@ class ReportSuccessScreen extends StatelessWidget {
                       Icons.arrow_back,
                       color: AppColors.primary,
                     ),
-                    onPressed: () => context.go('/home'),
+                    onPressed: () {
+                      _timer?.cancel();
+                      context.go('/home');
+                    },
                   ),
                   const Expanded(
                     child: Text(
@@ -49,7 +85,7 @@ class ReportSuccessScreen extends StatelessWidget {
                     width: 160,
                     height: 160,
                     decoration: BoxDecoration(
-                      color: isSuccess
+                      color: widget.isSuccess
                           ? AppColors.secondary
                           : Colors.red.shade50,
                       shape: BoxShape.circle,
@@ -62,9 +98,9 @@ class ReportSuccessScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        isSuccess ? Icons.check : Icons.close,
+                        widget.isSuccess ? Icons.check : Icons.close,
                         size: 80,
-                        color: isSuccess
+                        color: widget.isSuccess
                             ? AppColors.primary
                             : Colors.red.shade700,
                       ),
@@ -72,7 +108,7 @@ class ReportSuccessScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 40),
                   Text(
-                    isSuccess
+                    widget.isSuccess
                         ? 'Tu reporte ha sido enviado'
                         : 'Hubo un error al generar el reporte',
                     style: const TextStyle(
@@ -84,7 +120,7 @@ class ReportSuccessScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    isSuccess
+                    widget.isSuccess
                         ? 'Se atenderá lo antes posible'
                         : 'Vuelve a intentarlo',
                     style: const TextStyle(
@@ -93,13 +129,25 @@ class ReportSuccessScreen extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  if (!isSuccess) ...[
+                  const SizedBox(height: 32),
+                  Text(
+                    'Regresando al inicio en $_secondsRemaining segundo${_secondsRemaining == 1 ? '' : 's'}...',
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (!widget.isSuccess) ...[
                     const SizedBox(height: 32),
                     SizedBox(
                       width: 200,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          _timer?.cancel();
+                          Navigator.pop(context);
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           shape: RoundedRectangleBorder(
@@ -134,9 +182,9 @@ class ReportSuccessScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Ícono de inicio - Navega al Home
           GestureDetector(
             onTap: () {
+              _timer?.cancel();
               context.go('/home');
             },
             child: const Column(
