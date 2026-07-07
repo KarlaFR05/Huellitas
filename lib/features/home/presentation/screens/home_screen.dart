@@ -17,6 +17,8 @@ import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../reporte/presentation/location_service.dart';
 import '../widgets/bottom_bar.dart';
+import '../../../../core/verificacion/verificacion_cubit.dart';
+import '../../../../core/widgets/verificado_badge.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -209,10 +211,12 @@ class _Header extends StatelessWidget {
             child: BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
                 String nombreUsuario = 'Usuario';
+                bool usuarioVerificado = false;
 
                 if (state is AuthSuccess && state.data is Usuario) {
                   final usuario = state.data as Usuario;
                   nombreUsuario = usuario.nombre ?? 'Usuario';
+                  usuarioVerificado = usuario.verificado;
                 }
 
                 return Column(
@@ -222,12 +226,29 @@ class _Header extends StatelessWidget {
                       'Bienvenido',
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
-                    Text(
-                      nombreUsuario,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          nombreUsuario,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        BlocBuilder<VerificacionCubit, EstadoVerificacion>(
+                          builder: (context, estadoVerificacion) {
+                            final mostrarBadge =
+                                usuarioVerificado ||
+                                estadoVerificacion ==
+                                    EstadoVerificacion.verificado;
+                            if (!mostrarBadge) return const SizedBox.shrink();
+                            return const Padding(
+                              padding: EdgeInsets.only(left: 6),
+                              child: VerificadoBadge(size: 18),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 );
