@@ -11,6 +11,7 @@ import 'package:huellitas/features/auth/presentation/screens/password_screen.dar
 import 'package:huellitas/features/home/presentation/screens/home_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/perfil_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/editar_perfil_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/mi_perfil_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/privacidad_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/insignias_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/configuracion_screen.dart';
@@ -82,6 +83,11 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/editar-perfil',
       builder: (context, state) => const EditarPerfilScreen(),
+    ),
+
+    GoRoute(
+      path: '/mi-perfil',
+      builder: (_, __) => const MiPerfilScreen(),
     ),
 
     GoRoute(
