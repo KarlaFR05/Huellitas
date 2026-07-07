@@ -5,6 +5,7 @@ import '../bloc/completar_perfil_bloc.dart';
 import '../bloc/completar_perfil_event.dart';
 import '../bloc/completar_perfil_state.dart';
 import '../widgets/foto_card.dart';
+import '../../../../core/verificacion/verificacion_cubit.dart';
 
 class SelfieScreen extends StatelessWidget {
   const SelfieScreen({super.key});
@@ -16,6 +17,7 @@ class SelfieScreen extends StatelessWidget {
       body: BlocConsumer<CompletarPerfilBloc, CompletarPerfilState>(
         listener: (context, state) {
           if (state is CompletarPerfilSuccess) {
+            context.read<VerificacionCubit>().iniciarRevision();
             context.go('/perfil_completo');
           } else if (state is CompletarPerfilError) {
             ScaffoldMessenger.of(

@@ -11,6 +11,7 @@ import 'core/storage/token_storage_service.dart';
 import 'features/completar_registro/data/datasources/completar_perfil_remote_datasource.dart';
 import 'features/completar_registro/data/repositories/completar_perfil_repository_impl.dart';
 import 'features/completar_registro/presentation/bloc/completar_perfil_bloc.dart';
+import 'core/verificacion/verificacion_cubit.dart';
 
 void main() {
   final dio = Dio(
@@ -61,6 +62,7 @@ void main() {
               repository: context.read<CompletarPerfilRepositoryImpl>(),
             ),
           ),
+          BlocProvider(create: (_) => VerificacionCubit()),
         ],
         child: const HuellitasApp(),
       ),
