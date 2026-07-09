@@ -230,7 +230,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                     final insignia = state.insigniasFiltradas[index];
                     return InsigniaCard(
                       insignia: insignia,
-                      obtenida: state.mostrarObtenidas,
+                      obtenida: insignia.obtenida, 
                     );
                   },
                 ),

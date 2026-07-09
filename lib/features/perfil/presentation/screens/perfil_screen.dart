@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:huellitas/features/auth/domain/entities/usuario.dart';
+import 'package:huellitas/features/auth/presentation/bloc/auth_state.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../home/presentation/widgets/bottom_bar.dart';
@@ -21,7 +23,8 @@ class PerfilScreen extends StatelessWidget {
 
       appBar: AppBar(title: const Text("Mi Perfil"), centerTitle: true),
 
-      body: Padding(
+      body: SafeArea(
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
@@ -29,120 +32,139 @@ class PerfilScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            BlocBuilder<VerificacionCubit, EstadoVerificacion>(
-              builder: (context, estado) {
-                final deshabilitado = estado != EstadoVerificacion.noIniciado;
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, authState) {
+                bool yaVerificadoReal = false;
+                if (authState is AuthSuccess && authState.data is Usuario) {
+                  yaVerificadoReal = (authState.data as Usuario).verificado;
+                }
 
-                return Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: deshabilitado
-                            ? null
-                            : () async {
-                                final aceptar = await showDialog<bool>(
-                                  context: context,
-                                  builder: (_) => const CompletarPerfilDialog(),
-                                );
+                return BlocBuilder<VerificacionCubit, EstadoVerificacion>(
+                  builder: (context, estado) {
+                    final enRevisionSimulada =
+                        estado == EstadoVerificacion.enRevision;
+                    final verificadoSimulado =
+                        estado == EstadoVerificacion.verificado;
 
-                                if (aceptar == true) {
-                                  context.push('/completar-perfil');
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor: Colors.grey.shade300,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Completar perfil',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
+                    final estaVerificado =
+                        yaVerificadoReal || verificadoSimulado;
+                    final deshabilitado = estaVerificado || enRevisionSimulada;
 
-                    if (estado == EstadoVerificacion.enRevision) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade50,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.amber.shade300),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.warning_amber_rounded,
-                              color: Colors.amber.shade800,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                'Tu información está siendo evaluada. Pronto te daremos una respuesta sobre tu estatus.',
-                                style: TextStyle(
-                                  color: Colors.amber.shade900,
-                                  fontSize: 13,
-                                ),
+                    return Column(
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: deshabilitado
+                                ? null
+                                : () async {
+                                    final aceptar = await showDialog<bool>(
+                                      context: context,
+                                      builder: (_) =>
+                                          const CompletarPerfilDialog(),
+                                    );
+
+                                    if (aceptar == true) {
+                                      context.push('/completar-perfil');
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              disabledBackgroundColor: Colors.grey.shade300,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
-
-                    if (estado == EstadoVerificacion.verificado) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.deepPurple.shade50,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.deepPurple.shade200),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.verified,
-                              color: Colors.deepPurple.shade400,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                'Ahora eres usuario verificado de Huellitas',
-                                style: TextStyle(
-                                  color: Colors.deepPurple.shade700,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            child: const Text(
+                              'Completar perfil',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ],
+
+                        if (enRevisionSimulada && !yaVerificadoReal) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.amber.shade300),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.amber.shade800,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Tu información está siendo evaluada. Pronto te daremos una respuesta sobre tu estatus.',
+                                    style: TextStyle(
+                                      color: Colors.amber.shade900,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        if (estaVerificado) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.deepPurple.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: Colors.deepPurple.shade200,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.verified,
+                                  color: Colors.deepPurple.shade400,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Ahora eres usuario verificado de Huellitas',
+                                    style: TextStyle(
+                                      color: Colors.deepPurple.shade700,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
                 );
               },
             ),
 
-            SizedBox(height: 35),
+            SizedBox(height: 30),
 
             PerfilOption(
               icon: Icons.person_outline,
-              titulo: 'Perfil',
+              titulo: 'Mi Perfil',
               onTap: () {
-                context.push('/editar-perfil');
+                context.push('/mi-perfil');
               },
             ),
 
@@ -198,6 +220,7 @@ class PerfilScreen extends StatelessWidget {
                           Navigator.pop(context);
 
                           context.read<AuthBloc>().add(LogoutEvent());
+                          context.read<VerificacionCubit>().resetear();
 
                           context.go('/login');
                         },
@@ -211,6 +234,7 @@ class PerfilScreen extends StatelessWidget {
           ],
         ),
       ),
+    ),
 
       bottomNavigationBar: const BottomBarWidget(currentIndex: 3),
     );

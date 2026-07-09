@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
-import '../../../../styles/constantes/app_colors.dart';
 
 class PerfilHeader extends StatelessWidget {
   const PerfilHeader({super.key});
@@ -13,14 +13,13 @@ class PerfilHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
-        String nombre = 'Usuario';
-        String correo = '';
+        String nombre = "Usuario";
+        String correo = "";
 
         if (state is AuthSuccess && state.data is Usuario) {
           final usuario = state.data as Usuario;
-
-          nombre = usuario.nombre ?? 'Usuario';
-          correo = usuario.correo ?? '';
+          nombre = "${usuario.nombre} ${usuario.apellidos}";
+          correo = usuario.correo ?? "";
         }
 
         return Column(
@@ -35,45 +34,47 @@ class PerfilHeader extends StatelessWidget {
                 ),
 
                 Positioned(
-                  right: 0,
                   bottom: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt,
-                      size: 18,
-                      color: Colors.white,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () {
+                      context.push('/editar-perfil');
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF57C29A),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 18),
+            const SizedBox(height: 15),
 
             Text(
               nombre,
               style: const TextStyle(
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
             ),
 
-            if (correo.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text(
-                  correo,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 15,
-                  ),
-                ),
+            const SizedBox(height: 5),
+
+            Text(
+              correo,
+              style: const TextStyle(
+                color: Colors.grey,
               ),
+            ),
           ],
         );
       },

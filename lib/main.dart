@@ -12,6 +12,10 @@ import 'features/completar_registro/data/datasources/completar_perfil_remote_dat
 import 'features/completar_registro/data/repositories/completar_perfil_repository_impl.dart';
 import 'features/completar_registro/presentation/bloc/completar_perfil_bloc.dart';
 import 'core/verificacion/verificacion_cubit.dart';
+import 'features/insignias/data/datasources/insignia_remote_datasource_impl.dart';
+import 'features/insignias/data/repositories/insignia_repository_impl.dart';
+import 'features/insignias/domain/usecases/get_insignias_usuario_usecase.dart';
+import 'features/insignias/presentation/bloc/insignia_bloc.dart';
 
 void main() {
   final dio = Dio(
@@ -25,6 +29,9 @@ void main() {
   final completarPerfilRepository = CompletarPerfilRepositoryImpl(
     completarPerfilDataSource,
   );
+  final insigniaDataSource = InsigniaRemoteDataSourceImpl(dio);
+  final insigniaRepository = InsigniaRepositoryImpl(insigniaDataSource);
+  final getInsigniasUsuario = GetInsigniasUsuarioUseCase(insigniaRepository);
 
   dio.interceptors.add(
     InterceptorsWrapper(
@@ -45,6 +52,9 @@ void main() {
         RepositoryProvider<CompletarPerfilRepositoryImpl>.value(
           value: completarPerfilRepository,
         ),
+        RepositoryProvider<InsigniaRepositoryImpl>.value(
+          value: insigniaRepository,
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -63,6 +73,10 @@ void main() {
             ),
           ),
           BlocProvider(create: (_) => VerificacionCubit()),
+          BlocProvider(
+            create: (context) =>
+                InsigniaBloc(getInsignias: getInsigniasUsuario),
+          ),
         ],
         child: const HuellitasApp(),
       ),

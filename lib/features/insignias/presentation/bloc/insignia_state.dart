@@ -34,12 +34,12 @@ class InsigniaLoaded extends InsigniaState {
 
   InsigniaLoaded copyWith({
     Map<CategoriaInsignia, List<Insignia>>? todasLasInsignias,
-    CategoriaInsignia? categoriaFiltro,
+    CategoriaInsignia? Function()? categoriaFiltro,
     bool? mostrarObtenidas,
   }) {
     return InsigniaLoaded(
       todasLasInsignias: todasLasInsignias ?? this.todasLasInsignias,
-      categoriaFiltro: categoriaFiltro ?? this.categoriaFiltro,
+      categoriaFiltro: categoriaFiltro != null ? categoriaFiltro() : this.categoriaFiltro,
       mostrarObtenidas: mostrarObtenidas ?? this.mostrarObtenidas,
     );
   }
