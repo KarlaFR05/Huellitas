@@ -23,7 +23,8 @@ class PerfilScreen extends StatelessWidget {
 
       appBar: AppBar(title: const Text("Mi Perfil"), centerTitle: true),
 
-      body: Padding(
+      body: SafeArea(
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
@@ -161,9 +162,9 @@ class PerfilScreen extends StatelessWidget {
 
             PerfilOption(
               icon: Icons.person_outline,
-              titulo: 'Perfil',
+              titulo: 'Mi Perfil',
               onTap: () {
-                context.push('/editar-perfil');
+                context.push('/mi-perfil');
               },
             ),
 
@@ -233,6 +234,7 @@ class PerfilScreen extends StatelessWidget {
           ],
         ),
       ),
+    ),
 
       bottomNavigationBar: const BottomBarWidget(currentIndex: 3),
     );

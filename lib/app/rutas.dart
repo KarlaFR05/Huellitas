@@ -11,6 +11,7 @@ import 'package:huellitas/features/auth/presentation/screens/password_screen.dar
 import 'package:huellitas/features/home/presentation/screens/home_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/perfil_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/editar_perfil_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/mi_perfil_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/privacidad_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/configuracion_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/ayuda_screen.dart';
@@ -51,10 +52,7 @@ import 'package:huellitas/features/insignias/presentation/screens/insignias_scre
 final GoRouter router = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(
-      path: '/', 
-      builder: (context, state) => const SplashScreen(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
 
     GoRoute(
       path: '/welcome',
@@ -66,34 +64,32 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const PasswordScreen(),
     ),
 
-    GoRoute(
-      path: '/home', 
-      builder: (context, state) => const HomeScreen(),
-    ),
+    GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
 
     GoRoute(
       path: '/report-success',
       builder: (context, state) => const ReportSuccessScreen(),
     ),
 
-    GoRoute(
-      path: '/login', 
-      builder: (context, state) => const LoginScreen(),
-    ),
+    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
 
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegistroScreen(),
     ),
 
-    GoRoute(
-      path: '/perfil',
-      builder: (context, state) => const PerfilScreen(),
-    ),
+    GoRoute(path: '/perfil', builder: (context, state) => const PerfilScreen()),
 
     GoRoute(
       path: '/editar-perfil',
       builder: (context, state) => const EditarPerfilScreen(),
+    ),
+
+    GoRoute(path: '/mi-perfil', builder: (_, __) => const MiPerfilScreen()),
+
+    GoRoute(
+      path: '/insignias',
+      builder: (context, state) => const InsigniasScreen(),
     ),
 
     GoRoute(
@@ -106,10 +102,7 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const ConfiguracionScreen(),
     ),
 
-    GoRoute(
-      path: '/ayuda',
-      builder: (context, state) => const AyudaScreen(),
-    ),
+    GoRoute(path: '/ayuda', builder: (context, state) => const AyudaScreen()),
 
     GoRoute(
       path: '/completar-perfil',
@@ -126,10 +119,7 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const VerificarReversoScreen(),
     ),
 
-    GoRoute(
-      path: '/selfie',
-      builder: (context, state) => const SelfieScreen(),
-    ),
+    GoRoute(path: '/selfie', builder: (context, state) => const SelfieScreen()),
 
     GoRoute(
       path: '/perfil_completo',
@@ -198,7 +188,7 @@ final GoRouter router = GoRouter(
       path: '/reporte-estado/:id',
       pageBuilder: (context, state) {
         final reporteId = int.parse(state.pathParameters['id']!);
-        
+
         return MaterialPage(
           child: BlocProvider(
             create: (_) => ReporteEstadoBloc(),
@@ -220,7 +210,7 @@ final GoRouter router = GoRouter(
       path: '/actualizar-estado',
       pageBuilder: (context, state) {
         final reporte = state.extra as ReporteEstado;
-        
+
         return MaterialPage(
           child: BlocProvider(
             create: (_) => ReporteEstadoBloc(),
@@ -229,7 +219,7 @@ final GoRouter router = GoRouter(
         );
       },
     ),
-   GoRoute(
+    GoRoute(
       path: '/actualizar-estado-success',
       builder: (context, state) => const ActualizarEstadoSuccessScreen(),
     ),
