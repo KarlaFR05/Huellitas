@@ -11,7 +11,7 @@ import '../../../home/presentation/widgets/reporte_marker.dart';
 import '../../../reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import '../../../reporte/data/repositories/reporte_repository_impl.dart';
 import '../../../reporte/domain/usecases/get_reportes_usecase.dart';
-import '../../../reporte/domain/entities/reporte.dart'; 
+import '../../../reporte/domain/entities/reporte.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/domain/entities/usuario.dart';
@@ -29,6 +29,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<ReportMapMarker> _markers = [];
+  List<ReportMapMarker> _markersVisibles(bool estaVerificado) {
+    if (estaVerificado) return _markers;
+    return _markers.where((m) => m.tipoReporte != 'Maltrato animal').toList();
+  }
+
   bool _cargando = true;
 
   final LocationService _locationService = LocationService();
@@ -77,13 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _cargarReportes({bool esCargaInicial = false}) async {
     if (esCargaInicial) setState(() => _cargando = true);
     try {
-      final dio = Dio(
-        BaseOptions(
-          baseUrl: 'https://huellitas-backend-xekn.onrender.com',
-          connectTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(seconds: 30),
-        ),
-      );
+      final dio = context.read<Dio>();
 
       final repository = ReporteRepositoryImpl(
         ReporteRemoteDataSourceImpl(dio),
@@ -109,34 +108,30 @@ class _HomeScreenState extends State<HomeScreen> {
             .toList();
 
         // 🔧 TEMPORAL: Asignar IDs secuenciales si no tienen ID
-        _markers = reportesValidos
-            .asMap()
-            .entries
-            .map((entry) {
-              final index = entry.key;
-              final reporte = entry.value;
+        _markers = reportesValidos.asMap().entries.map((entry) {
+          final index = entry.key;
+          final reporte = entry.value;
 
-              // Si el reporte ya tiene ID, usarlo. Si no, asignar uno temporal
-              final reporteConId = reporte.id != null
-                  ? reporte
-                  : Reporte(
-                      id: index + 1, // IDs: 1, 2, 3, 4...
-                      tipoAnimalId: reporte.tipoAnimalId,
-                      tamano: reporte.tamano,
-                      tipoReporteId: reporte.tipoReporteId,
-                      urgenciaId: reporte.urgenciaId,
-                      descripcion: reporte.descripcion,
-                      ubicacion: reporte.ubicacion,
-                      usuarioId: reporte.usuarioId,
-                      raza: reporte.raza,
-                      evidencia: reporte.evidencia,
-                      latitud: reporte.latitud,
-                      longitud: reporte.longitud,
-                    );
+          // Si el reporte ya tiene ID, usarlo. Si no, asignar uno temporal
+          final reporteConId = reporte.id != null
+              ? reporte
+              : Reporte(
+                  id: index + 1, // IDs: 1, 2, 3, 4...
+                  tipoAnimalId: reporte.tipoAnimalId,
+                  tamano: reporte.tamano,
+                  tipoReporteId: reporte.tipoReporteId,
+                  urgenciaId: reporte.urgenciaId,
+                  descripcion: reporte.descripcion,
+                  ubicacion: reporte.ubicacion,
+                  usuarioId: reporte.usuarioId,
+                  raza: reporte.raza,
+                  evidencia: reporte.evidencia,
+                  latitud: reporte.latitud,
+                  longitud: reporte.longitud,
+                );
 
-              return ReportMapMarker.fromReporte(reporteConId);
-            })
-            .toList();
+          return ReportMapMarker.fromReporte(reporteConId);
+        }).toList();
         _cargando = false;
       });
     } catch (e) {

@@ -45,6 +45,7 @@ void main() {
         RepositoryProvider<CompletarPerfilRepositoryImpl>.value(
           value: completarPerfilRepository,
         ),
+        RepositoryProvider<Dio>.value(value: dio),
       ],
       child: MultiBlocProvider(
         providers: [
