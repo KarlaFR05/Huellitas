@@ -70,7 +70,7 @@ class ReporteDetalleScreen extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: AppColors.secondary.withOpacity(0.3),
+            color: AppColors.secondary.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -90,7 +90,7 @@ class ReporteDetalleScreen extends StatelessWidget {
       return Container(
         height: 180,
         decoration: BoxDecoration(
-          color: AppColors.secondary.withOpacity(0.3),
+          color: AppColors.secondary.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Center(

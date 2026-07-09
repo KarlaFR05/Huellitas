@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../styles/constantes/app_colors.dart';
+import '../../home/presentation/widgets/bottom_bar.dart';
 import '../domain/entities/fase_reporte.dart';
 import 'bloc/reporte_estado_bloc.dart';
 import 'bloc/reporte_estado_state.dart';
@@ -51,6 +52,7 @@ class ReporteEstadoScreen extends StatelessWidget {
             return const SizedBox.shrink();
           },
         ),
+        bottomNavigationBar: const BottomBarWidget(currentIndex: 0),
       ),
     );
   }
@@ -64,7 +66,7 @@ class ReporteEstadoScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Indicador de fases
+          // Indicador de fases con chevrón
           _buildFasesIndicator(fases, faseActualIndex),
           const SizedBox(height: 32),
 
@@ -147,43 +149,38 @@ class ReporteEstadoScreen extends StatelessWidget {
   }
 
   Widget _buildFasesIndicator(List<FaseReporte> fases, int faseActualIndex) {
-    return Row(
-      children: fases.asMap().entries.map((entry) {
-        final index = entry.key;
-        final fase = entry.value;
-        final esActual = index == faseActualIndex;
-        final esAnterior = index < faseActualIndex;
+    return SizedBox(
+      height: 60,
+      child: Row(
+        children: fases.asMap().entries.map((entry) {
+          final index = entry.key;
+          final fase = entry.value;
+          final esActual = index == faseActualIndex;
+          final esAnterior = index < faseActualIndex;
 
-        Color colorFondo;
-        if (esActual) {
-          if (index == 0) colorFondo = Colors.red;
-          else if (index == 1) colorFondo = Colors.orange;
-          else colorFondo = Colors.green;
-        } else if (esAnterior) {
-          colorFondo = Colors.grey.shade300;
-        } else {
-          colorFondo = Colors.grey.shade200;
-        }
+          Color colorFondo;
+          if (esActual) {
+            if (index == 0) colorFondo = Colors.red;
+            else if (index == 1) colorFondo = Colors.orange;
+            else colorFondo = Colors.green;
+          } else if (esAnterior) {
+            colorFondo = Colors.grey.shade500;
+          } else {
+            colorFondo = Colors.grey.shade300;
+          }
 
-        return Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-            decoration: BoxDecoration(
-              color: colorFondo,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              fase.label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: esActual ? Colors.white : Colors.grey.shade700,
-                fontSize: 11,
-                fontWeight: esActual ? FontWeight.bold : FontWeight.normal,
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: _ChevronStep(
+                label: fase.label,
+                color: colorFondo,
+                isActive: esActual || esAnterior,
               ),
             ),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -236,5 +233,90 @@ class ReporteEstadoScreen extends StatelessWidget {
       default:
         return AppColors.textSecondary;
     }
+  }
+}
+
+class _ChevronStep extends StatelessWidget {
+  final String label;
+  final Color color;
+  final bool isActive;
+
+  const _ChevronStep({
+    required this.label,
+    required this.color,
+    required this.isActive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipPath(
+      clipper: const _ChevronClipper(),
+      child: Container(
+        color: isActive ? color : Colors.grey.shade300,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isActive ? Colors.white : Colors.grey.shade700,
+                fontSize: 9,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                height: 1.2,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChevronClipper extends CustomClipper<Path> {
+  const _ChevronClipper();
+
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    final chevronWidth = 12.0;
+    final cornerRadius = 6.0;
+
+    // Punto de inicio: esquina superior izquierda con ligero redondeo
+    path.moveTo(cornerRadius, 0);
+    
+    // Línea superior hasta antes de la punta
+    path.lineTo(size.width - chevronWidth, 0);
+    
+    // Punta derecha superior
+    path.lineTo(size.width, size.height / 2);
+    
+    // Punta derecha inferior
+    path.lineTo(size.width - chevronWidth, size.height);
+    
+    // Línea inferior hasta antes de la entrada
+    path.lineTo(cornerRadius, size.height);
+    
+    // Esquina inferior izquierda redondeada
+    path.quadraticBezierTo(0, size.height, 0, size.height - cornerRadius);
+    
+    // Entrada en V hacia la izquierda (centro)
+    path.lineTo(0, size.height / 2);
+    
+    // Salida de la entrada
+    path.lineTo(0, cornerRadius);
+    
+    // Esquina superior izquierda redondeada
+    path.quadraticBezierTo(0, 0, cornerRadius, 0);
+    
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) {
+    return false;
   }
 }

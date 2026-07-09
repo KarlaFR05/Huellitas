@@ -8,11 +8,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../home/presentation/widgets/map_widget.dart';
 import '../../../home/presentation/widgets/reporte_marker.dart';
-import '../widgets/map_widget.dart';
-import '../widgets/reporte_marker.dart';
 import '../../../reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import '../../../reporte/data/repositories/reporte_repository_impl.dart';
 import '../../../reporte/domain/usecases/get_reportes_usecase.dart';
+import '../../../reporte/domain/entities/reporte.dart'; 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/domain/entities/usuario.dart';
@@ -48,9 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    _positionStream?.cancel(); // para no dejar el GPS encendido
-    _pollingTimer
-        ?.cancel(); // importante para no dejarlo corriendo en background
+    _positionStream?.cancel();
+    _pollingTimer?.cancel();
     super.dispose();
   }
 
@@ -62,7 +60,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _iniciarSeguimientoUbicacion() async {
     try {
-      // Solicita permiso una vez (reutiliza lógica que ya tienes)
       await _locationService.obtenerUbicacionActual();
 
       _positionStream = _locationService.obtenerStreamUbicacion().listen((
@@ -73,7 +70,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _mapController.move(nuevaUbicacion, _mapController.camera.zoom);
       });
     } catch (e) {
-      // Si el usuario no da permiso, simplemente no se muestra el punto azul
       print('No se pudo iniciar seguimiento de ubicación: $e');
     }
   }
@@ -96,13 +92,13 @@ class _HomeScreenState extends State<HomeScreen> {
       final getReportes = GetReportesUseCase(repository);
       final reportes = await getReportes();
 
-      print('REPORTES OBTENIDOS: ${reportes.length}');
+      print(' REPORTES OBTENIDOS: ${reportes.length}');
       for (var r in reportes) {
-        print('  - lat: ${r.latitud}, lng: ${r.longitud}');
+        print('  - id: ${r.id}, lat: ${r.latitud}, lng: ${r.longitud}');
       }
 
       setState(() {
-        _markers = reportes
+        final reportesValidos = reportes
             .where(
               (r) =>
                   r.latitud != 0.0 &&
@@ -110,7 +106,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   !r.latitud.isNaN &&
                   !r.longitud.isNaN,
             )
-            .map((r) => ReportMapMarker.fromReporte(r))
+            .toList();
+
+        // 🔧 TEMPORAL: Asignar IDs secuenciales si no tienen ID
+        _markers = reportesValidos
+            .asMap()
+            .entries
+            .map((entry) {
+              final index = entry.key;
+              final reporte = entry.value;
+
+              // Si el reporte ya tiene ID, usarlo. Si no, asignar uno temporal
+              final reporteConId = reporte.id != null
+                  ? reporte
+                  : Reporte(
+                      id: index + 1, // IDs: 1, 2, 3, 4...
+                      tipoAnimalId: reporte.tipoAnimalId,
+                      tamano: reporte.tamano,
+                      tipoReporteId: reporte.tipoReporteId,
+                      urgenciaId: reporte.urgenciaId,
+                      descripcion: reporte.descripcion,
+                      ubicacion: reporte.ubicacion,
+                      usuarioId: reporte.usuarioId,
+                      raza: reporte.raza,
+                      evidencia: reporte.evidencia,
+                      latitud: reporte.latitud,
+                      longitud: reporte.longitud,
+                    );
+
+              return ReportMapMarker.fromReporte(reporteConId);
+            })
             .toList();
         _cargando = false;
       });
