@@ -49,6 +49,7 @@ class _MapWidgetState extends State<MapWidget> {
         ),
         CircleLayer(
           circles: widget.markers
+              .where((marker) => marker.tipoReporte != 'Maltrato animal')
               .map(
                 (marker) => CircleMarker(
                   point: marker.location,
@@ -216,7 +217,10 @@ class _UserLocationDot extends StatelessWidget {
             color: Colors.blue,
             border: Border.all(color: Colors.white, width: 2),
             boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 4,
+              ),
             ],
           ),
         ),

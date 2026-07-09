@@ -16,6 +16,12 @@ class VerificacionCubit extends Cubit<EstadoVerificacion> {
     });
   }
 
+  void resetear() {
+    // NUEVO
+    _timer?.cancel();
+    emit(EstadoVerificacion.noIniciado);
+  }
+
   @override
   Future<void> close() {
     _timer?.cancel();
