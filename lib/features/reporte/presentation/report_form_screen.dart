@@ -10,6 +10,9 @@ import '../domain/entities/reporte.dart';
 import 'package:go_router/go_router.dart';
 import '../../home/presentation/widgets/bottom_bar.dart';
 import 'location_service.dart';
+import '../../auth/presentation/bloc/auth_bloc.dart';
+import '../../auth/presentation/bloc/auth_state.dart';
+import '../../auth/domain/entities/usuario.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -452,6 +455,15 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       return;
     }
 
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthSuccess || authState.data is! Usuario) {
+      _showErrorDialog(
+        'No se pudo identificar tu sesión. Vuelve a iniciar sesión.',
+      );
+      return;
+    }
+    final usuarioActual = authState.data as Usuario;
+
     final reporte = Reporte(
       tipoAnimalId: _animalToId(_tipoAnimal!),
       tamano: _tamano!,
@@ -459,7 +471,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       urgenciaId: _urgenciaToId(_urgencia!),
       descripcion: _descripcionController.text,
       ubicacion: _ubicacionController.text,
-      usuarioId: 1,
+      usuarioId: usuarioActual.usuarioIdPk,
       raza: _mostrarOtraRaza ? _otraRazaController.text : (_raza ?? ''),
       evidencia: '',
       latitud: _latitud!,
@@ -826,9 +838,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             ],
           ),
         ),
-        bottomNavigationBar: const BottomBarWidget(
-          currentIndex: 0,
-        ),
+        bottomNavigationBar: const BottomBarWidget(currentIndex: 0),
       ),
     );
   }

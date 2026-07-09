@@ -35,7 +35,7 @@ class ReporteModel extends Reporte {
 
   Map<String, dynamic> toJson() {
     return {
-      if (id !=null)'id':id,
+      if (id != null) 'reporte_id': id,
       'tipo_animal': tipoAnimalId,
       'raza_id': raza,
       'tipo_reporte': tipoReporteId,
@@ -52,7 +52,7 @@ class ReporteModel extends Reporte {
 
   factory ReporteModel.fromJson(Map<String, dynamic> json) {
     return ReporteModel(
-      id: json['id'],
+      id: json['reporte_id'],
       tipoAnimalId: json['tipo_animal'] ?? 0,
       tipoReporteId: json['tipo_reporte'] ?? 0,
       urgenciaId: json['urgencia_id'] ?? 0,
