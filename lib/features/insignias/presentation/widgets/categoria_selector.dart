@@ -14,39 +14,48 @@ class CategoriaSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final categorias = [
+      {'label': 'Todas', 'icon': Icons.apps_outlined, 'categoria': null},
+      {
+        'label': 'Reportes',
+        'icon': Icons.report_outlined,
+        'categoria': CategoriaInsignia.reporte
+      },
+      {
+        'label': 'Donaciones',
+        'icon': Icons.attach_money,
+        'categoria': CategoriaInsignia.donacion
+      },
+      {
+        'label': 'Rescates',
+        'icon': Icons.favorite_outline,
+        'categoria': CategoriaInsignia.rescate
+      },
+    ];
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
-        children: [
-          _CategoriaChip(
-            label: 'Todas',
-            icon: Icons.category_outlined,
-            isSelected: categoriaSeleccionada == null,
-            onTap: () => onCategoriaSeleccionada(null),
-          ),
-          const SizedBox(width: 8),
-          _CategoriaChip(
-            label: 'Rescates',
-            icon: Icons.favorite_outline,
-            isSelected: categoriaSeleccionada == CategoriaInsignia.rescate,
-            onTap: () => onCategoriaSeleccionada(CategoriaInsignia.rescate),
-          ),
-          const SizedBox(width: 8),
-          _CategoriaChip(
-            label: 'Donaciones',
-            icon: Icons.attach_money,
-            isSelected: categoriaSeleccionada == CategoriaInsignia.donacion,
-            onTap: () => onCategoriaSeleccionada(CategoriaInsignia.donacion),
-          ),
-          const SizedBox(width: 8),
-          _CategoriaChip(
-            label: 'Reportes',
-            icon: Icons.report_outlined,
-            isSelected: categoriaSeleccionada == CategoriaInsignia.reporte,
-            onTap: () => onCategoriaSeleccionada(CategoriaInsignia.reporte),
-          ),
-        ],
+        children: categorias.map((cat) {
+          final label = cat['label'] as String;
+          final icon = cat['icon'] as IconData;
+          final categoria = cat['categoria'] as CategoriaInsignia?;
+          final isSelected = categoriaSeleccionada == categoria;
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: _CategoriaChip(
+              label: label,
+              icon: icon,
+              isSelected: isSelected,
+              onTap: () {
+                print('Seleccionando categoría: $label');
+                onCategoriaSeleccionada(categoria);
+              },
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -73,8 +82,8 @@ class _CategoriaChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.2)
-              : AppColors.secondary.withValues(alpha: 0.3),
+              ? AppColors.primary.withOpacity(0.2)
+              : AppColors.secondary.withOpacity(0.3),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? AppColors.primary : Colors.transparent,
