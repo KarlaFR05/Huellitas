@@ -16,7 +16,9 @@ class ActualizarEstadoReporteUseCase {
     return repository.actualizarEstado(
       reporteId: reporteId,
       nuevaFaseId: nuevaFaseId,
+      usuarioId: usuarioId,
       evidencia: evidencia,
+      comentarios: comentarios,
     );
   }
 }
