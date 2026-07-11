@@ -1,5 +1,9 @@
 import 'dart:io';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../auth/domain/entities/usuario.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -24,15 +28,6 @@ class _EditarPerfilScreenState
 
   File? imagenPerfil;
 
-  @override
-  void initState() {
-    super.initState();
-
-    nombreController.text = "Marlene";
-    apellidosController.text = "Beristain";
-    correoController.text = "marlene@gmail.com";
-    telefonoController.text = "2291234567";
-  }
 
   Future<void> _seleccionarImagen() async {
     showModalBottomSheet(
@@ -96,6 +91,17 @@ class _EditarPerfilScreenState
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<AuthBloc>().state;
+    if (state is AuthSuccess && state.data is Usuario) {
+      final usuario = state.data as Usuario;
+
+      if (nombreController.text.isEmpty) {
+        nombreController.text = usuario.nombre ?? '';
+        apellidosController.text = usuario.apellidos ?? '';
+        correoController.text = usuario.correo ?? '';
+        telefonoController.text = usuario.numTelefono ?? '';
+      }
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text("Editar Perfil"),
