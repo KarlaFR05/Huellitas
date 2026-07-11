@@ -52,8 +52,10 @@ import 'package:huellitas/features/reporte/domain/entities/reporte_estado.dart';
 import 'package:huellitas/features/insignias/data/datasources/insignia_remote_datasource_impl.dart';
 import 'package:huellitas/features/insignias/data/repositories/insignia_repository_impl.dart';
 import 'package:huellitas/features/insignias/domain/usecases/get_insignias_usuario_usecase.dart';
+import 'package:huellitas/features/insignias/domain/entities/insignia.dart';
 import 'package:huellitas/features/insignias/presentation/bloc/insignia_bloc.dart';
 import 'package:huellitas/features/insignias/presentation/screens/insignias_screen.dart';
+import 'package:huellitas/features/insignias/presentation/screens/insignia_detalle_screen.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -185,6 +187,14 @@ final GoRouter router = GoRouter(
       },
     ),
 
+    GoRoute(
+      path: '/insignia-detalle',
+      builder: (context, state) {
+        final insignia = state.extra as Insignia;
+        return InsigniaDetalleScreen(insignia: insignia);
+      },
+    ),
+    
     GoRoute(
       path: '/reporte-estado/:id',
       pageBuilder: (context, state) {

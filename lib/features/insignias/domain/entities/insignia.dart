@@ -1,5 +1,4 @@
 import 'categoria_insignia.dart';
-
 class Insignia {
   final int id;
   final String nombre;
