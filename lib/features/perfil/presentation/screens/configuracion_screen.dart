@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ConfiguracionScreen extends StatelessWidget {
   const ConfiguracionScreen({super.key});
@@ -6,15 +7,14 @@ class ConfiguracionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Configuración"),
-      ),
+      appBar: AppBar(title: const Text("Configuración")),
       body: ListView(
-        children: const [
+        children: [
           ListTile(
-            leading: Icon(Icons.lock_outline),
-            title: Text("Cambiar contraseña"),
-            trailing: Icon(Icons.chevron_right),
+            leading: const Icon(Icons.lock_outline),
+            title: const Text("Cambiar contraseña"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/cambiar-contrasenia'),
           ),
           Divider(),
           ListTile(

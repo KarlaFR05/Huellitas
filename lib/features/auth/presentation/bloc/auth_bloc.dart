@@ -17,6 +17,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }) : super(AuthInitial()) {
     on<RegisterEvent>(_onRegister);
     on<LoginEvent>(_onLogin);
+    on<ActualizarUsuarioEvent>((event, emit) {
+      emit(AuthSuccess(message: 'Perfil actualizado', data: event.usuario));
+    });
     on<LogoutEvent>((event, emit) async {
       await tokenStorage.borrarToken();
       emit(AuthInitial());

@@ -98,12 +98,10 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              
+
               // Mensaje principal
               Text(
-                widget.isSuccess
-                    ? '¡Reporte Enviado!'
-                    : 'Error al Enviar',
+                widget.isSuccess ? '¡Reporte Enviado!' : 'Error al Enviar',
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -112,11 +110,11 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              
+
               // Mensaje secundario
               Text(
                 widget.isSuccess
-                    ? 'Tu reporte ha sido enviado y se atenderá lo antes posible.'
+                    ? 'Tu reporte ha sido enviado con éxito'
                     : 'No se pudo enviar el reporte. Inténtalo de nuevo.',
                 style: const TextStyle(
                   fontSize: 16,
@@ -125,7 +123,7 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
-              
+
               // Contador regresivo
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -155,7 +153,7 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               // Barra de progreso
               SizedBox(
                 width: 200,
@@ -169,7 +167,7 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              
+
               // Botón solo si es error
               if (!widget.isSuccess) ...[
                 const SizedBox(height: 32),
@@ -202,9 +200,7 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomBarWidget(
-        currentIndex: 0,
-      ),
+      bottomNavigationBar: const BottomBarWidget(currentIndex: 0),
     );
   }
 }

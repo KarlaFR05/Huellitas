@@ -8,6 +8,11 @@ class Usuario {
   final bool verificado;
   final DateTime fechaRegistroUsuario;
   final String rolUsuario;
+  final String? calle;
+  final String? colonia;
+  final String? cp;
+  final String? ciudad;
+  final String? estado;
 
   Usuario({
     required this.usuarioIdPk,
@@ -19,5 +24,10 @@ class Usuario {
     required this.verificado,
     required this.fechaRegistroUsuario,
     required this.rolUsuario,
+    this.calle,
+    this.colonia,
+    this.cp,
+    this.ciudad,
+    this.estado,
   });
 }

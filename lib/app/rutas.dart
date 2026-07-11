@@ -20,6 +20,7 @@ import 'package:huellitas/features/completar_registro/presentation/screens/verif
 import 'package:huellitas/features/completar_registro/presentation/screens/verificar_reverso_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/selfie_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/perfil_completo_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/cambiar_contrasenia_screen.dart';
 
 import 'package:huellitas/features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_repository_impl.dart';
@@ -107,6 +108,11 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/completar-perfil',
       builder: (context, state) => const CompletarPerfilScreen(),
+    ),
+
+    GoRoute(
+      path: '/cambiar-contrasenia',
+      builder: (context, state) => const CambiarContraseniaScreen(),
     ),
 
     GoRoute(
