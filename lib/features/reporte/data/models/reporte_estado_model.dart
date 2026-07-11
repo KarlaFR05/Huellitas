@@ -1,5 +1,8 @@
 import '../../domain/entities/reporte_estado.dart';
 import '../../domain/entities/fase_reporte.dart';
+import '../../domain/entities/tipo_urgencia.dart';
+import '../../domain/entities/tipo_animal.dart';
+import '../../domain/entities/tipo_reporte.dart';
 
 class ReporteEstadoModel extends ReporteEstado {
   const ReporteEstadoModel({
@@ -20,11 +23,11 @@ class ReporteEstadoModel extends ReporteEstado {
     return ReporteEstadoModel(
       reporteId: json['reporteId'] ?? 0,
       faseActual: FaseReporte.fromId(json['faseActual'] ?? 1),
-      nivelUrgencia: json['nivelUrgencia'] ?? '',
-      tipoReporte: json['tipoReporte'] ?? '',
+      nivelUrgencia: TipoUrgencia.fromId(json['nivelUrgencia']),
+      tipoReporte: TipoReporte.fromId(json['tipoReporte']),
       descripcion: json['descripcion'] ?? '',
       ubicacion: json['ubicacion'] ?? '',
-      tipoAnimal: json['tipoAnimal'] ?? '',
+      tipoAnimal: TipoAnimal.fromId(json['tipoAnimal']),
       raza: json['raza'] ?? '',
       tamano: json['tamano'] ?? '',
       evidenciaUrl: json['evidenciaUrl'] ?? '',

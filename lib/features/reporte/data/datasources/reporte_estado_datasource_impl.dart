@@ -33,7 +33,7 @@ class ReporteEstadoRemoteDataSourceImpl implements ReporteEstadoRemoteDataSource
       
       FormData formData = FormData.fromMap({
         'nueva_fase_id': nuevaFaseId,
-        'usuario_id': usuarioId,
+        if (usuarioId != null) 'usuario_id': usuarioId,
         'evidencia': await MultipartFile.fromFile(evidencia.path, filename: fileName),
         if (comentarios != null) 'comentarios': comentarios,
       });

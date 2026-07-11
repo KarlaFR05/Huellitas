@@ -24,13 +24,14 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
   File? _evidencia;
   int? _faseSeleccionada;
 
-  List<FaseReporte> get _fasesDisponibles {
-    final faseActualIndex = FaseReporte.values.indexOf(widget.reporte.faseActual);
-    return FaseReporte.values.where((f) {
-      final index = FaseReporte.values.indexOf(f);
-      return index >= faseActualIndex;
-    }).toList();
+  @override
+  void initState() {
+    super.initState();
+    // Establecer la fase actual como seleccionada por defecto
+    _faseSeleccionada = widget.reporte.faseActual.id;
   }
+
+  List<FaseReporte> get _todasLasFases => FaseReporte.values;
 
   Future<void> _pickImage() async {
     try {
@@ -83,11 +84,38 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
     );
   }
 
+  void _onFaseSeleccionada(int? faseId) {
+    if (faseId == null) return;
+
+    final faseActualIndex = widget.reporte.faseActual.id;
+    final nuevaFaseIndex = faseId;
+
+    // Validar que no se pueda retroceder
+    if (nuevaFaseIndex < faseActualIndex) {
+      _showError('No puedes retroceder a una fase anterior. El reporte ya está en una fase más avanzada.');
+      return;
+    }
+
+    // Validar que no se puedan saltar fases
+    if (nuevaFaseIndex > faseActualIndex + 1) {
+      _showError('No puedes saltarte fases. Debes avanzar secuencialmente.');
+      return;
+    }
+
+    setState(() => _faseSeleccionada = faseId);
+  }
+
   void _enviarActualizacion() {
     if (_faseSeleccionada == null) {
       _showError('Selecciona una fase');
       return;
     }
+
+    if (_faseSeleccionada! <= widget.reporte.faseActual.id) {
+      _showError('Debes seleccionar una fase posterior a la actual');
+      return;
+    }
+
     if (_evidencia == null) {
       _showError('Debes subir una evidencia fotográfica');
       return;
@@ -114,6 +142,58 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
             child: const Text('Aceptar'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showFullImage(File image) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Center(
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: Colors.black,
+                  child: InteractiveViewer(
+                    boundaryMargin: const EdgeInsets.all(20),
+                    minScale: 0.5,
+                    maxScale: 4.0,
+                    child: Image.file(
+                      image,
+                      fit: BoxFit.fitWidth,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -163,21 +243,36 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  ..._fasesDisponibles.map((fase) {
+                  ..._todasLasFases.map((fase) {
                     final isSelected = _faseSeleccionada == fase.id;
+                    final faseActualIndex = widget.reporte.faseActual.id;
+                    final isDisabled = fase.id < faseActualIndex || fase.id > faseActualIndex + 1;
+
                     return RadioListTile<int>(
                       value: fase.id,
                       groupValue: _faseSeleccionada,
-                      onChanged: cargando
+                      onChanged: cargando || isDisabled
                           ? null
-                          : (value) => setState(() => _faseSeleccionada = value),
+                          : _onFaseSeleccionada,
                       activeColor: _getColorFase(fase),
                       title: Text(
                         fase.label,
                         style: TextStyle(
-                          color: AppColors.textPrimary,
+                          color: isDisabled 
+                              ? Colors.grey.shade400 
+                              : (AppColors.textPrimary),
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
+                      ),
+                      secondary: Icon(
+                        fase.id == 1 
+                            ? Icons.warning_amber_rounded
+                            : fase.id == 2
+                                ? Icons.medical_services
+                                : Icons.check_circle,
+                        color: isDisabled
+                            ? Colors.grey.shade300
+                            : _getColorFase(fase),
                       ),
                       contentPadding: EdgeInsets.zero,
                     );
@@ -195,7 +290,11 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                   
                   Center(
                     child: GestureDetector(
-                      onTap: cargando ? null : _pickImage,
+                      onTap: cargando 
+                          ? null 
+                          : (_evidencia != null 
+                                ? () => _showFullImage(_evidencia!) 
+                                : _pickImage),
                       child: Container(
                         width: double.infinity,
                         height: 150,
@@ -205,14 +304,49 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                           border: Border.all(color: AppColors.primary, width: 2),
                         ),
                         child: _evidencia != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.file(
-                                  _evidencia!,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                ),
+                            ? Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.file(
+                                      _evidencia!,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black54,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.visibility,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Ver',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               )
                             : Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -281,7 +415,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
       case FaseReporte.requiereAtencion:
         return Colors.red;
       case FaseReporte.recibiendoAtencion:
-        return const Color.fromARGB(255, 255, 247, 0);
+        return const Color.fromARGB(255, 255, 230, 1);
       case FaseReporte.seEncuentraASalvo:
         return Colors.green;
     }
