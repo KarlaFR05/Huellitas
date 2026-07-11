@@ -9,12 +9,16 @@ class ActualizarEstadoReporteUseCase {
   Future<void> call({
     required int reporteId,
     required int nuevaFaseId,
+    int? usuarioId,
     required File evidencia,
+    String? comentarios,
   }) {
     return repository.actualizarEstado(
       reporteId: reporteId,
       nuevaFaseId: nuevaFaseId,
+      usuarioId: usuarioId,
       evidencia: evidencia,
+      comentarios: comentarios,
     );
   }
 }
