@@ -67,8 +67,10 @@ class _MapWidgetState extends State<MapWidget> {
             ...widget.markers.map(
               (report) => Marker(
                 point: report.location,
-                width: 60,
-                height: 60,
+                width: 52,
+                height: 62,
+                alignment: Alignment
+                    .topCenter, // reemplaza anchorPos/AnchorPos/AnchorAlign
                 child: GestureDetector(
                   onTap: () => _showReportInfo(context, report),
                   child: _ReportPin(report: report),
@@ -117,10 +119,19 @@ class _MapWidgetState extends State<MapWidget> {
                         ),
                       ),
                     ),
-                    Icon(
-                      report.animal.icon,
-                      color: report.urgency.color,
-                      size: 28,
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: report.urgency.color.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          report.animal.shortLabel,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
                     ),
                   ],
                 ),

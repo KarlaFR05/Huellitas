@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'dart:math' as math;
 
+import 'dart:ui' as ui;
 import '../../../reporte/domain/entities/reporte.dart';
 
 final List<ReportMapMarker> demoReportMarkers = [
@@ -119,15 +121,6 @@ enum ReportAnimal {
     }
   }
 
-  IconData get icon {
-    switch (this) {
-      case ReportAnimal.dog:
-        return Icons.pets;
-      case ReportAnimal.cat:
-        return Icons.pets;
-    }
-  }
-
   String get shortLabel {
     switch (this) {
       case ReportAnimal.dog:
@@ -166,7 +159,7 @@ enum ReportUrgency {
       case ReportUrgency.baja:
         return const Color(0xFFFBC02D);
       case ReportUrgency.media:
-        return const Color.fromARGB(255, 209, 105, 63);
+        return const Color(0xFFFF6D00);
       case ReportUrgency.alta:
         return const Color.fromARGB(255, 215, 38, 35);
       case ReportUrgency.critica:
@@ -194,35 +187,100 @@ class ReporteMarker extends StatelessWidget {
   final ReportAnimal animal;
   final ReportUrgency urgency;
 
-  const ReporteMarker({
-    super.key,
-    required this.animal,
-    required this.urgency,
-  });
+  const ReporteMarker({super.key, required this.animal, required this.urgency});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 55,
-      height: 55,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Icon(
-            Icons.location_on,
-            size: 55,
-            color: urgency.color,
-          ),
-
-          Positioned(
-            top: 8,
-            child: Text(
-              animal.shortLabel,
-              style: const TextStyle(fontSize: 18),
+      width: 48,
+      height: 58,
+      child: CustomPaint(
+        painter: _PinPainter(color: urgency.color),
+        child: Align(
+          alignment: const Alignment(0, -0.55),
+          child: Container(
+            width: 26,
+            height: 28,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                animal.shortLabel,
+                style: const TextStyle(fontSize: 14),
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
+  }
+}
+
+class _PinPainter extends CustomPainter {
+  final Color color;
+
+  _PinPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final r = w / 2;
+    final center = Offset(w / 2, r);
+    final tip = Offset(w / 2, h);
+
+    final d = tip.dy - center.dy;
+    late final ui.Path path;
+
+    if (d > r) {
+      // Ángulo exacto de las líneas tangentes desde la punta hasta el círculo
+      final tangentAngle = math.acos(r / d);
+      const down = math.pi / 2;
+      final angleLeft = down + tangentAngle;
+      final angleRight = down - tangentAngle;
+
+      final t1 = Offset(
+        center.dx + r * math.cos(angleLeft),
+        center.dy + r * math.sin(angleLeft),
+      );
+      final t2 = Offset(
+        center.dx + r * math.cos(angleRight),
+        center.dy + r * math.sin(angleRight),
+      );
+
+      final circulo = ui.Path()
+        ..addOval(Rect.fromCircle(center: center, radius: r));
+
+      final triangulo = ui.Path()
+        ..moveTo(t1.dx, t1.dy)
+        ..lineTo(tip.dx, tip.dy)
+        ..lineTo(t2.dx, t2.dy)
+        ..close();
+
+      // Fusiona el círculo real con las líneas tangentes exactas:
+      // el resultado es perfectamente suave en la unión, sin picos.
+      path = ui.Path.combine(ui.PathOperation.union, circulo, triangulo);
+    } else {
+      path = ui.Path()..addOval(Rect.fromCircle(center: center, radius: r));
+    }
+
+    canvas.drawShadow(path, Colors.black.withValues(alpha: 0.3), 3, false);
+
+    final paint = Paint()..color = color;
+    canvas.drawPath(path, paint);
+
+    final borderPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(path, borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PinPainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }
