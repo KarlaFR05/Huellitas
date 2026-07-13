@@ -1,8 +1,8 @@
 import 'dart:io';
-import '../entities/reporte_estado.dart';
+import '../models/reporte_estado_model.dart';
 
-abstract class ReporteEstadoRepository {
-  Future<ReporteEstado> obtenerEstado(int reporteId);
+abstract class ReporteEstadoRemoteDataSource {
+  Future<ReporteEstadoModel> obtenerEstado(int reporteId);
   
   Future<void> actualizarEstado({
     required int reporteId,

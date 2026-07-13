@@ -36,6 +36,12 @@ import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.da
 
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
 
+// NUEVOS IMPORTS para seguimiento de reportes
+import 'package:huellitas/features/reporte/data/datasources/reporte_estado_remote_datasource.dart';
+import 'package:huellitas/features/reporte/data/datasources/reporte_estado_datasource_impl.dart';
+import 'package:huellitas/features/reporte/data/repositories/reporte_estado_repository_impl.dart';
+import 'package:huellitas/features/reporte/domain/usecases/get_reporte_estado_usecase.dart';
+import 'package:huellitas/features/reporte/domain/usecases/actualizar_estado_reporte_usecase.dart';
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_estado_bloc.dart';
 import 'package:huellitas/features/reporte/presentation/reporte_estado_screen.dart';
 import 'package:huellitas/features/reporte/presentation/reporte_detalle_screen.dart';
@@ -44,11 +50,13 @@ import 'package:huellitas/features/reporte/presentation/actualizar_estado_succes
 import 'package:huellitas/features/reporte/presentation/actualizar_estado_error_screen.dart';
 import 'package:huellitas/features/reporte/domain/entities/reporte_estado.dart';
 
-import 'package:huellitas/features/insignias/data/datasources/insignia_remote_datasource.dart';
+import 'package:huellitas/features/insignias/data/datasources/insignia_remote_datasource_impl.dart';
 import 'package:huellitas/features/insignias/data/repositories/insignia_repository_impl.dart';
 import 'package:huellitas/features/insignias/domain/usecases/get_insignias_usuario_usecase.dart';
+import 'package:huellitas/features/insignias/domain/entities/insignia.dart';
 import 'package:huellitas/features/insignias/presentation/bloc/insignia_bloc.dart';
 import 'package:huellitas/features/insignias/presentation/screens/insignias_screen.dart';
+import 'package:huellitas/features/insignias/presentation/screens/insignia_detalle_screen.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -87,11 +95,6 @@ final GoRouter router = GoRouter(
     ),
 
     GoRoute(path: '/mi-perfil', builder: (_, __) => const MiPerfilScreen()),
-
-    GoRoute(
-      path: '/insignias',
-      builder: (context, state) => const InsigniasScreen(),
-    ),
 
     GoRoute(
       path: '/privacidad',
@@ -191,13 +194,38 @@ final GoRouter router = GoRouter(
     ),
 
     GoRoute(
+      path: '/insignia-detalle',
+      builder: (context, state) {
+        final insignia = state.extra as Insignia;
+        return InsigniaDetalleScreen(insignia: insignia);
+      },
+    ),
+    
+    GoRoute(
       path: '/reporte-estado/:id',
       pageBuilder: (context, state) {
         final reporteId = int.parse(state.pathParameters['id']!);
 
+        final dio = Dio(
+          BaseOptions(
+            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
+            connectTimeout: const Duration(seconds: 30),
+            receiveTimeout: const Duration(seconds: 30),
+            sendTimeout: const Duration(seconds: 30),
+          ),
+        );
+
+        final dataSource = ReporteEstadoRemoteDataSourceImpl(dio);
+        final repository = ReporteEstadoRepositoryImpl(dataSource);
+        final getEstado = GetReporteEstadoUseCase(repository);
+        final actualizarEstado = ActualizarEstadoReporteUseCase(repository);
+
         return MaterialPage(
           child: BlocProvider(
-            create: (_) => ReporteEstadoBloc(),
+            create: (_) => ReporteEstadoBloc(
+              getEstado: getEstado,
+              actualizarEstado: actualizarEstado,
+            ),
             child: ReporteEstadoScreen(reporteId: reporteId),
           ),
         );
@@ -217,14 +245,32 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) {
         final reporte = state.extra as ReporteEstado;
 
+        final dio = Dio(
+          BaseOptions(
+            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
+            connectTimeout: const Duration(seconds: 30),
+            receiveTimeout: const Duration(seconds: 30),
+            sendTimeout: const Duration(seconds: 30),
+          ),
+        );
+
+        final dataSource = ReporteEstadoRemoteDataSourceImpl(dio);
+        final repository = ReporteEstadoRepositoryImpl(dataSource);
+        final getEstado = GetReporteEstadoUseCase(repository);
+        final actualizarEstado = ActualizarEstadoReporteUseCase(repository);
+
         return MaterialPage(
           child: BlocProvider(
-            create: (_) => ReporteEstadoBloc(),
+            create: (_) => ReporteEstadoBloc(
+              getEstado: getEstado,
+              actualizarEstado: actualizarEstado,
+            ),
             child: ActualizarEstadoScreen(reporte: reporte),
           ),
         );
       },
     ),
+
     GoRoute(
       path: '/actualizar-estado-success',
       builder: (context, state) => const ActualizarEstadoSuccessScreen(),

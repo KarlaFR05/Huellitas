@@ -98,7 +98,7 @@ class ReporteEstadoScreen extends StatelessWidget {
           // Botones
           SizedBox(
             width: double.infinity,
-            height: 50,
+            height: 55,
             child: ElevatedButton(
               onPressed: () {
                 context.push('/reporte-detalle', extra: reporte);
@@ -106,7 +106,7 @@ class ReporteEstadoScreen extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(55),
                 ),
               ),
               child: const Text(
@@ -122,15 +122,15 @@ class ReporteEstadoScreen extends StatelessWidget {
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            height: 50,
+            height: 55,
             child: ElevatedButton(
               onPressed: () {
                 context.push('/actualizar-estado', extra: reporte);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.secondary,
+                backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(55),
                 ),
               ),
               child: const Text(
@@ -161,7 +161,7 @@ class ReporteEstadoScreen extends StatelessWidget {
           Color colorFondo;
           if (esActual) {
             if (index == 0) colorFondo = Colors.red;
-            else if (index == 1) colorFondo = Colors.orange;
+            else if (index == 1) colorFondo = const Color.fromARGB(255, 255, 196, 0);
             else colorFondo = Colors.green;
           } else if (esAnterior) {
             colorFondo = Colors.grey.shade500;
@@ -261,7 +261,7 @@ class _ChevronStep extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: isActive ? Colors.white : Colors.grey.shade700,
-                fontSize: 9,
+                fontSize: 15,
                 fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                 height: 1.2,
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../../styles/constantes/app_colors.dart';
 import '../../domain/entities/insignia.dart';
 import '../../domain/entities/categoria_insignia.dart';
@@ -15,82 +16,103 @@ class InsigniaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: obtenida ? Colors.white : Colors.grey.shade300,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Center(
-              child: Opacity(
-                opacity: obtenida ? 1.0 : 0.4,
-                child: _buildInsigniaImage(),
+    return GestureDetector(
+      onTap: obtenida 
+          ? () {
+              context.push('/insignia-detalle', extra: insignia);
+            }
+          : null,
+      child: Container(
+        decoration: BoxDecoration(
+          color: obtenida ? Colors.white : Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Center(
+                child: Opacity(
+                  opacity: obtenida ? 1.0 : 0.4,
+                  child: _buildInsigniaImage(),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${insignia.nivel}',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: obtenida ? AppColors.primary : Colors.grey.shade500,
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                insignia.nombre,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: obtenida ? AppColors.primary : Colors.grey.shade600,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              _getNombreCorto(),
-              textAlign: TextAlign.center,
+            const SizedBox(height: 4),
+            Text(
+              'Nivel ${insignia.nivel}',
               style: TextStyle(
                 fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: obtenida
-                    ? AppColors.textPrimary
-                    : Colors.grey.shade500,
+                color: obtenida ? AppColors.textSecondary : Colors.grey.shade500,
+                fontWeight: FontWeight.w500,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
   }
-
   Widget _buildInsigniaImage() {
-    final rutaImagen = _getRutaImagen();
+    // Si tiene imagen URL, intentar cargarla
+    if (insignia.imagenUrl != null && insignia.imagenUrl!.isNotEmpty) {
+      return Image.network(
+        insignia.imagenUrl!,
+        width: 70,
+        height: 70,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildFallbackIcon(),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return SizedBox(
+            width: 70,
+            height: 70,
+            child: Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+                strokeWidth: 2,
+              ),
+            ),
+          );
+        },
+      );
+    }
     
-    return Image.asset(
-      rutaImagen,
-      width: 60,
-      height: 60,
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) {
-        return Icon(
-          _getIconoPorCategoria(),
-          size: 40,
-          color: _getColorPorCategoria(),
-        );
-      },
-    );
+    // Si no tiene imagen, mostrar ícono por defecto
+    return _buildFallbackIcon();
   }
 
-  String _getRutaImagen() {
-    final categoria = insignia.categoria.name.toLowerCase();
-    final nivel = insignia.nivel;
-    return 'assets/images/insignias/$categoria/${categoria}_$nivel.png';
+  Widget _buildFallbackIcon() {
+    return Icon(
+      _getIconoPorCategoria(),
+      size: 40,
+      color: _getColorPorCategoria(),
+    );
   }
 
   IconData _getIconoPorCategoria() {
@@ -112,27 +134,6 @@ class InsigniaCard extends StatelessWidget {
         return Colors.amber;
       case CategoriaInsignia.reporte:
         return Colors.blue;
-    }
-  }
-
-  String _getNombreCorto() {
-    switch (insignia.nivel) {
-      case 1:
-        return '1ra';
-      case 3:
-        return '3ra';
-      case 5:
-        return '5ta';
-      case 10:
-        return '10ma';
-      case 25:
-        return '25';
-      case 50:
-        return '50';
-      case 100:
-        return '100';
-      default:
-        return '${insignia.nivel}';
     }
   }
 }

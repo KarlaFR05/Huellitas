@@ -10,6 +10,7 @@ import '../bloc/insignia_event.dart';
 import '../bloc/insignia_state.dart';
 import '../widgets/insignia_card.dart';
 import '../widgets/categoria_selector.dart';
+import 'insignia_detalle_screen.dart';
 
 class InsigniasScreen extends StatefulWidget {
   const InsigniasScreen({super.key});
@@ -38,7 +39,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
       }
 
       if (usuarioId != null && mounted) {
-        print('📡 Disparando CargarInsignias($usuarioId)');
+        print(' Disparando CargarInsignias($usuarioId)');
         context.read<InsigniaBloc>().add(CargarInsignias(usuarioId));
       } else if (mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -223,14 +224,14 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                     crossAxisCount: 3,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: 0.85,
+                    childAspectRatio: 0.7,
                   ),
                   itemCount: state.insigniasFiltradas.length,
                   itemBuilder: (context, index) {
                     final insignia = state.insigniasFiltradas[index];
                     return InsigniaCard(
                       insignia: insignia,
-                      obtenida: state.mostrarObtenidas,
+                      obtenida: insignia.obtenida, 
                     );
                   },
                 ),
@@ -319,7 +320,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
             mostrarObtenidas
                 ? Icons.workspace_premium_outlined
                 : Icons.lock_outline,
-            size: 80,
+            size: 90,
             color: Colors.grey.shade400,
           ),
           const SizedBox(height: 16),

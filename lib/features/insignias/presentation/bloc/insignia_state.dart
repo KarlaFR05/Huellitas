@@ -27,6 +27,9 @@ class InsigniaLoaded extends InsigniaState {
       todasLasInsignias.forEach((_, lista) => insignias.addAll(lista));
     }
     
+    // Ordenar por nivel (ascendente)
+    insignias.sort((a, b) => a.nivel.compareTo(b.nivel));
+    
     return mostrarObtenidas 
         ? insignias.where((i) => i.obtenida).toList()
         : insignias.where((i) => !i.obtenida).toList();
@@ -34,12 +37,12 @@ class InsigniaLoaded extends InsigniaState {
 
   InsigniaLoaded copyWith({
     Map<CategoriaInsignia, List<Insignia>>? todasLasInsignias,
-    CategoriaInsignia? categoriaFiltro,
+    CategoriaInsignia? Function()? categoriaFiltro,
     bool? mostrarObtenidas,
   }) {
     return InsigniaLoaded(
       todasLasInsignias: todasLasInsignias ?? this.todasLasInsignias,
-      categoriaFiltro: categoriaFiltro ?? this.categoriaFiltro,
+      categoriaFiltro: categoriaFiltro != null ? categoriaFiltro() : this.categoriaFiltro,
       mostrarObtenidas: mostrarObtenidas ?? this.mostrarObtenidas,
     );
   }
