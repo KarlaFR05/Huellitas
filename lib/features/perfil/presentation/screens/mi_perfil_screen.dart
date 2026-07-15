@@ -45,6 +45,16 @@ class MiPerfilScreen extends StatelessWidget {
 
                 Card(
                   child: ListTile(
+                    leading: const Icon(Icons.account_circle),
+                    title: const Text("Nombre de usuario"),
+                    subtitle: Text(usuario?.nombreUsuario ?? ""),
+                  ),
+                ),
+
+                const SizedBox(height: 15),
+
+                Card(
+                  child: ListTile(
                     leading: const Icon(Icons.person),
                     title: const Text("Nombre"),
                     subtitle: Text(
@@ -88,23 +98,6 @@ class MiPerfilScreen extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 15),
-
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: const [
-                    Chip(
-                      avatar: Icon(Icons.workspace_premium),
-                      label: Text("Usuario nuevo"),
-                    ),
-                    Chip(
-                      avatar: Icon(Icons.verified),
-                      label: Text("Verificado"),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 30),
 
                 const Text(
                   "Mis reportes",

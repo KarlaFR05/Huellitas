@@ -16,7 +16,7 @@ class LoginForm extends StatefulWidget {
 class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController emailController =
+  final TextEditingController identificadorController =
       TextEditingController();
 
   final TextEditingController passwordController =
@@ -26,7 +26,7 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   void dispose() {
-    emailController.dispose();
+    identificadorController.dispose();
     passwordController.dispose();
     super.dispose();
   }
@@ -89,16 +89,21 @@ class _LoginFormState extends State<LoginForm> {
                 const SizedBox(height: 30),
 
                 TextFormField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: _validateEmail,
+                  controller:
+                  identificadorController,
                   decoration: const InputDecoration(
-                    labelText: 'Correo',
-                    prefixIcon: Icon(Icons.email_outlined),
+                    labelText: "Correo o nombre de usuario",
+                    prefixIcon: Icon(Icons.person_outline),
                   ),
+                  validator:(value){
+                    if(value==null||value.isEmpty){
+                      return "Ingresa tu correo o usuario";
+                    }
+                    return null;
+                  },
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 30),
 
                 TextFormField(
                   controller: passwordController,
@@ -151,7 +156,7 @@ class _LoginFormState extends State<LoginForm> {
 
                             context.read<AuthBloc>().add(
                                   LoginEvent(
-                                    correo: emailController.text.trim(),
+                                    identificador: identificadorController.text.trim(),
                                     password: passwordController.text,
                                   ),
                                 );

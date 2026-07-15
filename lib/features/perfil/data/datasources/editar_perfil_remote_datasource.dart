@@ -9,6 +9,7 @@ class EditarPerfilRemoteDataSource {
   Future<UsuarioModel> editarPerfil({
     String? nombre,
     String? apellidos,
+    String? nombreUsuario,
     String? numTelefono,
     String? calle,
     String? colonia,
@@ -18,6 +19,7 @@ class EditarPerfilRemoteDataSource {
     final body = {
       if (nombre != null) 'nombre': nombre,
       if (apellidos != null) 'apellidos': apellidos,
+      if (nombreUsuario != null) 'nombre_usuario': nombreUsuario,
       if (numTelefono != null) 'num_telefono': numTelefono,
       if (calle != null) 'calle': calle,
       if (colonia != null) 'colonia': colonia,

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../styles/constantes/app_colors.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -58,13 +59,15 @@ class _PasswordFormState extends State<PasswordForm> {
                       width: 90,
                       height: 90,
                       decoration: const BoxDecoration(
-                        color: Color(0xFFE8F5E9),
+                        color: AppColors.secondary,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.check_circle,
-                        color: Colors.green,
-                        size: 60,
+                      child: const Center(
+                        child: Icon(
+                          Icons.check,
+                          size: 60,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
 
@@ -76,6 +79,7 @@ class _PasswordFormState extends State<PasswordForm> {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
                       ),
                     ),
 
@@ -84,7 +88,10 @@ class _PasswordFormState extends State<PasswordForm> {
                     const Text(
                       'Bienvenido a Huellitas.\nYa puedes iniciar sesión.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
 
                     const SizedBox(height: 25),
@@ -93,10 +100,13 @@ class _PasswordFormState extends State<PasswordForm> {
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF57C29A),
+                          backgroundColor: AppColors.primary,
                           minimumSize: const Size(
                             double.infinity,
                             50,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         onPressed: () {
@@ -107,6 +117,8 @@ class _PasswordFormState extends State<PasswordForm> {
                           'Continuar',
                           style: TextStyle(
                             color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
                         ),
                       ),
@@ -266,6 +278,8 @@ class _PasswordFormState extends State<PasswordForm> {
                                   RegisterEvent(
                                     correo:
                                         args['correo'],
+                                    nombreUsuario:
+                                        args['nombreUsuario'],
                                     password:
                                         passwordController
                                             .text,

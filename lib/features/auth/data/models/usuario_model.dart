@@ -6,6 +6,7 @@ class UsuarioModel extends Usuario {
     required super.correo,
     required super.nombre,
     required super.apellidos,
+    required super.nombreUsuario,
     required super.numTelefono,
     required super.fechaNacimiento,
     required super.verificado,
@@ -25,6 +26,7 @@ class UsuarioModel extends Usuario {
       correo: json['correo'] ?? '',
       nombre: json['nombre'] ?? 'Usuario',
       apellidos: json['apellidos'] ?? '',
+      nombreUsuario: json['nombre_usuario'] ?? '',
       numTelefono: json['num_telefono'] ?? '',
       fechaNacimiento: json['fecha_nacimiento'] != null
           ? DateTime.tryParse(json['fecha_nacimiento']) ?? DateTime.now()
@@ -49,6 +51,7 @@ class UsuarioModel extends Usuario {
       'correo': correo,
       'nombre': nombre,
       'apellidos': apellidos,
+      'nombre_usuario': nombreUsuario,
       'num_telefono': numTelefono,
       'fecha_nacimiento': fechaNacimiento.toIso8601String().split('T')[0],
       'verificado': verificado,

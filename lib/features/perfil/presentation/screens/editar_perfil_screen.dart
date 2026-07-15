@@ -1,10 +1,9 @@
-import 'dart:io';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -12,8 +11,6 @@ import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/domain/entities/usuario.dart';
 import '../../data/datasources/editar_perfil_remote_datasource.dart';
 import '../../../../core/widgets/avatar_helper.dart';
-
-import 'package:go_router/go_router.dart';
 
 class EditarPerfilScreen extends StatefulWidget {
   const EditarPerfilScreen({super.key});
@@ -27,6 +24,8 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
 
   final nombreController = TextEditingController();
   final apellidosController = TextEditingController();
+  final nombreUsuarioController = TextEditingController();
+  final correoController = TextEditingController();
   final telefonoController = TextEditingController();
   final calleController = TextEditingController();
   final coloniaController = TextEditingController();
@@ -44,6 +43,8 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
       final usuario = authState.data as Usuario;
       nombreController.text = usuario.nombre;
       apellidosController.text = usuario.apellidos;
+      nombreUsuarioController.text = usuario.nombreUsuario ?? '';
+      correoController.text = usuario.correo;
       telefonoController.text = usuario.numTelefono;
       calleController.text = usuario.calle ?? '';
       coloniaController.text = usuario.colonia ?? '';
@@ -142,6 +143,7 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
       final usuarioActualizado = await datasource.editarPerfil(
         nombre: nombreController.text.trim(),
         apellidos: apellidosController.text.trim(),
+        nombreUsuario: nombreUsuarioController.text.trim(),
         numTelefono: telefonoController.text.trim(),
         calle: calleController.text.trim().isEmpty
             ? null
@@ -179,6 +181,8 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
   void dispose() {
     nombreController.dispose();
     apellidosController.dispose();
+    nombreUsuarioController.dispose();
+    correoController.dispose();
     telefonoController.dispose();
     calleController.dispose();
     coloniaController.dispose();
@@ -239,10 +243,34 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
               const SizedBox(height: 12),
 
               TextFormField(
+                controller: nombreUsuarioController,
+                maxLength: 20,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre de usuario',
+                  prefixIcon: Icon(Icons.alternate_email),
+                  counterText: "",
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Ingresa un nombre de usuario";
+                  }
+                  if (!RegExp(
+                    r'^(?=.{4,20}$)(?!.*[_.]{2})[a-zA-Z0-9]+([._]?[a-zA-Z0-9]+)*$',
+                  ).hasMatch(value)) {
+                    return "Nombre de usuario inválido";
+                  }
+                  return null;
+                },
+              ),
+
+              const SizedBox(height: 15),
+
+              TextFormField(
                 controller: nombreController,
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty)
+                  if (value == null || value.trim().isEmpty) {
                     return 'Ingresa tu nombre';
+                  }
                   if (!RegExp(
                     r'^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?: [A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$',
                   ).hasMatch(value.trim())) {
@@ -261,8 +289,9 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
               TextFormField(
                 controller: apellidosController,
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty)
+                  if (value == null || value.trim().isEmpty) {
                     return 'Ingresa tus apellidos';
+                  }
                   if (!RegExp(
                     r'^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?: [A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$',
                   ).hasMatch(value.trim())) {
@@ -279,13 +308,38 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
               const SizedBox(height: 15),
 
               TextFormField(
+                controller: correoController,
+                readOnly: true,
+                enabled: false,
+                style: TextStyle(color: Colors.grey.shade600),
+                decoration: InputDecoration(
+                  labelText: 'Correo',
+                  prefixIcon: Icon(
+                    Icons.lock_outline,
+                    color: Colors.grey.shade500,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade100,
+                  helperText: 'El correo no se puede modificar',
+                  helperStyle: TextStyle(
+                    color: Colors.grey.shade500,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              TextFormField(
                 controller: telefonoController,
                 keyboardType: TextInputType.phone,
                 validator: (value) {
-                  if (value == null || value.isEmpty)
+                  if (value == null || value.isEmpty) {
                     return 'Ingresa un teléfono';
-                  if (!RegExp(r'^[0-9]{10}$').hasMatch(value))
+                  }
+                  if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
                     return 'Debe contener 10 dígitos';
+                  }
                   return null;
                 },
                 decoration: const InputDecoration(
