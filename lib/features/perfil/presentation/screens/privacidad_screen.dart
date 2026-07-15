@@ -16,9 +16,6 @@ class PrivacidadScreen extends StatelessWidget {
             '''
 Aquí se mostrará la política de privacidad de Huellitas.
 
-Andry roba datos no le creas a este wey, es un hacker y roba datos de los usuarios.
-ATTE: LA EXTENCIÓN Q LE SABE COSAS A ANDRY JAJAJAJAJJAJA
-
 ''',
             style: TextStyle(fontSize: 16),
           ),

@@ -13,6 +13,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final body = {
         'correo': usuario.correo,
+        'nombre_usuario': usuario.nombreUsuario,
         'contrasenia': password,
         'nombre': usuario.nombre,
         'apellidos': usuario.apellidos,
@@ -36,10 +37,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<TokenModel> login(String correo, String password) async {
+  Future<TokenModel> login(String identificador, String password) async {
     try {
       final body = {
-        'correo': correo,
+        'identificador': identificador,
         'contrasenia': password,
       };
 

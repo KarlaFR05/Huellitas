@@ -28,6 +28,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final usuario = await registerUseCase.call(
         correo: event.correo,
+        nombreUsuario: event.nombreUsuario,
         password: event.password,
         nombre: event.nombre,
         apellidos: event.apellidos,
@@ -44,12 +45,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     try {
-      final token = await loginUseCase(event.correo, event.password);
+      final token = await loginUseCase(event.identificador, event.password);
       await tokenStorage.guardarToken(token.accessToken);
 
       emit(AuthSuccess(message: 'Inicio de sesión exitoso', data: token.user));
     } catch (e) {
-      emit(AuthError(message: 'Correo o contraseña incorrectos.'));
+      emit(AuthError(message: 'Identificador o contraseña incorrectos.'));
     }
   }
 }

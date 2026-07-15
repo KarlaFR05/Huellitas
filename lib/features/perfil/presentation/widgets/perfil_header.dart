@@ -14,12 +14,12 @@ class PerfilHeader extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         String nombre = "Usuario";
-        String correo = "";
+        String nombreUsuario = "";
 
         if (state is AuthSuccess && state.data is Usuario) {
           final usuario = state.data as Usuario;
           nombre = "${usuario.nombre} ${usuario.apellidos}";
-          correo = usuario.correo ?? "";
+          nombreUsuario = usuario.nombreUsuario;
         }
 
         return Column(
@@ -70,7 +70,7 @@ class PerfilHeader extends StatelessWidget {
             const SizedBox(height: 5),
 
             Text(
-              correo,
+              nombreUsuario,
               style: const TextStyle(
                 color: Colors.grey,
               ),

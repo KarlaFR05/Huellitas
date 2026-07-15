@@ -6,6 +6,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../../styles/constantes/app_colors.dart';
 
 class EditarPerfilScreen extends StatefulWidget {
   const EditarPerfilScreen({super.key});
@@ -21,6 +22,7 @@ class _EditarPerfilScreenState
 
   final nombreController = TextEditingController();
   final apellidosController = TextEditingController();
+  final nombreUsuarioController = TextEditingController();
   final correoController = TextEditingController();
   final telefonoController = TextEditingController();
 
@@ -32,51 +34,64 @@ class _EditarPerfilScreenState
   Future<void> _seleccionarImagen() async {
     showModalBottomSheet(
       context: context,
-      builder: (_) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text("Tomar fotografía"),
-                onTap: () async {
-                  Navigator.pop(context);
-
-                  final foto = await picker.pickImage(
-                    source: ImageSource.camera,
-                    imageQuality: 80,
-                  );
-
-                  if (foto != null) {
-                    setState(() {
-                      imagenPerfil = File(foto.path);
-                    });
-                  }
-                },
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Seleccionar imagen',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
               ),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: AppColors.primary),
+              title: const Text('Tomar fotografía'),
+              onTap: () async {
+                Navigator.pop(context);
 
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text("Elegir de galería"),
-                onTap: () async {
-                  Navigator.pop(context);
+                final foto = await picker.pickImage(
+                  source: ImageSource.camera,
+                  imageQuality: 80,
+                );
 
-                  final foto = await picker.pickImage(
-                    source: ImageSource.gallery,
-                    imageQuality: 80,
-                  );
+                if (foto != null) {
+                  setState(() {
+                    imagenPerfil = File(foto.path);
+                  });
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: AppColors.primary),
+              title: const Text('Elegir de galería'),
+              onTap: () async {
+                Navigator.pop(context);
 
-                  if (foto != null) {
-                    setState(() {
-                      imagenPerfil = File(foto.path);
-                    });
-                  }
-                },
-              ),
-            ],
-          ),
-        );
-      },
+                final foto = await picker.pickImage(
+                  source: ImageSource.gallery,
+                  imageQuality: 80,
+                );
+
+                if (foto != null) {
+                  setState(() {
+                    imagenPerfil = File(foto.path);
+                  });
+                }
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -84,8 +99,10 @@ class _EditarPerfilScreenState
   void dispose() {
     nombreController.dispose();
     apellidosController.dispose();
+    nombreUsuarioController.dispose();
     correoController.dispose();
     telefonoController.dispose();
+    nombreUsuarioController.dispose();
     super.dispose();
   }
 
@@ -98,6 +115,7 @@ class _EditarPerfilScreenState
       if (nombreController.text.isEmpty) {
         nombreController.text = usuario.nombre ?? '';
         apellidosController.text = usuario.apellidos ?? '';
+        nombreUsuarioController.text = usuario.nombreUsuario ?? '';
         correoController.text = usuario.correo ?? '';
         telefonoController.text = usuario.numTelefono ?? '';
       }
@@ -145,6 +163,35 @@ class _EditarPerfilScreenState
               ),
 
               const SizedBox(height: 30),
+
+              TextFormField(
+                controller:
+                nombreUsuarioController,
+                maxLength:20,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre de usuario',
+                  prefixIcon: Icon(Icons.alternate_email),
+                  counterText:"",
+                ),
+                validator:(value){
+                  if(value==null||value.isEmpty){
+                    return "Ingresa un nombre de usuario";
+                  }
+
+                  if(!RegExp(
+                    r'^(?=.{4,20}$)(?!.*[_.]{2})[a-zA-Z0-9]+([._]?[a-zA-Z0-9]+)*$'
+                  ).hasMatch(value)){
+
+                  return "Nombre de usuario inválido";
+                  }
+
+                  return null;
+
+                },
+
+              ),
+
+              const SizedBox(height: 15),
 
               TextFormField(
                 controller: nombreController,

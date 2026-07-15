@@ -16,6 +16,7 @@ class AuthRepositoryImpl implements AuthRepository {
       correo: usuario.correo,
       nombre: usuario.nombre,
       apellidos: usuario.apellidos,
+      nombreUsuario: usuario.nombreUsuario,
       numTelefono: usuario.numTelefono,
       fechaNacimiento: usuario.fechaNacimiento,
       verificado: usuario.verificado,
@@ -27,8 +28,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Token> login(String correo, String password) async {
-    return await remoteDataSource.login(correo, password);
+  Future<Token> login(String identificador, String password) async {
+    return await remoteDataSource.login(identificador, password);
   }
 
 }
