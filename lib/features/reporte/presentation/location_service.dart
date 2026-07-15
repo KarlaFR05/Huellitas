@@ -26,9 +26,35 @@ class LocationService {
       );
     }
 
-    return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.best,
+    const locationSettings = LocationSettings(
+      accuracy:
+          LocationAccuracy.bestForNavigation, // fuerza uso de GPS real, no red
     );
+
+    Position posicion = await Geolocator.getCurrentPosition(
+      locationSettings: locationSettings,
+    );
+
+    // Si la precisión sigue siendo mala (radio de error grande), esperamos
+    // una lectura mejor del stream de GPS antes de aceptarla.
+    if (posicion.accuracy > 30) {
+      try {
+        posicion =
+            await Geolocator.getPositionStream(
+                  locationSettings: locationSettings,
+                )
+                .firstWhere((p) => p.accuracy <= 30)
+                .timeout(
+                  const Duration(seconds: 8),
+                  onTimeout: () =>
+                      posicion, // si no mejora a tiempo, usamos la que ya teníamos
+                );
+      } catch (_) {
+        // si el stream falla, seguimos con la posición original
+      }
+    }
+
+    return posicion;
   }
 
   Future<String> obtenerDireccionDesdeCoordenadas(
@@ -53,8 +79,8 @@ class LocationService {
 
   Stream<Position> obtenerStreamUbicacion() {
     const locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 3, // metros minimos de movimiento para emitir actualizacion
+      accuracy: LocationAccuracy.bestForNavigation,
+      distanceFilter: 3,
     );
     return Geolocator.getPositionStream(locationSettings: locationSettings);
   }

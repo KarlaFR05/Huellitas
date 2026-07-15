@@ -39,7 +39,14 @@ class _MapWidgetState extends State<MapWidget> {
 
     return FlutterMap(
       mapController: _controller,
-      options: MapOptions(initialCenter: initialCenter, initialZoom: 16),
+      options: MapOptions(
+        initialCenter: initialCenter,
+        initialZoom: 16,
+        minZoom:
+            5, // qué tan lejos puede alejarse (número más bajo = más alejado)
+        maxZoom:
+            22, // qué tan cerca puede acercarse (número más alto = más cercano)
+      ),
       children: [
         TileLayer(
           urlTemplate:
