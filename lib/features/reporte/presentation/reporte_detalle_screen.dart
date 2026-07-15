@@ -33,17 +33,25 @@ class ReporteDetalleScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildField('Tipo de animal', reporte.tipoAnimal),
+            // Tipo de animal
+            _buildInfoRow('Tipo de animal', reporte.tipoAnimal, icon: Icons.pets),
             const SizedBox(height: 16),
-            _buildField('Raza', reporte.raza),
+            
+            // Raza
+            _buildInfoRow('Raza', reporte.raza, icon: Icons.category),
             const SizedBox(height: 16),
-            _buildField('Tamaño', reporte.tamano),
+            
+            // Tamaño
+            _buildInfoRow('Tamaño', reporte.tamano, icon: Icons.straighten),
             const SizedBox(height: 24),
+            
+            // Evidencia
             const Text(
               'Evidencia',
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w500,
+                fontSize: 16,
               ),
             ),
             const SizedBox(height: 12),
@@ -53,32 +61,35 @@ class ReporteDetalleScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildField(String label, String value) {
-    return Column(
+  Widget _buildInfoRow(String label, String value, {IconData? icon}) {
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: AppColors.secondary.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            value,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 14,
-            ),
+        if (icon != null) ...[
+          Icon(icon, color: AppColors.textSecondary, size: 20),
+          const SizedBox(width: 12),
+        ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
       ],

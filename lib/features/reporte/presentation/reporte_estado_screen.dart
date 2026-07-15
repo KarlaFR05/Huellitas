@@ -57,9 +57,10 @@ class ReporteEstadoScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContenido(BuildContext context, reporte) {
+  Widget _buildContenido(BuildContext context, dynamic reporte) {
     final fases = FaseReporte.values;
     final faseActualIndex = fases.indexOf(reporte.faseActual);
+    final bool esFaseFinal = reporte.faseActual == FaseReporte.seEncuentraASalvo;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -70,10 +71,36 @@ class ReporteEstadoScreen extends StatelessWidget {
           _buildFasesIndicator(fases, faseActualIndex),
           const SizedBox(height: 32),
 
-          // Nivel de urgencia
-          _buildInfoRow('Nivel de urgencia', reporte.nivelUrgencia,
-              icon: Icons.warning_amber_rounded,
-              iconColor: _getColorUrgencia(reporte.nivelUrgencia)),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.black, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Nivel de urgencia',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      reporte.nivelUrgencia,
+                      style: TextStyle(
+                        color: _getColorUrgencia(reporte.nivelUrgencia), // el eexto cambia dependiendo de color  del nivel de urgencia
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600, 
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
 
           const SizedBox(height: 16),
 
@@ -95,7 +122,7 @@ class ReporteEstadoScreen extends StatelessWidget {
 
           const SizedBox(height: 40),
 
-          // Botones
+          // Ver más sobre el reporte
           SizedBox(
             width: double.infinity,
             height: 55,
@@ -119,24 +146,29 @@ class ReporteEstadoScreen extends StatelessWidget {
               ),
             ),
           ),
+          
           const SizedBox(height: 12),
+          
+          //Actualizar estado del reporte (Deshabilitado si es fase final)
           SizedBox(
             width: double.infinity,
             height: 55,
             child: ElevatedButton(
-              onPressed: () {
-                context.push('/actualizar-estado', extra: reporte);
-              },
+              onPressed: esFaseFinal 
+                  ? null 
+                  : () {
+                      context.push('/actualizar-estado', extra: reporte);
+                    },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: esFaseFinal ? Colors.grey.shade400 : AppColors.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(55),
                 ),
               ),
-              child: const Text(
-                'Actualizar estado del reporte',
+              child: Text(
+                esFaseFinal ? 'Reporte finalizado' : 'Actualizar estado del reporte',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: esFaseFinal ? Colors.white70 : Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
                 ),
@@ -184,13 +216,14 @@ class ReporteEstadoScreen extends StatelessWidget {
     );
   }
 
+  // Método genérico para las otras filas (Tipo, Descripción, Ubicación)
   Widget _buildInfoRow(String label, String value,
       {IconData? icon, Color? iconColor}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (icon != null) ...[
-          Icon(icon, color: iconColor ?? AppColors.textSecondary, size: 20),
+          Icon(icon, color: iconColor ?? Colors.black, size: 20), // Por defecto negro
           const SizedBox(width: 12),
         ],
         Expanded(
@@ -220,18 +253,19 @@ class ReporteEstadoScreen extends StatelessWidget {
     );
   }
 
+  // Método que devuelve el color según el texto de urgencia
   Color _getColorUrgencia(String urgencia) {
     switch (urgencia.toLowerCase()) {
       case 'baja':
-        return Colors.yellow.shade700;
+        return Colors.green.shade700; // Verde para baja
       case 'media':
-        return Colors.orange;
+        return Colors.orange.shade700; // Naranja para media
       case 'alta':
-        return Colors.red;
+        return Colors.red.shade700; // Rojo para alta
       case 'crítica':
-        return const Color(0xFF800020);
+        return const Color(0xFF800020); // Vino oscuro para crítica
       default:
-        return AppColors.textSecondary;
+        return AppColors.textPrimary;
     }
   }
 }
@@ -284,31 +318,14 @@ class _ChevronClipper extends CustomClipper<Path> {
     final chevronWidth = 12.0;
     final cornerRadius = 6.0;
 
-    // Punto de inicio: esquina superior izquierda con ligero redondeo
     path.moveTo(cornerRadius, 0);
-    
-    // Línea superior hasta antes de la punta
     path.lineTo(size.width - chevronWidth, 0);
-    
-    // Punta derecha superior
     path.lineTo(size.width, size.height / 2);
-    
-    // Punta derecha inferior
     path.lineTo(size.width - chevronWidth, size.height);
-    
-    // Línea inferior hasta antes de la entrada
     path.lineTo(cornerRadius, size.height);
-    
-    // Esquina inferior izquierda redondeada
     path.quadraticBezierTo(0, size.height, 0, size.height - cornerRadius);
-    
-    // Entrada en V hacia la izquierda (centro)
     path.lineTo(0, size.height / 2);
-    
-    // Salida de la entrada
     path.lineTo(0, cornerRadius);
-    
-    // Esquina superior izquierda redondeada
     path.quadraticBezierTo(0, 0, cornerRadius, 0);
     
     path.close();

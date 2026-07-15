@@ -11,6 +11,7 @@ class Reporte {
   final String evidencia;
   final double latitud;
   final double longitud;
+  final int faseActualId;
 
   Reporte({
     this.id,
@@ -25,5 +26,6 @@ class Reporte {
     required this.evidencia,
     required this.latitud,
     required this.longitud,
+    this.faseActualId = 1,
   });
 }

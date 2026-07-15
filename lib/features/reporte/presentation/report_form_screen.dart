@@ -37,6 +37,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   double? _latitud;
   double? _longitud;
   bool _obteniendoUbicacion = false;
+  String? _otraRazaError;
 
   final LocationService _locationService = LocationService();
 
@@ -44,7 +45,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   final List<File> _evidenceImages = [];
   final ImagePicker _picker = ImagePicker();
 
-  // Listas locales (Mantenidas para que tu UI funcione perfectamente)
+  // Listas locales
   final List<String> _razasPerro = [
     'Mestizos',
     'Chihuahua',
@@ -151,6 +152,17 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     }
   }
 
+  void _validarOtraRaza(String value) {
+    setState(() {
+      // Verificar si contiene números (0-9) o caracteres especiales
+      if (RegExp(r'[0-9!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
+        _otraRazaError = 'No puede contener números ni caracteres especiales';
+      } else {
+        _otraRazaError = null;
+      }
+    });
+  }
+
   // --- IMÁGENES ---
 
   Future<void> _pickImage(ImageSource source) async {
@@ -226,6 +238,58 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   void _removeImage(int index) =>
       setState(() => _evidenceImages.removeAt(index));
 
+  void _showFullImage(File image) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Center(
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: Colors.black,
+                  child: InteractiveViewer(
+                    boundaryMargin: const EdgeInsets.all(20),
+                    minScale: 0.5,
+                    maxScale: 4.0,
+                    child: Image.file(
+                      image,
+                      fit: BoxFit.fitWidth,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // --- WIDGETS DE UI ---
 
   Widget _buildInfoIcon(String title, Widget content) {
@@ -251,7 +315,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               ),
             ],
           ),
-          content: content, // Ahora recibe un Widget
+          content: content,
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -282,103 +346,127 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GestureDetector(
-          onTap: _evidenceImages.isNotEmpty ? null : _showImageSourceDialog,
-          child: Container(
-            height: 120,
-            decoration: BoxDecoration(
-              color: _evidenceImages.isNotEmpty
-                  ? Colors.grey.withValues(alpha: 0.2)
-                  : AppColors.secondary.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _evidenceImages.isNotEmpty
-                    ? Colors.grey.withValues(alpha: 0.4)
-                    : AppColors.primary.withValues(alpha: 0.5),
-                width: 2,
+        const SizedBox(height: 24),
+        const Text(
+          'Adjuntar evidencia',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 12),
+        
+        Center(
+          child: GestureDetector(
+            onTap: _evidenceImages.isNotEmpty 
+                ? () => _showFullImage(_evidenceImages[0])
+                : _showImageSourceDialog,
+            child: Container(
+              width: double.infinity,
+              height: 150,
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.primary, width: 2),
               ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: _evidenceImages.isNotEmpty
-                        ? Colors.grey.withValues(alpha: 0.2)
-                        : AppColors.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _evidenceImages.isNotEmpty
-                        ? Icons.block
-                        : Icons.add_a_photo,
-                    size: 36,
-                    color: _evidenceImages.isNotEmpty
-                        ? Colors.grey
-                        : AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _evidenceImages.isNotEmpty
-                      ? 'Límite alcanzado'
-                      : 'Agregar foto',
-                  style: TextStyle(
-                    color: _evidenceImages.isNotEmpty
-                        ? Colors.grey
-                        : AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Máximo 1 imagen',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                ),
-              ],
+              child: _evidenceImages.isNotEmpty
+                  ? Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            _evidenceImages[0],
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.visibility,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Ver',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.camera_alt,
+                          size: 48,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Toca para agregar foto',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
             ),
           ),
         ),
         if (_evidenceImages.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          Stack(
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.file(
-                  _evidenceImages[0],
-                  width: 120,
-                  height: 120,
-                  fit: BoxFit.cover,
-                ),
+              Text(
+                '1/1 imagen agregada',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
-              Positioned(
-                top: 4,
-                right: 4,
-                child: GestureDetector(
-                  onTap: () => _removeImage(0),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: 16,
-                    ),
+              GestureDetector(
+                onTap: () => _removeImage(0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.delete_outline, color: Colors.red, size: 16),
+                      SizedBox(width: 4),
+                      Text(
+                        'Eliminar',
+                        style: TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${_evidenceImages.length}/1 imagen agregada',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
           ),
         ],
       ],
@@ -441,6 +529,11 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       _showErrorDialog('Por favor agrega al menos una evidencia fotográfica');
       return;
     }
+    if (_mostrarOtraRaza && _otraRazaError != null) {
+      _showErrorDialog('La raza no puede contener números ni caracteres especiales');
+      return;
+    }
+
     if (_tipoAnimal == null ||
         _tamano == null ||
         _raza == null ||
@@ -646,7 +739,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             text:
                                 'Animal consciente, camina bien, sin heridas visibles. Solo necesita alimento o refugio.\n\n',
                           ),
-
                           TextSpan(
                             text: '• ',
                             style: TextStyle(fontWeight: FontWeight.bold),
@@ -662,7 +754,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             text:
                                 'Heridas leves, cojea, deshidratación o desnutrición evidente. Requiere atención en las próximas horas.\n\n',
                           ),
-
                           TextSpan(
                             text: '• ',
                             style: TextStyle(fontWeight: FontWeight.bold),
@@ -678,7 +769,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             text:
                                 'No puede moverse, sangrado visible, heridas graves o signos de maltrato. Riesgo de empeorar pronto.\n\n',
                           ),
-
                           TextSpan(
                             text: '• ',
                             style: TextStyle(fontWeight: FontWeight.bold),
@@ -725,6 +815,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                   _raza = null;
                   _mostrarOtraRaza = false;
                   _otraRazaController.clear();
+                  _otraRazaError = null; 
                 }),
                 hintText: 'Seleccione un tipo de animal',
               ),
@@ -737,17 +828,16 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                   (value) => setState(() {
                     _raza = value;
                     _mostrarOtraRaza = value == 'Otro';
-                    if (!_mostrarOtraRaza) _otraRazaController.clear();
+                    if (!_mostrarOtraRaza) {
+                      _otraRazaController.clear();
+                      _otraRazaError = null;
+                    }
                   }),
                   hintText: 'Seleccione una raza',
                 ),
                 if (_mostrarOtraRaza) ...[
                   const SizedBox(height: 16),
-                  _buildTextField(
-                    'Ingresar otra raza',
-                    _otraRazaController.text,
-                    (value) => setState(() => _otraRazaController.text = value),
-                  ),
+                  _buildOtraRazaField(),
                 ],
               ],
               const SizedBox(height: 16),
@@ -802,14 +892,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               const SizedBox(height: 32),
               const Divider(color: Colors.grey, height: 1),
               const SizedBox(height: 32),
-              const Text(
-                'Evidencia',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 12),
+              
+              
               _buildEvidenceSection(),
               const SizedBox(height: 40),
               SizedBox(
@@ -875,12 +959,66 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               border: InputBorder.none,
               isDense: true,
               contentPadding: EdgeInsets.zero,
-              hintText: 'Escribe la raza del animal',
+              hintText: 'Escribe aquí',
               hintStyle: const TextStyle(color: AppColors.textSecondary),
             ),
             style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildOtraRazaField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Ingresar otra raza',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppColors.secondary.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _otraRazaError != null ? Colors.red : AppColors.secondary,
+              width: _otraRazaError != null ? 2 : 1,
+            ),
+          ),
+          child: TextField(
+            controller: _otraRazaController,
+            onChanged: _validarOtraRaza,
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+              hintText: 'Escribe la raza del animal',
+              hintStyle: TextStyle(color: AppColors.textSecondary),
+            ),
+            style: TextStyle(
+              color: _otraRazaError != null ? Colors.red : AppColors.textPrimary,
+              fontSize: 14,
+            ),
+          ),
+        ),
+        if (_otraRazaError != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            _otraRazaError!,
+            style: const TextStyle(
+              color: Colors.red,
+              fontSize: 11,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -986,6 +1124,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               Expanded(
                 child: TextField(
                   controller: controller,
+                  readOnly: true, // ✅ NO EDITABLE
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     isDense: true,
