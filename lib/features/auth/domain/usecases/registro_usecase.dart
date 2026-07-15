@@ -11,6 +11,7 @@ class RegisterUseCase {
     required String password,
     required String nombre,
     required String apellidos,
+    required String nombreUsuario,
     required String numTelefono,
     required DateTime fechaNacimiento,
     String? calle,
@@ -21,6 +22,7 @@ class RegisterUseCase {
     final usuario = Usuario(
       usuarioIdPk: 0, // Se asigna en el backend
       correo: correo,
+      nombreUsuario: nombreUsuario,
       nombre: nombre,
       apellidos: apellidos,
       numTelefono: numTelefono,

@@ -286,7 +286,7 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 64,
+            width: 110,
             child: Text(
               label,
               style: const TextStyle(
@@ -295,6 +295,7 @@ class _InfoRow extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: 13),
           Expanded(
             child: Text(
               value,

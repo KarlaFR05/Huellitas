@@ -3,5 +3,5 @@ import '../models/token_model.dart';
 
 abstract class AuthRemoteDataSource {
   Future<UsuarioModel> register(UsuarioModel usuario, String password);
-  Future<TokenModel> login(String correo, String password);
+  Future<TokenModel> login(String identificador, String password);
 }

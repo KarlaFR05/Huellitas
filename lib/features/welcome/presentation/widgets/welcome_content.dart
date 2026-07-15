@@ -14,25 +14,10 @@ class WelcomeContent extends StatelessWidget {
 
           Image.asset(
             'assets/images/logoo.png',
-            height: 180,
+            height: 240,
           ),
 
           const SizedBox(height: 24),
-
-          const Text(
-            'Huellitas',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          const Text(
-            'Acción real por vidas reales',
-            textAlign: TextAlign.center,
-          ),
 
           const Spacer(),
 

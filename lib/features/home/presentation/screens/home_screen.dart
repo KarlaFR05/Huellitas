@@ -219,7 +219,7 @@ class _Header extends StatelessWidget {
 
                 if (state is AuthSuccess && state.data is Usuario) {
                   final usuario = state.data as Usuario;
-                  nombreUsuario = usuario.nombre ?? 'Usuario';
+                  nombreUsuario = usuario.nombreUsuario.isNotEmpty ? usuario.nombreUsuario : 'Usuario';
                   usuarioVerificado = usuario.verificado;
                 }
 
@@ -268,17 +268,6 @@ class _Header extends StatelessWidget {
             child: IconButton(
               onPressed: () {},
               icon: const Icon(Icons.notifications_none, color: Colors.white),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF57C29A),
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.settings, color: Colors.white),
             ),
           ),
         ],

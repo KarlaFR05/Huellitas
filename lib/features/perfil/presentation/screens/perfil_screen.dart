@@ -209,24 +209,35 @@ class PerfilScreen extends StatelessWidget {
                   context: context,
                   builder: (_) => AlertDialog(
                     title: const Text('Cerrar sesión'),
-                    content: const Text('¿Deseas cerrar tu sesión?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancelar'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('¿Deseas cerrar tu sesión?'),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
 
-                          context.read<AuthBloc>().add(LogoutEvent());
-                          context.read<VerificacionCubit>().resetear();
+                              context.read<AuthBloc>().add(LogoutEvent());
+                              context.read<VerificacionCubit>().resetear();
 
-                          context.go('/login');
-                        },
-                        child: const Text('Cerrar sesión'),
-                      ),
-                    ],
+                              context.go('/login');
+                            },
+                            child: const Text('Cerrar sesión'),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancelar'),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

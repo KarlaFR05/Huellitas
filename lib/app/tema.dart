@@ -2,6 +2,17 @@ import 'package:flutter/material.dart';
 
 final ThemeData appTheme = ThemeData(
   useMaterial3: true,
+  fontFamily: 'Roboto',
+  tabBarTheme: const TabBarThemeData(
+    labelStyle: TextStyle(
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.w600,
+    ),
+    unselectedLabelStyle: TextStyle(
+      fontFamily: 'Roboto',
+      fontWeight: FontWeight.w400,
+    ),
+  ),
 
   colorScheme: ColorScheme.fromSeed(
     seedColor: const Color(0xFF57C29A),
