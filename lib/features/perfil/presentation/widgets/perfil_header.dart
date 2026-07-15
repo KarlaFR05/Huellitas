@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../../core/widgets/avatar_helper.dart';
 
 class PerfilHeader extends StatelessWidget {
   const PerfilHeader({super.key});
@@ -15,9 +16,10 @@ class PerfilHeader extends StatelessWidget {
       builder: (context, state) {
         String nombre = "Usuario";
         String correo = "";
+        Usuario? usuario;
 
         if (state is AuthSuccess && state.data is Usuario) {
-          final usuario = state.data as Usuario;
+          usuario = state.data as Usuario;
           nombre = "${usuario.nombre} ${usuario.apellidos}";
           correo = usuario.correo ?? "";
         }
@@ -26,11 +28,9 @@ class PerfilHeader extends StatelessWidget {
           children: [
             Stack(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 55,
-                  backgroundImage: AssetImage(
-                    'assets/images/perfil.png',
-                  ),
+                  backgroundImage: avatarProvider(usuario?.fotoPerfil),
                 ),
 
                 Positioned(
@@ -61,20 +61,12 @@ class PerfilHeader extends StatelessWidget {
 
             Text(
               nombre,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 5),
 
-            Text(
-              correo,
-              style: const TextStyle(
-                color: Colors.grey,
-              ),
-            ),
+            Text(correo, style: const TextStyle(color: Colors.grey)),
           ],
         );
       },

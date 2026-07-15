@@ -7,14 +7,18 @@ import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/domain/entities/usuario.dart';
-
 import '../../data/datasources/editar_perfil_remote_datasource.dart';
 import '../../../../core/widgets/avatar_helper.dart';
 
-const List<String> catalogoAvatares = ['avatar_01.png'];
+const List<String> catalogoAvatares = [
+  'avatar_01.png',
+  'avatar_02.png',
+  'avatar_03.png',
+  'avatar_04.png',
+];
 
 class SeleccionarFotoPerfilScreen extends StatefulWidget {
   const SeleccionarFotoPerfilScreen({super.key});
@@ -36,7 +40,6 @@ class _SeleccionarFotoPerfilScreenState
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthSuccess && authState.data is Usuario) {
       final usuario = authState.data as Usuario;
-      // Solo marca si es un avatar del catálogo (no una URL de foto propia)
       if (usuario.fotoPerfil != null &&
           !usuario.fotoPerfil!.startsWith('http')) {
         _avatarSeleccionado = usuario.fotoPerfil;
@@ -47,8 +50,7 @@ class _SeleccionarFotoPerfilScreenState
   Future<void> _seleccionarDelCatalogo(String nombreAvatar) async {
     setState(() {
       _guardando = true;
-      _avatarSeleccionado =
-          nombreAvatar; // marca de inmediato, sensación instantánea
+      _avatarSeleccionado = nombreAvatar;
     });
     try {
       final dio = context.read<Dio>();
@@ -75,63 +77,65 @@ class _SeleccionarFotoPerfilScreenState
     }
   }
 
-  Future<void> _elegirDeGaleria(ImageSource source) async {
-    final foto = await _picker.pickImage(source: source, imageQuality: 80);
-    if (foto == null) return;
+  // TODO: reactivar cuando se vuelva a habilitar la subida de fotos propias
+  // Future<void> _elegirDeGaleria(ImageSource source) async {
+  //   final foto = await _picker.pickImage(source: source, imageQuality: 80);
+  //   if (foto == null) return;
+  //
+  //   setState(() => _guardando = true);
+  //   try {
+  //     final dio = context.read<Dio>();
+  //     final datasource = EditarPerfilRemoteDataSource(dio);
+  //
+  //     final usuarioActualizado = await datasource.subirFotoPerfilPersonalizada(
+  //       File(foto.path),
+  //     );
+  //
+  //     if (!mounted) return;
+  //     context.read<AuthBloc>().add(ActualizarUsuarioEvent(usuarioActualizado));
+  //     context.pop();
+  //   } on DioException catch (e) {
+  //     if (!mounted) return;
+  //     final mensaje = e.response?.data?['detail'] ?? 'Error al subir la foto';
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(mensaje.toString()),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   } finally {
+  //     if (mounted) setState(() => _guardando = false);
+  //   }
+  // }
 
-    setState(() => _guardando = true);
-    try {
-      final dio = context.read<Dio>();
-      final datasource = EditarPerfilRemoteDataSource(dio);
-
-      final usuarioActualizado = await datasource.subirFotoPerfilPersonalizada(
-        File(foto.path),
-      );
-
-      if (!mounted) return;
-      context.read<AuthBloc>().add(ActualizarUsuarioEvent(usuarioActualizado));
-      context.pop();
-    } on DioException catch (e) {
-      if (!mounted) return;
-      final mensaje = e.response?.data?['detail'] ?? 'Error al subir la foto';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(mensaje.toString()),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _guardando = false);
-    }
-  }
-
-  void _mostrarOpcionesGaleria() {
-    showModalBottomSheet(
-      context: context,
-      builder: (_) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text("Tomar fotografía"),
-              onTap: () {
-                Navigator.pop(context);
-                _elegirDeGaleria(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text("Elegir de galería"),
-              onTap: () {
-                Navigator.pop(context);
-                _elegirDeGaleria(ImageSource.gallery);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // TODO: reactivar junto con _elegirDeGaleria
+  // void _mostrarOpcionesGaleria() {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     builder: (_) => SafeArea(
+  //       child: Wrap(
+  //         children: [
+  //           ListTile(
+  //             leading: const Icon(Icons.camera_alt),
+  //             title: const Text("Tomar fotografía"),
+  //             onTap: () {
+  //               Navigator.pop(context);
+  //               _elegirDeGaleria(ImageSource.camera);
+  //             },
+  //           ),
+  //           ListTile(
+  //             leading: const Icon(Icons.photo_library),
+  //             title: const Text("Elegir de galería"),
+  //             onTap: () {
+  //               Navigator.pop(context);
+  //               _elegirDeGaleria(ImageSource.gallery);
+  //             },
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -144,39 +148,39 @@ class _SeleccionarFotoPerfilScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                InkWell(
-                  onTap: _mostrarOpcionesGaleria,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF57C29A).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF57C29A)),
-                    ),
-                    child: Row(
-                      children: const [
-                        Icon(
-                          Icons.add_photo_alternate_outlined,
-                          color: Color(0xFF57C29A),
-                        ),
-                        SizedBox(width: 12),
-                        Text(
-                          "Subir una foto propia",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF57C29A),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 28),
-
+                // TODO: reactivar el botón de "Subir una foto propia" cuando
+                // se vuelva a habilitar (descomentar junto con _mostrarOpcionesGaleria)
+                // InkWell(
+                //   onTap: _mostrarOpcionesGaleria,
+                //   borderRadius: BorderRadius.circular(12),
+                //   child: Container(
+                //     padding: const EdgeInsets.all(16),
+                //     decoration: BoxDecoration(
+                //       color: const Color(0xFF57C29A).withValues(alpha: 0.1),
+                //       borderRadius: BorderRadius.circular(12),
+                //       border: Border.all(color: const Color(0xFF57C29A)),
+                //     ),
+                //     child: Row(
+                //       children: const [
+                //         Icon(
+                //           Icons.add_photo_alternate_outlined,
+                //           color: Color(0xFF57C29A),
+                //         ),
+                //         SizedBox(width: 12),
+                //         Text(
+                //           "Subir una foto propia",
+                //           style: TextStyle(
+                //             fontWeight: FontWeight.w600,
+                //             color: Color(0xFF57C29A),
+                //           ),
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+                // ),
+                // const SizedBox(height: 28),
                 const Text(
-                  "O elige un avatar",
+                  "Elige un avatar",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
@@ -186,9 +190,9 @@ class _SeleccionarFotoPerfilScreenState
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: catalogoAvatares.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 20,
+                    mainAxisSpacing: 20,
                   ),
                   itemBuilder: (context, index) {
                     final nombre = catalogoAvatares[index];
@@ -197,16 +201,14 @@ class _SeleccionarFotoPerfilScreenState
                     return GestureDetector(
                       onTap: () => _seleccionarDelCatalogo(nombre),
                       child: Center(
-                        // NUEVO: centra el contenido en la celda
                         child: SizedBox(
-                          // NUEVO: limita el Stack al tamaño exacto del círculo
-                          width: 80,
-                          height: 80,
+                          width: 135,
+                          height: 135,
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
                               CircleAvatar(
-                                radius: 40,
+                                radius: 85,
                                 backgroundImage: AssetImage(
                                   'assets/images/avatares/$nombre',
                                 ),
@@ -216,7 +218,7 @@ class _SeleccionarFotoPerfilScreenState
                                   right: -2,
                                   bottom: -2,
                                   child: Container(
-                                    padding: const EdgeInsets.all(3),
+                                    padding: const EdgeInsets.all(5),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF57C29A),
                                       shape: BoxShape.circle,
@@ -228,7 +230,7 @@ class _SeleccionarFotoPerfilScreenState
                                     child: const Icon(
                                       Icons.check,
                                       color: Colors.white,
-                                      size: 16,
+                                      size: 23,
                                     ),
                                   ),
                                 ),
