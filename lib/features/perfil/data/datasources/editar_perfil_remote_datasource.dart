@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import '../../../auth/data/models/usuario_model.dart';
 
@@ -36,5 +37,25 @@ class EditarPerfilRemoteDataSource {
       '/usuarios/cambiar-contrasenia',
       data: {'contrasenia_actual': actual, 'contrasenia_nueva': nueva},
     );
+  }
+
+  Future<UsuarioModel> actualizarFotoPerfilCatalogo(String nombreAvatar) async {
+    final response = await dio.patch(
+      '/usuarios/foto-perfil-catalogo',
+      data: {'foto_perfil': nombreAvatar},
+    );
+    return UsuarioModel.fromJson(response.data);
+  }
+
+  Future<UsuarioModel> subirFotoPerfilPersonalizada(File imagen) async {
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(imagen.path, filename: 'perfil.jpg'),
+    });
+
+    final response = await dio.patch(
+      '/usuarios/foto-perfil-personalizada',
+      data: formData,
+    );
+    return UsuarioModel.fromJson(response.data);
   }
 }

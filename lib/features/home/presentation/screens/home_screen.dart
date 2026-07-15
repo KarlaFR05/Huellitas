@@ -19,6 +19,7 @@ import '../../../reporte/presentation/location_service.dart';
 import '../widgets/bottom_bar.dart';
 import '../../../../core/verificacion/verificacion_cubit.dart';
 import '../../../../core/widgets/verificado_badge.dart';
+import '../../../../core/widgets/avatar_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -196,9 +197,17 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 24,
-            backgroundImage: AssetImage('assets/images/perfil.png'),
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              String? fotoPerfil;
+              if (state is AuthSuccess && state.data is Usuario) {
+                fotoPerfil = (state.data as Usuario).fotoPerfil;
+              }
+              return CircleAvatar(
+                radius: 24,
+                backgroundImage: avatarProvider(fotoPerfil),
+              );
+            },
           ),
           const SizedBox(width: 10),
 

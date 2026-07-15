@@ -49,6 +49,7 @@ import 'package:huellitas/features/reporte/presentation/actualizar_estado_screen
 import 'package:huellitas/features/reporte/presentation/actualizar_estado_success_screen.dart';
 import 'package:huellitas/features/reporte/presentation/actualizar_estado_error_screen.dart';
 import 'package:huellitas/features/reporte/domain/entities/reporte_estado.dart';
+import 'package:huellitas/features/perfil/presentation/screens/seleccionar_foto_perfil_screen.dart';
 
 import 'package:huellitas/features/insignias/data/datasources/insignia_remote_datasource_impl.dart';
 import 'package:huellitas/features/insignias/data/repositories/insignia_repository_impl.dart';
@@ -136,6 +137,11 @@ final GoRouter router = GoRouter(
     ),
 
     GoRoute(
+      path: '/seleccionar-foto-perfil',
+      builder: (context, state) => const SeleccionarFotoPerfilScreen(),
+    ),
+
+    GoRoute(
       path: '/report-form',
       pageBuilder: (context, state) {
         final dio = Dio(
@@ -200,7 +206,7 @@ final GoRouter router = GoRouter(
         return InsigniaDetalleScreen(insignia: insignia);
       },
     ),
-    
+
     GoRoute(
       path: '/reporte-estado/:id',
       pageBuilder: (context, state) {

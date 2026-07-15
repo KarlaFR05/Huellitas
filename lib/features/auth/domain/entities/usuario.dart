@@ -13,6 +13,7 @@ class Usuario {
   final String? cp;
   final String? ciudad;
   final String? estado;
+  final String? fotoPerfil;
 
   Usuario({
     required this.usuarioIdPk,
@@ -29,5 +30,6 @@ class Usuario {
     this.cp,
     this.ciudad,
     this.estado,
+    this.fotoPerfil,
   });
 }

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../../core/widgets/avatar_helper.dart';
 
 class MiPerfilScreen extends StatelessWidget {
   const MiPerfilScreen({super.key});
@@ -11,10 +12,7 @@ class MiPerfilScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Mi Perfil"),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text("Mi Perfil"), centerTitle: true),
 
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
@@ -29,13 +27,10 @@ class MiPerfilScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
-                const Center(
+                Center(
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundImage: AssetImage(
-                      'assets/images/perfil.png',
-                    ),
+                    backgroundImage: avatarProvider(usuario?.fotoPerfil),
                   ),
                 ),
 
@@ -43,10 +38,7 @@ class MiPerfilScreen extends StatelessWidget {
 
                 const Text(
                   "Información personal",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 15),
@@ -82,10 +74,7 @@ class MiPerfilScreen extends StatelessWidget {
                     leading: const Icon(Icons.cake),
                     title: const Text("Fecha de nacimiento"),
                     subtitle: Text(
-                      usuario?.fechaNacimiento
-                              ?.toString()
-                              .split(' ')
-                              .first ??
+                      usuario?.fechaNacimiento?.toString().split(' ').first ??
                           "",
                     ),
                   ),
@@ -95,10 +84,7 @@ class MiPerfilScreen extends StatelessWidget {
 
                 const Text(
                   "Insignias",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 15),
@@ -122,10 +108,7 @@ class MiPerfilScreen extends StatelessWidget {
 
                 const Text(
                   "Mis reportes",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 15),
@@ -133,32 +116,18 @@ class MiPerfilScreen extends StatelessWidget {
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.pets),
-                    title: const Text(
-                      "Perrito lesionado",
-                    ),
-                    subtitle: const Text(
-                      "En proceso",
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                    ),
+                    title: const Text("Perrito lesionado"),
+                    subtitle: const Text("En proceso"),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   ),
                 ),
 
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.pets),
-                    title: const Text(
-                      "Gatito perdido",
-                    ),
-                    subtitle: const Text(
-                      "Resuelto",
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                    ),
+                    title: const Text("Gatito perdido"),
+                    subtitle: const Text("Resuelto"),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   ),
                 ),
               ],

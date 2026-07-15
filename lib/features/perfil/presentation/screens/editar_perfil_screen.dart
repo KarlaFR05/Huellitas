@@ -11,6 +11,7 @@ import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/domain/entities/usuario.dart';
 import '../../data/datasources/editar_perfil_remote_datasource.dart';
+import '../../../../core/widgets/avatar_helper.dart';
 
 import 'package:go_router/go_router.dart';
 
@@ -32,8 +33,6 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
   final cpController = TextEditingController();
   final ciudadController = TextEditingController();
 
-  final ImagePicker picker = ImagePicker();
-  File? imagenPerfil;
   bool _guardando = false;
 
   @override
@@ -51,46 +50,6 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
       cpController.text = usuario.cp ?? '';
       ciudadController.text = usuario.ciudad ?? '';
     }
-  }
-
-  Future<void> _seleccionarImagen() async {
-    showModalBottomSheet(
-      context: context,
-      builder: (_) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text("Tomar fotografía"),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final foto = await picker.pickImage(
-                    source: ImageSource.camera,
-                    imageQuality: 80,
-                  );
-                  if (foto != null)
-                    setState(() => imagenPerfil = File(foto.path));
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text("Elegir de galería"),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final foto = await picker.pickImage(
-                    source: ImageSource.gallery,
-                    imageQuality: 80,
-                  );
-                  if (foto != null)
-                    setState(() => imagenPerfil = File(foto.path));
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   void _mostrarExito() {
@@ -238,28 +197,34 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
           key: _formKey,
           child: Column(
             children: [
-              Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundImage: imagenPerfil != null
-                        ? FileImage(imagenPerfil!)
-                        : const AssetImage('assets/images/perfil.png')
-                              as ImageProvider,
-                  ),
-                  GestureDetector(
-                    onTap: _seleccionarImagen,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF57C29A),
-                        shape: BoxShape.circle,
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  String? fotoPerfil;
+                  if (state is AuthSuccess && state.data is Usuario) {
+                    fotoPerfil = (state.data as Usuario).fotoPerfil;
+                  }
+
+                  return Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundImage: avatarProvider(fotoPerfil),
                       ),
-                      child: const Icon(Icons.edit, color: Colors.white),
-                    ),
-                  ),
-                ],
+                      GestureDetector(
+                        onTap: () => context.push('/seleccionar-foto-perfil'),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF57C29A),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.edit, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
 
               const SizedBox(height: 30),
