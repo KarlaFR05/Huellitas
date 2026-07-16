@@ -13,6 +13,7 @@ import 'location_service.dart';
 import '../../auth/presentation/bloc/auth_bloc.dart';
 import '../../auth/presentation/bloc/auth_state.dart';
 import '../../auth/domain/entities/usuario.dart';
+import 'package:flutter/services.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -78,7 +79,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     {
       'label': 'Baja',
       'value': 'Baja',
-      'color': const Color.fromARGB(255, 255, 238, 0),
+      'color': Colors.yellow.shade700,
       'desc': 'Animal estable',
     },
     {
@@ -96,7 +97,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     {
       'label': 'Crítica',
       'value': 'Crítica',
-      'color': const Color(0xFF800020),
+      'color': const Color.fromARGB(255, 128, 0, 0),
       'desc': 'Vida en peligro',
     },
   ];
@@ -155,7 +156,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   void _validarOtraRaza(String value) {
     setState(() {
       // Verificar si contiene números (0-9) o caracteres especiales
-      if (RegExp(r'[0-9!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
+      if (RegExp(r'[0-9!@#$%^&=*(),._¿;-/+¡\?":{}|<>]').hasMatch(value)) {
         _otraRazaError = 'No puede contener números ni caracteres especiales';
       } else {
         _otraRazaError = null;
@@ -430,6 +431,14 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             color: AppColors.primary,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Máximo 1 imagen',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 11,
                           ),
                         ),
                       ],
@@ -782,7 +791,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                           ),
                           TextSpan(
                             text:
-                                'Inconsciente, hemorragia severa, respiración muy difícil o convulsiones. Necesita veterinario YA!',
+                                'Inconsciente, hemorragia severa, respiración muy difícil o convulsiones. Necesita ir a la veterinaria YA!',
                           ),
                         ],
                       ),
@@ -1095,7 +1104,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           isDense: true,
           contentPadding: EdgeInsets.zero,
           hintText: 'Describe los detalles sobre el animal a reportar...',
-          hintStyle: TextStyle(color: AppColors.textSecondary),
+          hintStyle: TextStyle(color: Color.fromARGB(255, 102, 102, 102)),
         ),
         style: const TextStyle(
           color: AppColors.textPrimary,
@@ -1110,37 +1119,44 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: AppColors.secondary.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.secondary),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.location_on, color: AppColors.primary, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  readOnly: true, // ✅ NO EDITABLE
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                    hintText: 'Calle #98',
-                    hintStyle: TextStyle(color: AppColors.textSecondary),
-                  ),
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                  ),
+        if (_latitud != null && _longitud != null) ...[
+          GestureDetector(
+            onTap: () {
+              // Copiar al portapapeles
+              Clipboard.setData(ClipboardData(text: controller.text));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Ubicación copiada al portapapeles'),
+                  duration: Duration(seconds: 2),
                 ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.secondary),
               ),
-            ],
+              child: Row(
+                children: [
+                  const Icon(Icons.location_on, color: AppColors.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      controller.text,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  const Icon(Icons.copy, color: AppColors.textSecondary, size: 16),
+                ],
+              ),
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: 10),
         SizedBox(
           width: double.infinity,

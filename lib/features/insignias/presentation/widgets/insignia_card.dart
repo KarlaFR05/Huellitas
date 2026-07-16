@@ -38,10 +38,14 @@ class InsigniaCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Expanded(
-              child: Center(
-                child: Opacity(
-                  opacity: obtenida ? 1.0 : 0.4,
-                  child: _buildInsigniaImage(),
+              flex: 2, // Más espacio para la imagen
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(
+                  child: Opacity(
+                    opacity: obtenida ? 1.0 : 0.5,
+                    child: _buildInsigniaImage(),
+                  ),
                 ),
               ),
             ),
@@ -75,28 +79,19 @@ class InsigniaCard extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildInsigniaImage() {
     // Si tiene imagen URL, intentar cargarla
     if (insignia.imagenUrl != null && insignia.imagenUrl!.isNotEmpty) {
       return Image.network(
         insignia.imagenUrl!,
-        width: 70,
-        height: 70,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain, 
         errorBuilder: (_, __, ___) => _buildFallbackIcon(),
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
-          return SizedBox(
-            width: 70,
-            height: 70,
-            child: Center(
-              child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
-                    : null,
-                strokeWidth: 2,
-              ),
+          return const Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
             ),
           );
         },

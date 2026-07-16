@@ -224,7 +224,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                     crossAxisCount: 3,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: 0.7,
+                    childAspectRatio: 0.6,
                   ),
                   itemCount: state.insigniasFiltradas.length,
                   itemBuilder: (context, index) {

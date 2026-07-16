@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart'; // ✅ Importar para copiar al portapapeles
 import '../../../../styles/constantes/app_colors.dart';
 import '../../home/presentation/widgets/bottom_bar.dart';
 import '../domain/entities/fase_reporte.dart';
@@ -91,7 +92,7 @@ class ReporteEstadoScreen extends StatelessWidget {
                     Text(
                       reporte.nivelUrgencia,
                       style: TextStyle(
-                        color: _getColorUrgencia(reporte.nivelUrgencia), // el eexto cambia dependiendo de color  del nivel de urgencia
+                        color: _getColorUrgencia(reporte.nivelUrgencia),
                         fontSize: 15,
                         fontWeight: FontWeight.w600, 
                       ),
@@ -116,9 +117,8 @@ class ReporteEstadoScreen extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Ubicación
-          _buildInfoRow('Ubicación', reporte.ubicacion,
-              icon: Icons.location_on, iconColor: AppColors.primary),
+          // ✅ Ubicación con función de copiar
+          _buildUbicacionCopiable(context, reporte.ubicacion),
 
           const SizedBox(height: 40),
 
@@ -180,6 +180,65 @@ class ReporteEstadoScreen extends StatelessWidget {
     );
   }
 
+  // ✅ NUEVO WIDGET: Ubicación con botón de copiar
+  Widget _buildUbicacionCopiable(BuildContext context, String ubicacion) {
+    return GestureDetector(
+      onTap: () {
+        // Copiar al portapapeles
+        Clipboard.setData(ClipboardData(text: ubicacion));
+        
+        // Mostrar mensaje
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Ubicación copiada al portapapeles'),
+            backgroundColor: AppColors.primary,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      },
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.location_on, color: AppColors.primary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Ubicación',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  ubicacion,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(
+            Icons.copy,
+            color: AppColors.textSecondary,
+            size: 16,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFasesIndicator(List<FaseReporte> fases, int faseActualIndex) {
     return SizedBox(
       height: 60,
@@ -215,15 +274,13 @@ class ReporteEstadoScreen extends StatelessWidget {
       ),
     );
   }
-
-  // Método genérico para las otras filas (Tipo, Descripción, Ubicación)
   Widget _buildInfoRow(String label, String value,
       {IconData? icon, Color? iconColor}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (icon != null) ...[
-          Icon(icon, color: iconColor ?? Colors.black, size: 20), // Por defecto negro
+          Icon(icon, color: iconColor ?? Colors.black, size: 20),
           const SizedBox(width: 12),
         ],
         Expanded(
@@ -257,13 +314,13 @@ class ReporteEstadoScreen extends StatelessWidget {
   Color _getColorUrgencia(String urgencia) {
     switch (urgencia.toLowerCase()) {
       case 'baja':
-        return Colors.green.shade700; // Verde para baja
+        return Colors.yellow.shade700;
       case 'media':
-        return Colors.orange.shade700; // Naranja para media
+        return Colors.orange.shade700;
       case 'alta':
-        return Colors.red.shade700; // Rojo para alta
+        return Colors.red.shade700;
       case 'crítica':
-        return const Color(0xFF800020); // Vino oscuro para crítica
+        return const Color.fromARGB(255, 128, 0, 0);
       default:
         return AppColors.textPrimary;
     }

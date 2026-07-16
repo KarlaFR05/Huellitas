@@ -287,7 +287,6 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  
                   Center(
                     child: GestureDetector(
                       onTap: cargando 
@@ -363,6 +362,14 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                                       color: AppColors.primary,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Máximo 1 imagen',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 11,
                                     ),
                                   ),
                                 ],
