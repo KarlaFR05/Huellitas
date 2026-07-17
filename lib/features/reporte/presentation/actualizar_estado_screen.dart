@@ -21,6 +21,7 @@ class ActualizarEstadoScreen extends StatefulWidget {
 
 class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
   final ImagePicker _picker = ImagePicker();
+  final TextEditingController _comentariosController = TextEditingController();
   File? _evidencia;
   int? _faseSeleccionada;
 
@@ -31,7 +32,64 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
     _faseSeleccionada = widget.reporte.faseActual.id;
   }
 
+  @override
+  void dispose() {
+    _comentariosController.dispose();
+    super.dispose();
+  }
+
   List<FaseReporte> get _todasLasFases => FaseReporte.values;
+
+  // Widget para el ícono de información
+  Widget _buildInfoIcon(String title, Widget content) {
+    return GestureDetector(
+      onTap: () => showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.info_outline, color: AppColors.primary, size: 28),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: content,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Entendido',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      child: Container(
+        margin: const EdgeInsets.only(left: 8),
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.info_outline, color: AppColors.primary, size: 18),
+      ),
+    );
+  }
 
   Future<void> _pickImage() async {
     try {
@@ -121,11 +179,18 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
       return;
     }
 
+    // ✅ NUEVA VALIDACIÓN: El campo de comentarios es obligatorio
+    if (_comentariosController.text.trim().isEmpty) {
+      _showError('Es obligatorio describir el estado actual del animal');
+      return;
+    }
+
     context.read<ReporteEstadoBloc>().add(
           ActualizarEstado(
             reporteId: widget.reporte.reporteId,
             nuevaFaseId: _faseSeleccionada!,
             evidencia: _evidencia!,
+            comentarios: _comentariosController.text.trim(), // Ya no enviamos null
           ),
         );
   }
@@ -218,10 +283,12 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
             onPressed: () => context.pop(),
           ),
           title: const Text(
-            'Actualizar Estado De Reporte',
+            'Actualizar Estado\nDel Reporte', 
+            textAlign: TextAlign.center,      
             style: TextStyle(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.bold,
+              height: 1.2, 
             ),
           ),
           centerTitle: true,
@@ -278,6 +345,69 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     );
                   }),
                   const SizedBox(height: 24),
+                
+                  Row(
+                    children: [
+                      const Text(
+                        'Descripción del estado',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const Text(
+                        ' *',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      _buildInfoIcon(
+                        'Información del estado',
+                        const Text(
+                          'Describe el estado actual del animal:\n\n'
+                          '• Mejoras observadas en su salud\n'
+                          '• Tratamientos recibidos\n'
+                          '• Comportamiento actual\n'
+                          '• Condiciones especiales\n'
+                          '• Cualquier otro detalle relevante',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 14,
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.secondary),
+                    ),
+                    child: TextField(
+                      controller: _comentariosController,
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                        hintText: 'Describe el estado actual del animal, mejoras, tratamientos...',
+                        hintStyle: TextStyle(color: AppColors.textSecondary),
+                      ),
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  
                   const Text(
                     'Adjuntar evidencia',
                     style: TextStyle(

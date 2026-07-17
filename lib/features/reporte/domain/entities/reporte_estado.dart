@@ -12,6 +12,7 @@ class ReporteEstado {
   final String tamano;
   final String evidenciaUrl;
   final List<String> historialFases;
+  final String? comentarios;
 
   const ReporteEstado({
     required this.reporteId,
@@ -25,5 +26,6 @@ class ReporteEstado {
     required this.tamano,
     required this.evidenciaUrl,
     this.historialFases = const [],
+    this.comentarios,
   });
 }

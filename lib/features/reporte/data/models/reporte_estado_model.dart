@@ -17,6 +17,7 @@ class ReporteEstadoModel extends ReporteEstado {
     required super.tamano,
     required super.evidenciaUrl,
     required super.historialFases,
+    super.comentarios,  
   });
 
   factory ReporteEstadoModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +33,7 @@ class ReporteEstadoModel extends ReporteEstado {
       tamano: json['tamano'] ?? '',
       evidenciaUrl: json['evidenciaUrl'] ?? '',
       historialFases: List<String>.from(json['historialFases'] ?? []),
+      comentarios: json['comentarios'], 
     );
   }
 }
