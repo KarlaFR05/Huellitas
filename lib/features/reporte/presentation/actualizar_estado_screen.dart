@@ -28,7 +28,6 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
   @override
   void initState() {
     super.initState();
-    // Establecer la fase actual como seleccionada por defecto
     _faseSeleccionada = widget.reporte.faseActual.id;
   }
 
@@ -40,7 +39,6 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
 
   List<FaseReporte> get _todasLasFases => FaseReporte.values;
 
-  // Widget para el ícono de información
   Widget _buildInfoIcon(String title, Widget content) {
     return GestureDetector(
       onTap: () => showDialog(
@@ -148,13 +146,11 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
     final faseActualIndex = widget.reporte.faseActual.id;
     final nuevaFaseIndex = faseId;
 
-    // Validar que no se pueda retroceder
     if (nuevaFaseIndex < faseActualIndex) {
       _showError('No puedes retroceder a una fase anterior. El reporte ya está en una fase más avanzada.');
       return;
     }
 
-    // Validar que no se puedan saltar fases
     if (nuevaFaseIndex > faseActualIndex + 1) {
       _showError('No puedes saltarte fases. Debes avanzar secuencialmente.');
       return;
@@ -179,7 +175,6 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
       return;
     }
 
-    // ✅ NUEVA VALIDACIÓN: El campo de comentarios es obligatorio
     if (_comentariosController.text.trim().isEmpty) {
       _showError('Es obligatorio describir el estado actual del animal');
       return;
@@ -190,7 +185,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
             reporteId: widget.reporte.reporteId,
             nuevaFaseId: _faseSeleccionada!,
             evidencia: _evidencia!,
-            comentarios: _comentariosController.text.trim(), // Ya no enviamos null
+            comentarios: _comentariosController.text.trim(), 
           ),
         );
   }
@@ -507,6 +502,38 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                       ),
                     ),
                   ),
+                  if (_evidencia != null) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '1/1 imagen agregada',
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        ),
+                        GestureDetector(
+                          onTap: () => setState(() => _evidencia = null),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade100,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.delete_outline, color: Colors.red, size: 16),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Eliminar',
+                                  style: TextStyle(color: Colors.red, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
