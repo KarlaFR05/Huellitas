@@ -103,7 +103,13 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const EditarPerfilScreen(),
     ),
 
-    GoRoute(path: '/mi-perfil', builder: (_, __) => const MiPerfilScreen()),
+    GoRoute(
+      path: '/mi-perfil',
+      builder: (context, state) {
+        final usuarioId = state.extra as int?;
+        return MiPerfilScreen(usuarioId: usuarioId);
+      },
+    ),
 
     GoRoute(
       path: '/privacidad',

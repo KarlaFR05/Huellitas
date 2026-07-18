@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../models/usuario_model.dart';
 import '../models/token_model.dart';
 import 'auth_remote_datasource.dart';
+import '../models/usuario_publico_model.dart';
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final Dio dio;
@@ -18,7 +19,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'nombre': usuario.nombre,
         'apellidos': usuario.apellidos,
         'num_telefono': usuario.numTelefono,
-        'fecha_nacimiento': usuario.fechaNacimiento.toIso8601String().split('T')[0],
+        'fecha_nacimiento': usuario.fechaNacimiento.toIso8601String().split(
+          'T',
+        )[0],
         'calle': null,
         'colonia': null,
         'cp': null,
@@ -39,13 +42,22 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<TokenModel> login(String identificador, String password) async {
     try {
-      final body = {
-        'identificador': identificador,
-        'contrasenia': password,
-      };
+      final body = {'identificador': identificador, 'contrasenia': password};
 
       final response = await dio.post('/usuarios/login', data: body);
       return TokenModel.fromJson(response.data);
+    } on DioException catch (e) {
+      print('STATUS: ${e.response?.statusCode}');
+      print('ERROR DETAIL: ${e.response?.data}');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<UsuarioPublicoModel> obtenerPerfilPublico(int usuarioId) async {
+    try {
+      final response = await dio.get('/usuarios/$usuarioId');
+      return UsuarioPublicoModel.fromJson(response.data);
     } on DioException catch (e) {
       print('STATUS: ${e.response?.statusCode}');
       print('ERROR DETAIL: ${e.response?.data}');

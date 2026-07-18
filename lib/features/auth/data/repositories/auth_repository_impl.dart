@@ -3,6 +3,7 @@ import '../../domain/entities/token.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../models/usuario_model.dart';
+import '../../domain/entities/usuario_publico.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
@@ -32,4 +33,8 @@ class AuthRepositoryImpl implements AuthRepository {
     return await remoteDataSource.login(identificador, password);
   }
 
+  @override
+  Future<UsuarioPublico> obtenerPerfilPublico(int usuarioId) async {
+    return await remoteDataSource.obtenerPerfilPublico(usuarioId);
+  }
 }

@@ -11,6 +11,7 @@ import '../widgets/perfil_header.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../completar_registro/presentation/widgets/completar_perfil_dialog.dart';
 import '../../../../core/verificacion/verificacion_cubit.dart';
+import '../../../../core/widgets/verificado_badge.dart';
 
 class PerfilScreen extends StatelessWidget {
   const PerfilScreen({super.key});
@@ -154,12 +155,7 @@ class PerfilScreen extends StatelessWidget {
                               ),
                               child: Row(
                                 children: [
-                                  Icon(
-                                    Icons.verified,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
+                                  const VerificadoBadge(size: 22),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(

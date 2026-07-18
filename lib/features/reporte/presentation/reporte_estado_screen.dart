@@ -229,6 +229,35 @@ class ReporteEstadoScreen extends StatelessWidget {
               reporte.usuarioRescateNombre ?? 'Otro usuario',
               icon: Icons.person_outline,
             ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                onPressed: reporte.usuarioRescateId == null
+                    ? null
+                    : () {
+                        context.push(
+                          '/mi-perfil',
+                          extra: reporte.usuarioRescateId,
+                        );
+                      },
+                icon: const Icon(Icons.badge_outlined, size: 18),
+                label: const Text('Ver perfil'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+            ),
           ],
 
           const SizedBox(height: 40),
@@ -248,7 +277,7 @@ class ReporteEstadoScreen extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Ver más sobre el reporte',
+                'Ver más sobre el rescate',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onPrimary,
                   fontWeight: FontWeight.bold,
@@ -369,7 +398,7 @@ class ReporteEstadoScreen extends StatelessWidget {
   }) {
     if (esFaseFinal) return 'Reporte finalizado';
     if (otroLoAtiende) {
-      return 'Atendido por ${reporte.usuarioRescateNombre ?? "otro usuario"}';
+      return 'Esta siendo atendido por ${reporte.usuarioRescateNombre ?? "otro usuario"}';
     }
     if (nadieLoAtiende) return 'Tomar caso';
     return 'Actualizar estado del rescate';

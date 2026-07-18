@@ -334,7 +334,7 @@ class _MapWidgetState extends State<MapWidget> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Ubicación aproximada por seguridad.',
+                    'Ubicación aproximada.',
                     style: TextStyle(color: Colors.grey, fontSize: 13),
                   ),
                   const SizedBox(height: 20),
@@ -398,10 +398,7 @@ class _UserLocationDot extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.blue,
-            border: Border.all(
-              color: Theme.of(context).colorScheme.onSurface,
-              width: 2,
-            ),
+            border: Border.all(color: Colors.white, width: 2),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.3),
