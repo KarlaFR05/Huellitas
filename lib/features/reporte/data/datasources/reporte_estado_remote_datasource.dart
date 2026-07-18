@@ -3,7 +3,9 @@ import '../models/reporte_estado_model.dart';
 
 abstract class ReporteEstadoRemoteDataSource {
   Future<ReporteEstadoModel> obtenerEstado(int reporteId);
-  
+
+  Future<void> tomarReporte(int reporteId);
+
   Future<void> actualizarEstado({
     required int reporteId,
     required int nuevaFaseId,

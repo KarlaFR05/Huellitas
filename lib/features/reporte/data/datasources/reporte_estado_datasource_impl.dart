@@ -13,12 +13,24 @@ class ReporteEstadoRemoteDataSourceImpl
   Future<ReporteEstadoModel> obtenerEstado(int reporteId) async {
     try {
       final response = await dio.get('/reportes/$reporteId/estado');
-      print('HISTORIAL FASES: ${response.data['historialFases']}');
       return ReporteEstadoModel.fromJson(response.data);
     } on DioException catch (e) {
       print('STATUS: ${e.response?.statusCode}');
       print('ERROR DETAIL: ${e.response?.data}');
       rethrow;
+    }
+  }
+
+  @override
+  Future<void> tomarReporte(int reporteId) async {
+    try {
+      await dio.put('/reportes/$reporteId/tomar');
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final detail = (data is Map && data['detail'] != null)
+          ? data['detail']
+          : null;
+      throw Exception(detail ?? 'No se pudo tomar el reporte');
     }
   }
 

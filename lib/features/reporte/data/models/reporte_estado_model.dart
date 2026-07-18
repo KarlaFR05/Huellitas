@@ -17,6 +17,8 @@ class ReporteEstadoModel extends ReporteEstado {
     required super.raza,
     required super.tamano,
     required super.evidenciaUrl,
+    required super.usuarioRescateId,
+    required super.usuarioRescateNombre,
     required super.historialFases,
   });
 
@@ -32,6 +34,8 @@ class ReporteEstadoModel extends ReporteEstado {
       raza: json['raza'] ?? '',
       tamano: json['tamano'] ?? '',
       evidenciaUrl: json['evidenciaUrl'] ?? '',
+      usuarioRescateId: json['usuarioRescateId'],
+      usuarioRescateNombre: json['usuarioRescateNombre'],
       historialFases: (json['historialFases'] as List<dynamic>? ?? [])
           .map((e) => HistorialFaseItem.fromJson(e as Map<String, dynamic>))
           .toList(),

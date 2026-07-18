@@ -14,6 +14,11 @@ class ReporteEstadoRepositoryImpl implements ReporteEstadoRepository {
   }
 
   @override
+  Future<void> tomarReporte(int reporteId) async {
+    await remoteDatasource.tomarReporte(reporteId);
+  }
+
+  @override
   Future<void> actualizarEstado({
     required int reporteId,
     required int nuevaFaseId,

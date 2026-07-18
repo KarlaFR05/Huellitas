@@ -12,6 +12,8 @@ class ReporteEstado {
   final String raza;
   final String tamano;
   final String evidenciaUrl;
+  final int? usuarioRescateId;
+  final String? usuarioRescateNombre;
   final List<HistorialFaseItem> historialFases;
 
   const ReporteEstado({
@@ -25,6 +27,8 @@ class ReporteEstado {
     required this.raza,
     required this.tamano,
     required this.evidenciaUrl,
+    this.usuarioRescateId,
+    this.usuarioRescateNombre,
     this.historialFases = const [],
   });
 }

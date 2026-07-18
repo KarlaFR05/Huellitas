@@ -59,6 +59,8 @@ import 'package:huellitas/features/insignias/presentation/bloc/insignia_bloc.dar
 import 'package:huellitas/features/insignias/presentation/screens/insignias_screen.dart';
 import 'package:huellitas/features/insignias/presentation/screens/insignia_detalle_screen.dart';
 
+import 'package:huellitas/features/reporte/domain/usecases/tomar_reporte_usecase.dart';
+
 final GoRouter router = GoRouter(
   initialLocation: '/',
   routes: [
@@ -212,24 +214,19 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) {
         final reporteId = int.parse(state.pathParameters['id']!);
 
-        final dio = Dio(
-          BaseOptions(
-            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
-            connectTimeout: const Duration(seconds: 30),
-            receiveTimeout: const Duration(seconds: 30),
-            sendTimeout: const Duration(seconds: 30),
-          ),
-        );
+        final dio = context.read<Dio>();
 
         final dataSource = ReporteEstadoRemoteDataSourceImpl(dio);
         final repository = ReporteEstadoRepositoryImpl(dataSource);
         final getEstado = GetReporteEstadoUseCase(repository);
+        final tomarReporte = TomarReporteUseCase(repository);
         final actualizarEstado = ActualizarEstadoReporteUseCase(repository);
 
         return MaterialPage(
           child: BlocProvider(
             create: (_) => ReporteEstadoBloc(
               getEstado: getEstado,
+              tomarReporte: tomarReporte,
               actualizarEstado: actualizarEstado,
             ),
             child: ReporteEstadoScreen(reporteId: reporteId),
@@ -251,24 +248,19 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) {
         final reporte = state.extra as ReporteEstado;
 
-        final dio = Dio(
-          BaseOptions(
-            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
-            connectTimeout: const Duration(seconds: 30),
-            receiveTimeout: const Duration(seconds: 30),
-            sendTimeout: const Duration(seconds: 30),
-          ),
-        );
+        final dio = context.read<Dio>();
 
         final dataSource = ReporteEstadoRemoteDataSourceImpl(dio);
         final repository = ReporteEstadoRepositoryImpl(dataSource);
         final getEstado = GetReporteEstadoUseCase(repository);
+        final tomarReporte = TomarReporteUseCase(repository);
         final actualizarEstado = ActualizarEstadoReporteUseCase(repository);
 
         return MaterialPage(
           child: BlocProvider(
             create: (_) => ReporteEstadoBloc(
               getEstado: getEstado,
+              tomarReporte: tomarReporte,
               actualizarEstado: actualizarEstado,
             ),
             child: ActualizarEstadoScreen(reporte: reporte),

@@ -176,7 +176,7 @@ class _MapWidgetState extends State<MapWidget> {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Ubicacion aproximada por seguridad.',
+                  'Ubicación aproximada',
                   style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 const SizedBox(height: 20),
