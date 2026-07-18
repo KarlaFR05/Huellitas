@@ -41,7 +41,6 @@ import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.da
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
 
 // NUEVOS IMPORTS para seguimiento de reportes
-import 'package:huellitas/features/reporte/data/datasources/reporte_estado_remote_datasource.dart';
 import 'package:huellitas/features/reporte/data/datasources/reporte_estado_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_estado_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/get_reporte_estado_usecase.dart';
@@ -151,14 +150,7 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/report-form',
       pageBuilder: (context, state) {
-        final dio = Dio(
-          BaseOptions(
-            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
-            connectTimeout: const Duration(seconds: 30),
-            receiveTimeout: const Duration(seconds: 30),
-            sendTimeout: const Duration(seconds: 30),
-          ),
-        );
+        final dio = context.read<Dio>();
 
         final reporteRepository = ReporteRepositoryImpl(
           ReporteRemoteDataSourceImpl(dio),
@@ -219,14 +211,7 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) {
         final reporteId = int.parse(state.pathParameters['id']!);
 
-        final dio = Dio(
-          BaseOptions(
-            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
-            connectTimeout: const Duration(seconds: 30),
-            receiveTimeout: const Duration(seconds: 30),
-            sendTimeout: const Duration(seconds: 30),
-          ),
-        );
+        final dio = context.read<Dio>();
 
         final dataSource = ReporteEstadoRemoteDataSourceImpl(dio);
         final repository = ReporteEstadoRepositoryImpl(dataSource);
@@ -258,14 +243,7 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) {
         final reporte = state.extra as ReporteEstado;
 
-        final dio = Dio(
-          BaseOptions(
-            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
-            connectTimeout: const Duration(seconds: 30),
-            receiveTimeout: const Duration(seconds: 30),
-            sendTimeout: const Duration(seconds: 30),
-          ),
-        );
+        final dio = context.read<Dio>();
 
         final dataSource = ReporteEstadoRemoteDataSourceImpl(dio);
         final repository = ReporteEstadoRepositoryImpl(dataSource);
@@ -294,10 +272,7 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const ActualizarEstadoErrorScreen(),
     ),
 
-    GoRoute(
-      path: '/tema',
-      builder: (context, state) => const TemaScreen(),
-    ),
+    GoRoute(path: '/tema', builder: (context, state) => const TemaScreen()),
 
     GoRoute(
       path: '/preguntas-frecuentes',
@@ -314,10 +289,7 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const ContactoScreen(),
     ),
 
-    GoRoute(
-      path: '/foro',
-      builder: (context, state) => const ForoScreen(),
-    ),
+    GoRoute(path: '/foro', builder: (context, state) => const ForoScreen()),
 
     GoRoute(
       path: '/donaciones',
