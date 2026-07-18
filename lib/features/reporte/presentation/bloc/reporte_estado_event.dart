@@ -13,6 +13,7 @@ class ActualizarEstado extends ReporteEstadoEvent {
   final int? usuarioId;
   final File evidencia;
   final String? comentarios;
+  
 
   ActualizarEstado({
     required this.reporteId,

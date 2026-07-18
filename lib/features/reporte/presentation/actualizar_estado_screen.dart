@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../auth/presentation/bloc/auth_bloc.dart';
+import '../../auth/presentation/bloc/auth_state.dart';
+import '../../auth/domain/entities/usuario.dart';
 import '../../../../styles/constantes/app_colors.dart';
 import '../domain/entities/fase_reporte.dart';
 import '../domain/entities/reporte_estado.dart';
 import 'bloc/reporte_estado_bloc.dart';
 import 'bloc/reporte_estado_event.dart';
 import 'bloc/reporte_estado_state.dart';
+
 
 class ActualizarEstadoScreen extends StatefulWidget {
   final ReporteEstado reporte;
@@ -180,16 +184,25 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
       return;
     }
 
-    context.read<ReporteEstadoBloc>().add(
-          ActualizarEstado(
-            reporteId: widget.reporte.reporteId,
-            nuevaFaseId: _faseSeleccionada!,
-            evidencia: _evidencia!,
-            comentarios: _comentariosController.text.trim(), 
-          ),
-        );
-  }
+    // Obtener el ID del usuario autenticado
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthSuccess) {
+      _showError('No se pudo identificar tu sesión. Vuelve a iniciar sesión.');
+      return;
+    }
 
+    final usuarioId = authState.data.usuarioIdPk;
+
+    context.read<ReporteEstadoBloc>().add(
+      ActualizarEstado(
+        reporteId: widget.reporte.reporteId,
+        nuevaFaseId: _faseSeleccionada!,
+        evidencia: _evidencia!,
+        comentarios: _comentariosController.text.trim(),
+        usuarioId: usuarioId,
+      ),
+    );
+  }
   void _showError(String message) {
     showDialog(
       context: context,
