@@ -48,7 +48,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
   // Listas locales
   final List<String> _razasPerro = [
-    'Mestizos',
+    'Mestizo',
     'Chihuahua',
     'Schnauzer',
     'Poodle (Caniche)',
