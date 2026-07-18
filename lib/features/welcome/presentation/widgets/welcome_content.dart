@@ -12,10 +12,7 @@ class WelcomeContent extends StatelessWidget {
         children: [
           const Spacer(),
 
-          Image.asset(
-            'assets/images/logoo.png',
-            height: 240,
-          ),
+          Image.asset('assets/images/logoo.png', height: 240),
 
           const SizedBox(height: 24),
 
@@ -37,6 +34,16 @@ class WelcomeContent extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Theme.of(context).colorScheme.primary,
+                side: BorderSide(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Theme.of(context).colorScheme.primary,
+                ),
+              ),
               onPressed: () {
                 context.go('/register');
               },

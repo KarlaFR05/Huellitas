@@ -31,6 +31,7 @@ class _MapWidgetState extends State<MapWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final initialCenter =
         widget.userLocation ??
         (widget.markers.isNotEmpty
@@ -48,11 +49,60 @@ class _MapWidgetState extends State<MapWidget> {
             22, // qué tan cerca puede acercarse (número más alto = más cercano)
       ),
       children: [
-        TileLayer(
-          urlTemplate:
-              'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-          subdomains: const ['a', 'b', 'c', 'd'],
-          userAgentPackageName: 'com.huellitas.app',
+        ColorFiltered(
+          colorFilter: ColorFilter.matrix(
+            isDarkMode
+                ? const <double>[
+                    -0.1084,
+                    -0.3648,
+                    -0.0368,
+                    0,
+                    164,
+                    -0.1159,
+                    -0.3871,
+                    -0.0391,
+                    0,
+                    180,
+                    -0.1217,
+                    -0.4095,
+                    -0.0413,
+                    0,
+                    210,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                  ]
+                : const <double>[
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                  ],
+          ),
+          child: TileLayer(
+            urlTemplate:
+                'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+            subdomains: const ['a', 'b', 'c', 'd'],
+            userAgentPackageName: 'com.huellitas.app',
+          ),
         ),
         CircleLayer(
           circles: widget.markers
@@ -105,109 +155,116 @@ class _MapWidgetState extends State<MapWidget> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    _StatusDot(color: report.urgency.color),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        report.tipoReporte,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: report.urgency.color.withValues(alpha: 0.12),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
+      builder: (sheetContext) {
+        return SafeArea(
+          top: false,
+          minimum: const EdgeInsets.only(bottom: 8),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      _StatusDot(color: report.urgency.color),
+                      const SizedBox(width: 10),
+                      Expanded(
                         child: Text(
-                          report.animal.shortLabel,
-                          style: const TextStyle(fontSize: 16),
+                          report.tipoReporte,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                if (report.fotoUrl != null) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      report.fotoUrl!,
-                      height: 150,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                    ),
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: report.urgency.color.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            report.animal.shortLabel,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
-                ],
-                _InfoRow(label: 'Tipo', value: report.tipoReporte),
-                _InfoRow(label: 'Urgencia', value: report.urgency.label),
-                _InfoRow(label: 'Animal', value: report.animal.label),
-                _InfoRow(label: 'Tamano', value: report.tamano),
-                _InfoRow(label: 'Ubicacion', value: report.ubicacion),
-                _InfoRow(
-                  label: 'Radio',
-                  value: '${report.radiusMeters.round()} m',
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  report.description,
-                  style: const TextStyle(fontSize: 15, height: 1.35),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Ubicacion aproximada por seguridad.',
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    if (report.reporteId == null) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Este reporte no tiene ID válido'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return;
-                    }
-                    Navigator.pop(context);
-                    context.push('/reporte-estado/${report.reporteId}');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF57C29A),
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
+                  if (report.fotoUrl != null) ...[
+                    ClipRRect(
                       borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        report.fotoUrl!,
+                        height: 150,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  _InfoRow(label: 'Tipo', value: report.tipoReporte),
+                  _InfoRow(label: 'Urgencia', value: report.urgency.label),
+                  _InfoRow(label: 'Animal', value: report.animal.label),
+                  _InfoRow(label: 'Tamano', value: report.tamano),
+                  _InfoRow(label: 'Ubicacion', value: report.ubicacion),
+                  _InfoRow(
+                    label: 'Radio',
+                    value: '${report.radiusMeters.round()} m',
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    report.description,
+                    style: const TextStyle(fontSize: 15, height: 1.35),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Ubicacion aproximada por seguridad.',
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (report.reporteId == null) {
+                        Navigator.pop(sheetContext);
+                        ScaffoldMessenger.of(sheetContext).showSnackBar(
+                          const SnackBar(
+                            content: Text('Este reporte no tiene ID válido'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+                      Navigator.pop(sheetContext);
+                      sheetContext.push('/reporte-estado/${report.reporteId}');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(
+                        sheetContext,
+                      ).colorScheme.primary,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Ver estado del reporte',
+                      style: TextStyle(
+                        color: Theme.of(sheetContext).colorScheme.onPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
-                  child: const Text(
-                    'Ver estado del reporte',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -233,7 +290,10 @@ class _UserLocationDot extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.blue,
-            border: Border.all(color: Colors.white, width: 2),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.onSurface,
+              width: 2,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.3),

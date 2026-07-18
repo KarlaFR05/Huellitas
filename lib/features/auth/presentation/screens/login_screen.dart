@@ -15,9 +15,18 @@ class LoginScreen extends StatelessWidget {
           onPressed: () => context.go('/welcome'),
         ),
       ),
-      body: const Padding(
-        padding: EdgeInsets.all(24),
-        child: LoginForm(),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: const LoginForm(),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'ayuda/preguntas_frecuentes_screen.dart';
+import 'ayuda/contacto_screen.dart';
+import 'ayuda/acerca_huellitas_screen.dart';
+
 class AyudaScreen extends StatelessWidget {
   const AyudaScreen({super.key});
 
@@ -10,20 +14,49 @@ class AyudaScreen extends StatelessWidget {
         title: const Text("Ayuda"),
       ),
       body: ListView(
-        children: const [
+        children: [
           ListTile(
-            leading: Icon(Icons.help_outline),
-            title: Text("Preguntas frecuentes"),
+            leading: const Icon(Icons.help_outline),
+            title: const Text("Preguntas frecuentes"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const PreguntasFrecuentesScreen(),
+                ),
+              );
+            },
           ),
-          Divider(),
+          const Divider(),
+
           ListTile(
-            leading: Icon(Icons.mail_outline),
-            title: Text("Contacto"),
+            leading: const Icon(Icons.mail_outline),
+            title: const Text("Contacto"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ContactoScreen(),
+                ),
+              );
+            },
           ),
-          Divider(),
+          const Divider(),
+
           ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text("Acerca de Huellitas"),
+            leading: const Icon(Icons.info_outline),
+            title: const Text("Acerca de Huellitas"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AcercaHuellitasScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),

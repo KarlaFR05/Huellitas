@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../../../styles/constantes/app_color.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +13,7 @@ import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/domain/entities/usuario.dart';
 import '../../data/datasources/editar_perfil_remote_datasource.dart';
 import '../../../../core/widgets/avatar_helper.dart';
+import '../../../../core/widgets/success_status_badge.dart';
 
 class EditarPerfilScreen extends StatefulWidget {
   const EditarPerfilScreen({super.key});
@@ -33,6 +36,17 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
   final ciudadController = TextEditingController();
 
   bool _guardando = false;
+
+  List<TextInputFormatter> _formateadoresNombre(int maxLength) => [
+    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ ]')),
+    TextInputFormatter.withFunction((oldValue, newValue) {
+      if (newValue.text.startsWith(' ') || newValue.text.contains('  ')) {
+        return oldValue;
+      }
+      return newValue;
+    }),
+    LengthLimitingTextInputFormatter(maxLength),
+  ];
 
   @override
   void initState() {
@@ -89,18 +103,7 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
                       builder: (context, value, child) {
                         return Transform.scale(scale: value, child: child);
                       },
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade50,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.check_circle,
-                          color: Colors.green.shade600,
-                          size: 56,
-                        ),
-                      ),
+                      child: const SuccessStatusBadge(),
                     ),
                     const SizedBox(height: 20),
                     const Text(
@@ -193,224 +196,319 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final screenTheme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text("Editar Perfil")),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  String? fotoPerfil;
-                  if (state is AuthSuccess && state.data is Usuario) {
-                    fotoPerfil = (state.data as Usuario).fotoPerfil;
-                  }
-
-                  return Stack(
-                    alignment: Alignment.bottomRight,
+      body: Theme(
+        data: screenTheme.copyWith(
+          inputDecorationTheme: screenTheme.inputDecorationTheme.copyWith(
+            filled: true,
+            fillColor: isDarkMode
+                ? AppColors.darkField
+                : screenTheme.inputDecorationTheme.fillColor,
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
                     children: [
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundImage: avatarProvider(fotoPerfil),
+                      BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, state) {
+                          String? fotoPerfil;
+                          if (state is AuthSuccess && state.data is Usuario) {
+                            fotoPerfil = (state.data as Usuario).fotoPerfil;
+                          }
+
+                          return Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              CircleAvatar(
+                                radius: 60,
+                                backgroundImage: avatarProvider(fotoPerfil),
+                              ),
+                              GestureDetector(
+                                onTap: () =>
+                                    context.push('/seleccionar-foto-perfil'),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.surface,
+                                      width: 3,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .shadow
+                                            .withValues(alpha: 0.28),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
-                      GestureDetector(
-                        onTap: () => context.push('/seleccionar-foto-perfil'),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF57C29A),
-                            shape: BoxShape.circle,
+
+                      const SizedBox(height: 30),
+
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Datos Personales',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        controller: nombreUsuarioController,
+                        maxLength: 20,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                          LengthLimitingTextInputFormatter(20),
+                        ],
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre de usuario',
+                          prefixIcon: Icon(Icons.alternate_email),
+                          counterText: "",
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Ingresa un nombre de usuario";
+                          }
+                          if (value.length < 4) {
+                            return 'Debe tener al menos 4 caracteres';
+                          }
+                          if (value.contains(RegExp(r'\s'))) {
+                            return 'No puede contener espacios';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 15),
+
+                      TextFormField(
+                        controller: nombreController,
+                        textCapitalization: TextCapitalization.words,
+                        inputFormatters: _formateadoresNombre(30),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Ingresa tu nombre';
+                          }
+                          if (value.startsWith(' ') || value.endsWith(' ')) {
+                            return 'No puede iniciar o terminar con espacios';
+                          }
+                          if (value.contains(RegExp(r' {2,}'))) {
+                            return 'Solo un espacio entre nombres';
+                          }
+                          if (!RegExp(
+                            r'^[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,}( [A-Za-zÁÉÍÓÚáéíóúÑñ]{2,})*$',
+                          ).hasMatch(value)) {
+                            return 'Cada nombre debe tener al menos 2 letras';
+                          }
+                          return null;
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre',
+                          prefixIcon: Icon(Icons.person_outline),
+                        ),
+                      ),
+
+                      const SizedBox(height: 15),
+
+                      TextFormField(
+                        controller: apellidosController,
+                        textCapitalization: TextCapitalization.words,
+                        inputFormatters: _formateadoresNombre(50),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Ingresa tus apellidos';
+                          }
+                          if (value.startsWith(' ') || value.endsWith(' ')) {
+                            return 'No puede iniciar o terminar con espacios';
+                          }
+                          if (value.contains(RegExp(r' {2,}'))) {
+                            return 'Solo un espacio entre apellidos';
+                          }
+                          if (!RegExp(
+                            r'^[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,}( [A-Za-zÁÉÍÓÚáéíóúÑñ]{2,})*$',
+                          ).hasMatch(value)) {
+                            return 'Cada apellido debe tener al menos 2 letras';
+                          }
+                          return null;
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Apellidos',
+                          prefixIcon: Icon(Icons.person_outline),
+                        ),
+                      ),
+
+                      const SizedBox(height: 15),
+
+                      TextFormField(
+                        controller: correoController,
+                        readOnly: true,
+                        enabled: false,
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? const Color(0xFFB8B8B8)
+                              : Colors.grey.shade600,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: 'Correo',
+                          prefixIcon: Icon(
+                            Icons.lock_outline,
+                            color: isDarkMode
+                                ? const Color(0xFFB8B8B8)
+                                : Colors.grey.shade500,
                           ),
-                          child: const Icon(Icons.edit, color: Colors.white),
+                          filled: true,
+                          fillColor: isDarkMode
+                              ? AppColors.darkDisabledField
+                              : Colors.grey.shade100,
+                          helperText: 'El correo no se puede modificar',
+                          helperStyle: TextStyle(
+                            color: isDarkMode
+                                ? const Color(0xFFB8B8B8)
+                                : Colors.grey.shade500,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 15),
+
+                      TextFormField(
+                        controller: telefonoController,
+                        keyboardType: TextInputType.phone,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(10),
+                        ],
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Ingresa un teléfono';
+                          }
+                          if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
+                            return 'Debe contener 10 dígitos';
+                          }
+                          return null;
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Teléfono',
+                          prefixIcon: Icon(Icons.phone_outlined),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Dirección',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        controller: calleController,
+                        decoration: const InputDecoration(
+                          labelText: 'Calle y número',
+                          prefixIcon: Icon(Icons.home_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      TextFormField(
+                        controller: coloniaController,
+                        decoration: const InputDecoration(
+                          labelText: 'Colonia',
+                          prefixIcon: Icon(Icons.location_city_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      TextFormField(
+                        controller: cpController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(5),
+                        ],
+                        validator: (value) {
+                          if (value != null &&
+                              value.isNotEmpty &&
+                              value.length != 5) {
+                            return 'Debe contener 5 dígitos';
+                          }
+                          return null;
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Código Postal',
+                          prefixIcon: Icon(Icons.markunread_mailbox_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      TextFormField(
+                        controller: ciudadController,
+                        decoration: const InputDecoration(
+                          labelText: 'Ciudad',
+                          prefixIcon: Icon(Icons.location_on_outlined),
+                        ),
+                      ),
+
+                      const SizedBox(height: 35),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _guardando ? null : _guardarCambios,
+                          child: _guardando
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
+                                  ),
+                                )
+                              : const Text("Guardar cambios"),
                         ),
                       ),
                     ],
-                  );
-                },
-              ),
-
-              const SizedBox(height: 30),
-
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Datos Personales',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              TextFormField(
-                controller: nombreUsuarioController,
-                maxLength: 20,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre de usuario',
-                  prefixIcon: Icon(Icons.alternate_email),
-                  counterText: "",
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Ingresa un nombre de usuario";
-                  }
-                  if (!RegExp(
-                    r'^(?=.{4,20}$)(?!.*[_.]{2})[a-zA-Z0-9]+([._]?[a-zA-Z0-9]+)*$',
-                  ).hasMatch(value)) {
-                    return "Nombre de usuario inválido";
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 15),
-
-              TextFormField(
-                controller: nombreController,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Ingresa tu nombre';
-                  }
-                  if (!RegExp(
-                    r'^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?: [A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$',
-                  ).hasMatch(value.trim())) {
-                    return 'Solo letras';
-                  }
-                  return null;
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Nombre',
-                  prefixIcon: Icon(Icons.person_outline),
-                ),
-              ),
-
-              const SizedBox(height: 15),
-
-              TextFormField(
-                controller: apellidosController,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Ingresa tus apellidos';
-                  }
-                  if (!RegExp(
-                    r'^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?: [A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$',
-                  ).hasMatch(value.trim())) {
-                    return 'Solo letras';
-                  }
-                  return null;
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Apellidos',
-                  prefixIcon: Icon(Icons.person_outline),
-                ),
-              ),
-
-              const SizedBox(height: 15),
-
-              TextFormField(
-                controller: correoController,
-                readOnly: true,
-                enabled: false,
-                style: TextStyle(color: Colors.grey.shade600),
-                decoration: InputDecoration(
-                  labelText: 'Correo',
-                  prefixIcon: Icon(
-                    Icons.lock_outline,
-                    color: Colors.grey.shade500,
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey.shade100,
-                  helperText: 'El correo no se puede modificar',
-                  helperStyle: TextStyle(
-                    color: Colors.grey.shade500,
-                    fontSize: 12,
                   ),
                 ),
               ),
-
-              const SizedBox(height: 15),
-
-              TextFormField(
-                controller: telefonoController,
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Ingresa un teléfono';
-                  }
-                  if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
-                    return 'Debe contener 10 dígitos';
-                  }
-                  return null;
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Teléfono',
-                  prefixIcon: Icon(Icons.phone_outlined),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Dirección',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              TextFormField(
-                controller: calleController,
-                decoration: const InputDecoration(
-                  labelText: 'Calle y número',
-                  prefixIcon: Icon(Icons.home_outlined),
-                ),
-              ),
-              const SizedBox(height: 15),
-              TextFormField(
-                controller: coloniaController,
-                decoration: const InputDecoration(
-                  labelText: 'Colonia',
-                  prefixIcon: Icon(Icons.location_city_outlined),
-                ),
-              ),
-              const SizedBox(height: 15),
-              TextFormField(
-                controller: cpController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Código Postal',
-                  prefixIcon: Icon(Icons.markunread_mailbox_outlined),
-                ),
-              ),
-              const SizedBox(height: 15),
-              TextFormField(
-                controller: ciudadController,
-                decoration: const InputDecoration(
-                  labelText: 'Ciudad',
-                  prefixIcon: Icon(Icons.location_on_outlined),
-                ),
-              ),
-
-              const SizedBox(height: 35),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _guardando ? null : _guardarCambios,
-                  child: _guardando
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text("Guardar cambios"),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

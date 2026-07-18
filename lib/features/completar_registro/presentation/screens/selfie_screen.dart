@@ -30,56 +30,73 @@ class SelfieScreen extends StatelessWidget {
           final haySelfie =
               state is CompletarPerfilLoaded && state.selfie != null;
 
-          return Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Selfie",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  "Toma una fotografía clara de tu rostro para verificar tu identidad.",
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: FotoCard(
-                    titulo: "Toca para tomar la fotografía",
-                    onImageSelected: (file) {
-                      context.read<CompletarPerfilBloc>().add(
-                        SubirSelfieEvent(file),
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: (!haySelfie || cargando)
-                        ? null
-                        : () {
+          return SafeArea(
+            top: false,
+            minimum: const EdgeInsets.only(bottom: 12),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Selfie",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        "Toma una fotografía clara de tu rostro para verificar tu identidad.",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Expanded(
+                        child: FotoCard(
+                          titulo: "Toca para tomar la fotografía",
+                          onImageSelected: (file) {
                             context.read<CompletarPerfilBloc>().add(
-                              EnviarPerfilEvent(),
+                              SubirSelfieEvent(file),
                             );
                           },
-                    child: cargando
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text("Enviar"),
+                        ),
+                      ),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: (!haySelfie || cargando)
+                              ? null
+                              : () {
+                                  context.read<CompletarPerfilBloc>().add(
+                                    EnviarPerfilEvent(),
+                                  );
+                                },
+                          child: cargando
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
+                                  ),
+                                )
+                              : const Text("Enviar"),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
           );
         },

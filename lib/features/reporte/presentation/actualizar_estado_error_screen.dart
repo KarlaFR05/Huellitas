@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
-import '../../../../styles/constantes/app_colors.dart';
+import '../../../../styles/constantes/app_color.dart';
 import '../../home/presentation/widgets/bottom_bar.dart';
 
 class ActualizarEstadoErrorScreen extends StatefulWidget {
@@ -45,9 +45,9 @@ class _ActualizarEstadoErrorScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primary),

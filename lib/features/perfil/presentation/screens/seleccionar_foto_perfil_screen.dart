@@ -223,13 +223,13 @@ class _SeleccionarFotoPerfilScreenState
                                       color: const Color(0xFF57C29A),
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: Colors.white,
+                                        color: Theme.of(context).colorScheme.onSurface,
                                         width: 2,
                                       ),
                                     ),
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.check,
-                                      color: Colors.white,
+                                      color: Theme.of(context).colorScheme.onSurface,
                                       size: 23,
                                     ),
                                   ),

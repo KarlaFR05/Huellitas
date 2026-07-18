@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../styles/constantes/app_colors.dart';
 import '../../domain/entities/insignia.dart';
 import '../../domain/entities/categoria_insignia.dart';
 
@@ -17,18 +16,29 @@ class InsigniaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: obtenida 
+      onTap: obtenida
           ? () {
               context.push('/insignia-detalle', extra: insignia);
             }
           : null,
       child: Container(
         decoration: BoxDecoration(
-          color: obtenida ? Colors.white : Colors.grey.shade300,
+          color: obtenida
+              ? Theme.of(context).colorScheme.surfaceContainer
+              : Theme.of(
+                  context,
+                ).colorScheme.surfaceContainer.withValues(alpha: 0.55),
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(
+              context,
+            ).colorScheme.outline.withValues(alpha: obtenida ? 0.35 : 0.18),
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Theme.of(
+                context,
+              ).colorScheme.shadow.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -58,7 +68,9 @@ class InsigniaCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: obtenida ? AppColors.primary : Colors.grey.shade600,
+                  color: obtenida
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -69,7 +81,7 @@ class InsigniaCard extends StatelessWidget {
               'Nivel ${insignia.nivel}',
               style: TextStyle(
                 fontSize: 10,
-                color: obtenida ? AppColors.textSecondary : Colors.grey.shade500,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -85,19 +97,15 @@ class InsigniaCard extends StatelessWidget {
     if (insignia.imagenUrl != null && insignia.imagenUrl!.isNotEmpty) {
       return Image.network(
         insignia.imagenUrl!,
-        fit: BoxFit.contain, 
+        fit: BoxFit.contain,
         errorBuilder: (_, __, ___) => _buildFallbackIcon(),
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
-          return const Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-            ),
-          );
+          return const Center(child: CircularProgressIndicator(strokeWidth: 2));
         },
       );
     }
-    
+
     // Si no tiene imagen, mostrar ícono por defecto
     return _buildFallbackIcon();
   }

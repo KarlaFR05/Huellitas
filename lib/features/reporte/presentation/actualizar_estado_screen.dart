@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../styles/constantes/app_colors.dart';
 import '../domain/entities/fase_reporte.dart';
 import '../domain/entities/reporte_estado.dart';
 import 'bloc/reporte_estado_bloc.dart';
@@ -56,29 +55,43 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
   Future<ImageSource?> _showImageSourceDialog() async {
     return showModalBottomSheet<ImageSource>(
       context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Seleccionar imagen',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: AppColors.primary),
-              title: const Text('Tomar fotografía'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: AppColors.primary),
-              title: const Text('Seleccionar de galería'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-          ],
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: 8),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color:
+                Theme.of(sheetContext).inputDecorationTheme.fillColor ??
+                Theme.of(sheetContext).colorScheme.surfaceContainer,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Seleccionar imagen',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: Icon(
+                  Icons.camera_alt,
+                  color: Theme.of(sheetContext).colorScheme.primary,
+                ),
+                title: const Text('Tomar fotografía'),
+                onTap: () => Navigator.pop(sheetContext, ImageSource.camera),
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.photo_library,
+                  color: Theme.of(sheetContext).colorScheme.primary,
+                ),
+                title: const Text('Seleccionar de galería'),
+                onTap: () => Navigator.pop(sheetContext, ImageSource.gallery),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -92,7 +105,9 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
 
     // Validar que no se pueda retroceder
     if (nuevaFaseIndex < faseActualIndex) {
-      _showError('No puedes retroceder a una fase anterior. El reporte ya está en una fase más avanzada.');
+      _showError(
+        'No puedes retroceder a una fase anterior. El reporte ya está en una fase más avanzada.',
+      );
       return;
     }
 
@@ -122,12 +137,12 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
     }
 
     context.read<ReporteEstadoBloc>().add(
-          ActualizarEstado(
-            reporteId: widget.reporte.reporteId,
-            nuevaFaseId: _faseSeleccionada!,
-            evidencia: _evidencia!,
-          ),
-        );
+      ActualizarEstado(
+        reporteId: widget.reporte.reporteId,
+        nuevaFaseId: _faseSeleccionada!,
+        evidencia: _evidencia!,
+      ),
+    );
   }
 
   void _showError(String message) {
@@ -165,10 +180,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     boundaryMargin: const EdgeInsets.all(20),
                     minScale: 0.5,
                     maxScale: 4.0,
-                    child: Image.file(
-                      image,
-                      fit: BoxFit.fitWidth,
-                    ),
+                    child: Image.file(image, fit: BoxFit.fitWidth),
                   ),
                 ),
               ),
@@ -184,11 +196,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     color: Colors.black54,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+                  child: Icon(Icons.close, color: Colors.white, size: 24),
                 ),
               ),
             ),
@@ -209,18 +217,21 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: AppColors.background,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+            icon: Icon(
+              Icons.arrow_back,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             onPressed: () => context.pop(),
           ),
-          title: const Text(
+          title: Text(
             'Actualizar Estado De Reporte',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -234,10 +245,10 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     '¿En qué fase se encuentra el reporte?',
                     style: TextStyle(
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -246,7 +257,9 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                   ..._todasLasFases.map((fase) {
                     final isSelected = _faseSeleccionada == fase.id;
                     final faseActualIndex = widget.reporte.faseActual.id;
-                    final isDisabled = fase.id < faseActualIndex || fase.id > faseActualIndex + 1;
+                    final isDisabled =
+                        fase.id < faseActualIndex ||
+                        fase.id > faseActualIndex + 1;
 
                     return RadioListTile<int>(
                       value: fase.id,
@@ -258,30 +271,32 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                       title: Text(
                         fase.label,
                         style: TextStyle(
-                          color: isDisabled 
-                              ? Colors.grey.shade400 
-                              : (AppColors.textPrimary),
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isDisabled
+                              ? Colors.grey.shade400
+                              : Theme.of(context).colorScheme.onSurface,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       ),
                       secondary: Icon(
-                        fase.id == 1 
+                        fase.id == 1
                             ? Icons.warning_amber_rounded
                             : fase.id == 2
-                                ? Icons.medical_services
-                                : Icons.check_circle,
+                            ? Icons.medical_services
+                            : Icons.check_circle,
                         color: isDisabled
-                            ? Colors.grey.shade300
+                            ? Theme.of(context).colorScheme.outline
                             : _getColorFase(fase),
                       ),
                       contentPadding: EdgeInsets.zero,
                     );
                   }),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'Adjuntar evidencia',
                     style: TextStyle(
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -289,18 +304,25 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                   const SizedBox(height: 12),
                   Center(
                     child: GestureDetector(
-                      onTap: cargando 
-                          ? null 
-                          : (_evidencia != null 
-                                ? () => _showFullImage(_evidencia!) 
+                      onTap: cargando
+                          ? null
+                          : (_evidencia != null
+                                ? () => _showFullImage(_evidencia!)
                                 : _pickImage),
                       child: Container(
                         width: double.infinity,
                         height: 150,
                         decoration: BoxDecoration(
-                          color: AppColors.secondary.withValues(alpha: 0.3),
+                          color:
+                              Theme.of(
+                                context,
+                              ).inputDecorationTheme.fillColor ??
+                              Theme.of(context).colorScheme.surfaceContainer,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.primary, width: 2),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          ),
                         ),
                         child: _evidencia != null
                             ? Stack(
@@ -325,7 +347,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                                         color: Colors.black54,
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
@@ -353,13 +375,17 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                                   Icon(
                                     Icons.camera_alt,
                                     size: 48,
-                                    color: AppColors.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     'Toca para agregar foto',
                                     style: TextStyle(
-                                      color: AppColors.primary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -368,7 +394,9 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                                   Text(
                                     'Máximo 1 imagen',
                                     style: TextStyle(
-                                      color: AppColors.textSecondary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                       fontSize: 11,
                                     ),
                                   ),
@@ -384,24 +412,29 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     child: ElevatedButton(
                       onPressed: cargando ? null : _enviarActualizacion,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       child: cargando
-                          ? const SizedBox(
+                          ? SizedBox(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Theme.of(context).colorScheme.onPrimary,
+                                ),
                               ),
                             )
-                          : const Text(
+                          : Text(
                               'Enviar actualización',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onPrimary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),

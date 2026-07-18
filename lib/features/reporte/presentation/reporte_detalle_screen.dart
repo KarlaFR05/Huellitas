@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../styles/constantes/app_colors.dart';
 import '../domain/entities/reporte_estado.dart';
 
 class ReporteDetalleScreen extends StatelessWidget {
@@ -11,18 +10,21 @@ class ReporteDetalleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
+        title: Text(
           'Reporte',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -34,22 +36,32 @@ class ReporteDetalleScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Tipo de animal
-            _buildInfoRow('Tipo de animal', reporte.tipoAnimal, icon: Icons.pets),
+            _buildInfoRow(
+              context,
+              'Tipo de animal',
+              reporte.tipoAnimal,
+              icon: Icons.pets,
+            ),
             const SizedBox(height: 16),
-            
+
             // Raza
-            _buildInfoRow('Raza', reporte.raza, icon: Icons.category),
+            _buildInfoRow(context, 'Raza', reporte.raza, icon: Icons.category),
             const SizedBox(height: 16),
-            
+
             // Tamaño
-            _buildInfoRow('Tamaño', reporte.tamano, icon: Icons.straighten),
+            _buildInfoRow(
+              context,
+              'Tamaño',
+              reporte.tamano,
+              icon: Icons.straighten,
+            ),
             const SizedBox(height: 24),
-            
+
             // Evidencia
-            const Text(
+            Text(
               'Evidencia',
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w500,
                 fontSize: 16,
               ),
@@ -61,12 +73,22 @@ class ReporteDetalleScreen extends StatelessWidget {
       ),
     );
   }
-  Widget _buildInfoRow(String label, String value, {IconData? icon}) {
+
+  Widget _buildInfoRow(
+    BuildContext context,
+    String label,
+    String value, {
+    IconData? icon,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (icon != null) ...[
-          Icon(icon, color: AppColors.textSecondary, size: 20),
+          Icon(
+            icon,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            size: 20,
+          ),
           const SizedBox(width: 12),
         ],
         Expanded(
@@ -75,16 +97,16 @@ class ReporteDetalleScreen extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 13,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                 ),
@@ -101,12 +123,15 @@ class ReporteDetalleScreen extends StatelessWidget {
       return Container(
         height: 180,
         decoration: BoxDecoration(
-          color: AppColors.secondary.withValues(alpha: 0.3),
+          color: Theme.of(context).colorScheme.surfaceContainer,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Center(
-          child: Icon(Icons.image_not_supported,
-              color: AppColors.textSecondary, size: 48),
+        child: Center(
+          child: Icon(
+            Icons.image_not_supported,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            size: 48,
+          ),
         ),
       );
     }
@@ -115,9 +140,7 @@ class ReporteDetalleScreen extends StatelessWidget {
       onTap: () => _showFullImage(context, reporte.evidenciaUrl),
       child: Container(
         height: 200,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -133,9 +156,7 @@ class ReporteDetalleScreen extends StatelessWidget {
                 },
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return const Center(child: CircularProgressIndicator());
                 },
               ),
             ),
@@ -143,29 +164,19 @@ class ReporteDetalleScreen extends StatelessWidget {
               top: 8,
               right: 8,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.black54,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.visibility,
-                      color: Colors.white,
-                      size: 16,
-                    ),
+                    Icon(Icons.visibility, color: Colors.white, size: 16),
                     SizedBox(width: 4),
                     Text(
                       'Ver',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ],
                 ),
@@ -200,14 +211,20 @@ class ReporteDetalleScreen extends StatelessWidget {
                       imageUrl,
                       fit: BoxFit.fitWidth,
                       errorBuilder: (context, error, stackTrace) {
-                        return const Center(
-                          child: Icon(Icons.error, color: Colors.white, size: 48),
+                        return Center(
+                          child: const Icon(
+                            Icons.error,
+                            color: Colors.white,
+                            size: 48,
+                          ),
                         );
                       },
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
-                        return const Center(
-                          child: CircularProgressIndicator(color: Colors.white),
+                        return Center(
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
                         );
                       },
                     ),
@@ -226,11 +243,7 @@ class ReporteDetalleScreen extends StatelessWidget {
                     color: Colors.black54,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+                  child: Icon(Icons.close, color: Colors.white, size: 24),
                 ),
               ),
             ),

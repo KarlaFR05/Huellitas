@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../styles/constantes/app_colors.dart';
 import '../../../home/presentation/widgets/bottom_bar.dart';
 import '../../domain/entities/insignia.dart';
 import '../../domain/entities/categoria_insignia.dart';
@@ -8,18 +7,25 @@ import '../../domain/entities/categoria_insignia.dart';
 class InsigniaDetalleScreen extends StatelessWidget {
   final Insignia insignia;
 
-  const InsigniaDetalleScreen({
-    super.key,
-    required this.insignia,
-  });
+  const InsigniaDetalleScreen({super.key, required this.insignia});
 
   // Formatear fecha en español sin necesidad de intl
   String _formatearFecha(DateTime fecha) {
     const meses = [
-      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      'enero',
+      'febrero',
+      'marzo',
+      'abril',
+      'mayo',
+      'junio',
+      'julio',
+      'agosto',
+      'septiembre',
+      'octubre',
+      'noviembre',
+      'diciembre',
     ];
-    
+
     return '${fecha.day} de ${meses[fecha.month - 1]} de ${fecha.year}';
   }
 
@@ -73,18 +79,21 @@ class InsigniaDetalleScreen extends StatelessWidget {
         : 'Fecha no disponible';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
+        title: Text(
           'Insignia',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -95,7 +104,7 @@ class InsigniaDetalleScreen extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 20),
-            
+
             // Medalla
             Container(
               width: 170,
@@ -104,76 +113,82 @@ class InsigniaDetalleScreen extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.3),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
                 ],
               ),
-              child: insignia.imagenUrl != null && insignia.imagenUrl!.isNotEmpty
+              child:
+                  insignia.imagenUrl != null && insignia.imagenUrl!.isNotEmpty
                   ? ClipOval(
                       child: Image.network(
                         insignia.imagenUrl!,
-                        fit: BoxFit.contain,  // ← CAMBIO: contain en lugar de cover
+                        fit: BoxFit
+                            .contain, // ← CAMBIO: contain en lugar de cover
                         errorBuilder: (context, error, stackTrace) {
-                          return _buildFallbackIcon();
+                          return _buildFallbackIcon(context);
                         },
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
                           return const Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.primary,
-                            ),
+                            child: CircularProgressIndicator(),
                           );
                         },
                       ),
                     )
-                  : _buildFallbackIcon(),
+                  : _buildFallbackIcon(context),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Nombre de la insignia
             Text(
               insignia.nombre,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Nivel
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.2),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 'Nivel ${insignia.nivel}',
-                style: const TextStyle(
-                  color: AppColors.primary,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Mensaje de logro
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surfaceContainer,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.shadow.withValues(alpha: 0.08),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -181,25 +196,29 @@ class InsigniaDetalleScreen extends StatelessWidget {
               ),
               child: Text(
                 _obtenerMensaje(insignia),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
                 textAlign: TextAlign.center,
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Fecha de obtención
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.primary.withOpacity(0.3),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -207,7 +226,7 @@ class InsigniaDetalleScreen extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.event,
-                    color: AppColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                     size: 24,
                   ),
                   const SizedBox(width: 12),
@@ -215,20 +234,22 @@ class InsigniaDetalleScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Obtenida el',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           fechaFormateada,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ],
@@ -237,9 +258,9 @@ class InsigniaDetalleScreen extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Botón cerrar
             SizedBox(
               width: double.infinity,
@@ -247,15 +268,16 @@ class InsigniaDetalleScreen extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => context.pop(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Cerrar',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -269,17 +291,17 @@ class InsigniaDetalleScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFallbackIcon() {
+  Widget _buildFallbackIcon(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
         shape: BoxShape.circle,
       ),
       child: Center(
         child: Icon(
           Icons.emoji_events,
           size: 60,
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.onPrimary,
         ),
       ),
     );

@@ -15,9 +15,18 @@ class RegistroScreen extends StatelessWidget {
           onPressed: () => context.go('/welcome'),
         ),
       ),
-      body: const SingleChildScrollView(
-        padding: EdgeInsets.all(24),
-        child: RegistroForm(),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: const RegistroForm(),
+            ),
+          ),
+        ),
       ),
     );
   }
