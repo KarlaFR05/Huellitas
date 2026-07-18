@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
-import '../../../../styles/constantes/app_colors.dart';
+import '../../../../styles/constantes/app_color.dart';
 import '../../home/presentation/widgets/bottom_bar.dart';
 
 class ActualizarEstadoSuccessScreen extends StatefulWidget {
@@ -45,7 +45,7 @@ class _ActualizarEstadoSuccessScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),

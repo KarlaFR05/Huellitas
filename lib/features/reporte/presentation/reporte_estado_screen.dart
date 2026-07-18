@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
-import '../../../../styles/constantes/app_colors.dart';
 import '../../home/presentation/widgets/bottom_bar.dart';
 import '../../auth/presentation/bloc/auth_bloc.dart';
 import '../../auth/presentation/bloc/auth_state.dart';
@@ -27,18 +26,21 @@ class ReporteEstadoScreen extends StatelessWidget {
           context.read<ReporteEstadoBloc>()
             ..add(CargarEstadoReporte(reporteId)),
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: AppColors.background,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+            icon: Icon(
+              Icons.arrow_back,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             onPressed: () => context.pop(),
           ),
-          title: const Text(
+          title: Text(
             'Reporte',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -56,16 +58,15 @@ class ReporteEstadoScreen extends StatelessWidget {
               );
             }
             if (state is ReporteTomadoExito) {
-              // <-- NUEVO
               showDialog(
                 context: context,
-                builder: (context) => AlertDialog(
+                builder: (dialogContext) => AlertDialog(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.volunteer_activism,
-                    color: AppColors.primary,
+                    color: Theme.of(dialogContext).colorScheme.primary,
                     size: 40,
                   ),
                   title: const Text(
@@ -80,16 +81,20 @@ class ReporteEstadoScreen extends StatelessWidget {
                   actionsAlignment: MainAxisAlignment.center,
                   actions: [
                     ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Navigator.pop(dialogContext),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: Theme.of(
+                          dialogContext,
+                        ).colorScheme.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Entendido',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: Theme.of(dialogContext).colorScheme.onPrimary,
+                        ),
                       ),
                     ),
                   ],
@@ -161,9 +166,9 @@ class ReporteEstadoScreen extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
+              Icon(
                 Icons.warning_amber_rounded,
-                color: Colors.black,
+                color: Theme.of(context).colorScheme.onSurface,
                 size: 20,
               ),
               const SizedBox(width: 12),
@@ -171,10 +176,10 @@ class ReporteEstadoScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Nivel de urgencia',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 13,
                       ),
                     ),
@@ -196,6 +201,7 @@ class ReporteEstadoScreen extends StatelessWidget {
           const SizedBox(height: 16),
 
           _buildInfoRow(
+            context,
             'Tipo de reporte',
             reporte.tipoReporte,
             icon: Icons.category_outlined,
@@ -204,6 +210,7 @@ class ReporteEstadoScreen extends StatelessWidget {
           const SizedBox(height: 16),
 
           _buildInfoRow(
+            context,
             'Descripción',
             reporte.descripcion,
             icon: Icons.description_outlined,
@@ -217,6 +224,7 @@ class ReporteEstadoScreen extends StatelessWidget {
           if (otroLoAtiende) ...[
             const SizedBox(height: 16),
             _buildInfoRow(
+              context,
               'Atendido por',
               reporte.usuarioRescateNombre ?? 'Otro usuario',
               icon: Icons.person_outline,
@@ -233,15 +241,16 @@ class ReporteEstadoScreen extends StatelessWidget {
                 context.push('/reporte-detalle', extra: reporte);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(55),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Ver más sobre el reporte',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onPrimary,
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
                 ),
@@ -267,21 +276,27 @@ class ReporteEstadoScreen extends StatelessWidget {
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _colorBotonPrincipal(
+                  context: context,
                   esFaseFinal: esFaseFinal,
                   nadieLoAtiende: nadieLoAtiende,
                   otroLoAtiende: otroLoAtiende,
                 ),
+                foregroundColor: (esFaseFinal || otroLoAtiende)
+                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                    : Theme.of(context).colorScheme.onPrimary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(55),
                 ),
               ),
               child: tomando
-                  ? const SizedBox(
+                  ? SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.onPrimary,
+                        ),
                       ),
                     )
                   : Text(
@@ -294,8 +309,8 @@ class ReporteEstadoScreen extends StatelessWidget {
                       ),
                       style: TextStyle(
                         color: (esFaseFinal || otroLoAtiende)
-                            ? Colors.white70
-                            : Colors.white,
+                            ? Theme.of(context).colorScheme.onSurfaceVariant
+                            : Theme.of(context).colorScheme.onPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -333,13 +348,16 @@ class ReporteEstadoScreen extends StatelessWidget {
   static const Color _colorTomarCaso = Color(0xFF2E86AB);
 
   Color _colorBotonPrincipal({
+    required BuildContext context,
     required bool esFaseFinal,
     required bool nadieLoAtiende,
     required bool otroLoAtiende,
   }) {
-    if (esFaseFinal || otroLoAtiende) return Colors.grey.shade400;
+    if (esFaseFinal || otroLoAtiende) {
+      return Theme.of(context).colorScheme.surfaceContainer;
+    }
     if (nadieLoAtiende) return _colorTomarCaso;
-    return AppColors.primary;
+    return Theme.of(context).colorScheme.primary;
   }
 
   String _textoBotonPrincipal({
@@ -364,7 +382,7 @@ class ReporteEstadoScreen extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Ubicación copiada al portapapeles'),
-            backgroundColor: AppColors.primary,
+            backgroundColor: Theme.of(context).colorScheme.primary,
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
@@ -377,24 +395,28 @@ class ReporteEstadoScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.location_on, color: AppColors.primary, size: 20),
+          Icon(
+            Icons.location_on,
+            color: Theme.of(context).colorScheme.primary,
+            size: 20,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Ubicación',
                   style: TextStyle(
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 13,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   ubicacion,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
@@ -402,7 +424,11 @@ class ReporteEstadoScreen extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.copy, color: AppColors.textSecondary, size: 16),
+          Icon(
+            Icons.copy,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            size: 16,
+          ),
         ],
       ),
     );
@@ -420,12 +446,13 @@ class ReporteEstadoScreen extends StatelessWidget {
 
           Color colorFondo;
           if (esActual) {
-            if (index == 0)
+            if (index == 0) {
               colorFondo = Colors.red;
-            else if (index == 1)
+            } else if (index == 1) {
               colorFondo = const Color.fromARGB(255, 255, 196, 0);
-            else
+            } else {
               colorFondo = Colors.green;
+            }
           } else if (esAnterior) {
             colorFondo = Colors.grey.shade500;
           } else {
@@ -448,6 +475,7 @@ class ReporteEstadoScreen extends StatelessWidget {
   }
 
   Widget _buildInfoRow(
+    BuildContext context,
     String label,
     String value, {
     IconData? icon,
@@ -457,7 +485,11 @@ class ReporteEstadoScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (icon != null) ...[
-          Icon(icon, color: iconColor ?? Colors.black, size: 20),
+          Icon(
+            icon,
+            color: iconColor ?? Theme.of(context).colorScheme.onSurface,
+            size: 20,
+          ),
           const SizedBox(width: 12),
         ],
         Expanded(
@@ -466,16 +498,16 @@ class ReporteEstadoScreen extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 13,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                 ),
@@ -498,7 +530,7 @@ class ReporteEstadoScreen extends StatelessWidget {
       case 'crítica':
         return const Color.fromARGB(255, 128, 0, 0);
       default:
-        return AppColors.textPrimary;
+        return Colors.grey;
     }
   }
 }
@@ -516,10 +548,17 @@ class _ChevronStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final activeTextColor =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+        ? Colors.white
+        : Colors.black;
+
     return ClipPath(
       clipper: const _ChevronClipper(),
       child: Container(
-        color: isActive ? color : Colors.grey.shade300,
+        color: isActive
+            ? color
+            : Theme.of(context).colorScheme.surfaceContainer,
         child: Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
@@ -527,7 +566,9 @@ class _ChevronStep extends StatelessWidget {
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: isActive ? Colors.white : Colors.grey.shade700,
+                color: isActive
+                    ? activeTextColor
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 15,
                 fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                 height: 1.2,

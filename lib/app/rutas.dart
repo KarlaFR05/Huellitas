@@ -15,6 +15,10 @@ import 'package:huellitas/features/perfil/presentation/screens/mi_perfil_screen.
 import 'package:huellitas/features/perfil/presentation/screens/privacidad_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/configuracion_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/ayuda_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/tema_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/ayuda/preguntas_frecuentes_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/ayuda/contacto_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/ayuda/acerca_huellitas_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/completar_perfil_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/verificar_frente_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/verificar_reverso_screen.dart';
@@ -60,6 +64,8 @@ import 'package:huellitas/features/insignias/presentation/screens/insignias_scre
 import 'package:huellitas/features/insignias/presentation/screens/insignia_detalle_screen.dart';
 
 import 'package:huellitas/features/reporte/domain/usecases/tomar_reporte_usecase.dart';
+import 'package:huellitas/features/foro/presentation/foro_screen.dart';
+import 'package:huellitas/features/donaciones/presentation/donaciones_screen.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -277,6 +283,30 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/actualizar-estado-error',
       builder: (context, state) => const ActualizarEstadoErrorScreen(),
+    ),
+
+    GoRoute(path: '/tema', builder: (context, state) => const TemaScreen()),
+
+    GoRoute(
+      path: '/preguntas-frecuentes',
+      builder: (context, state) => const PreguntasFrecuentesScreen(),
+    ),
+
+    GoRoute(
+      path: '/acerca-huellitas',
+      builder: (context, state) => const AcercaHuellitasScreen(),
+    ),
+
+    GoRoute(
+      path: '/contacto',
+      builder: (context, state) => const ContactoScreen(),
+    ),
+
+    GoRoute(path: '/foro', builder: (context, state) => const ForoScreen()),
+
+    GoRoute(
+      path: '/donaciones',
+      builder: (context, state) => const DonacionesScreen(),
     ),
   ],
 );

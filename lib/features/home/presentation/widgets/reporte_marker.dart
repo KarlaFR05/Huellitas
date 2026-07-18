@@ -218,7 +218,7 @@ class ReporteMarker extends StatelessWidget {
           child: Container(
             width: 26,
             height: 28,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
             ),

@@ -16,6 +16,7 @@ import 'features/insignias/data/datasources/insignia_remote_datasource_impl.dart
 import 'features/insignias/data/repositories/insignia_repository_impl.dart';
 import 'features/insignias/domain/usecases/get_insignias_usuario_usecase.dart';
 import 'features/insignias/presentation/bloc/insignia_bloc.dart';
+import 'core/theme/bloc/theme_bloc.dart';
 
 void main() {
   final dio = Dio(
@@ -77,6 +78,9 @@ void main() {
           BlocProvider(
             create: (context) =>
                 InsigniaBloc(getInsignias: getInsigniasUsuario),
+          ),
+          BlocProvider(
+            create: (_) => ThemeBloc(),
           ),
         ],
         child: const HuellitasApp(),

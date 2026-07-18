@@ -24,9 +24,10 @@ class ConfiguracionScreen extends StatelessWidget {
           ),
           Divider(),
           ListTile(
-            leading: Icon(Icons.dark_mode_outlined),
-            title: Text("Tema"),
-            trailing: Icon(Icons.chevron_right),
+            leading: const Icon(Icons.dark_mode_outlined),
+            title: const Text("Tema"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/tema'),
           ),
         ],
       ),

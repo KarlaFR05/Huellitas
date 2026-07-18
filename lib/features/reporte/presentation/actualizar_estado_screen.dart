@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import '../../auth/presentation/bloc/auth_bloc.dart';
 import '../../auth/presentation/bloc/auth_state.dart';
 import '../../auth/domain/entities/usuario.dart';
-import '../../../../styles/constantes/app_colors.dart';
 import '../domain/entities/fase_reporte.dart';
 import '../domain/entities/reporte_estado.dart';
 import 'bloc/reporte_estado_bloc.dart';
@@ -46,19 +45,23 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
     return GestureDetector(
       onTap: () => showDialog(
         context: context,
-        builder: (context) => AlertDialog(
+        builder: (dialogContext) => AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           title: Row(
             children: [
-              Icon(Icons.info_outline, color: AppColors.primary, size: 28),
+              Icon(
+                Icons.info_outline,
+                color: Theme.of(dialogContext).colorScheme.primary,
+                size: 28,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: Theme.of(dialogContext).colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -68,11 +71,11 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
           content: content,
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
                 'Entendido',
                 style: TextStyle(
-                  color: AppColors.primary,
+                  color: Theme.of(dialogContext).colorScheme.primary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -84,10 +87,14 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
         margin: const EdgeInsets.only(left: 8),
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.1),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
-        child: Icon(Icons.info_outline, color: AppColors.primary, size: 18),
+        child: Icon(
+          Icons.info_outline,
+          color: Theme.of(context).colorScheme.primary,
+          size: 18,
+        ),
       ),
     );
   }
@@ -115,34 +122,43 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
   Future<ImageSource?> _showImageSourceDialog() async {
     return showModalBottomSheet<ImageSource>(
       context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Seleccionar imagen',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: AppColors.primary),
-              title: const Text('Tomar fotografía'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.photo_library,
-                color: AppColors.primary,
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: 8),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color:
+                Theme.of(sheetContext).inputDecorationTheme.fillColor ??
+                Theme.of(sheetContext).colorScheme.surfaceContainer,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Seleccionar imagen',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              title: const Text('Seleccionar de galería'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-          ],
+              const SizedBox(height: 20),
+              ListTile(
+                leading: Icon(
+                  Icons.camera_alt,
+                  color: Theme.of(sheetContext).colorScheme.primary,
+                ),
+                title: const Text('Tomar fotografía'),
+                onTap: () => Navigator.pop(sheetContext, ImageSource.camera),
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.photo_library,
+                  color: Theme.of(sheetContext).colorScheme.primary,
+                ),
+                title: const Text('Seleccionar de galería'),
+                onTap: () => Navigator.pop(sheetContext, ImageSource.gallery),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -283,19 +299,22 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: AppColors.background,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+            icon: Icon(
+              Icons.arrow_back,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             onPressed: () => context.pop(),
           ),
-          title: const Text(
+          title: Text(
             'Actualizar Estado\nDel Reporte',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
               height: 1.2,
             ),
@@ -310,10 +329,10 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     '¿En qué fase se encuentra el reporte?',
                     style: TextStyle(
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -338,7 +357,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                         style: TextStyle(
                           color: isDisabled
                               ? Colors.grey.shade400
-                              : (AppColors.textPrimary),
+                              : Theme.of(context).colorScheme.onSurface,
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.normal,
@@ -351,7 +370,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                             ? Icons.medical_services
                             : Icons.check_circle,
                         color: isDisabled
-                            ? Colors.grey.shade300
+                            ? Theme.of(context).colorScheme.outline
                             : _getColorFase(fase),
                       ),
                       contentPadding: EdgeInsets.zero,
@@ -361,10 +380,10 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
 
                   Row(
                     children: [
-                      const Text(
+                      Text(
                         'Descripción del estado',
                         style: TextStyle(
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -378,7 +397,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                       ),
                       _buildInfoIcon(
                         'Información del estado',
-                        const Text(
+                        Text(
                           'Describe el estado actual del animal:\n\n'
                           '• Mejoras observadas en su salud\n'
                           '• Tratamientos recibidos\n'
@@ -386,7 +405,9 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                           '• Condiciones especiales\n'
                           '• Cualquier otro detalle relevante',
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontSize: 14,
                             height: 1.5,
                           ),
@@ -398,23 +419,29 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.3),
+                      color:
+                          Theme.of(context).inputDecorationTheme.fillColor ??
+                          Theme.of(context).colorScheme.surfaceContainer,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.secondary),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                     ),
                     child: TextField(
                       controller: _comentariosController,
                       maxLines: 4,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         border: InputBorder.none,
                         isDense: true,
                         contentPadding: EdgeInsets.zero,
                         hintText:
                             'Describe el estado actual del animal, mejoras, tratamientos...',
-                        hintStyle: TextStyle(color: AppColors.textSecondary),
+                        hintStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 14,
                         height: 1.4,
                       ),
@@ -422,10 +449,10 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  const Text(
+                  Text(
                     'Adjuntar evidencia',
                     style: TextStyle(
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -442,10 +469,14 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                         width: double.infinity,
                         height: 150,
                         decoration: BoxDecoration(
-                          color: AppColors.secondary.withValues(alpha: 0.3),
+                          color:
+                              Theme.of(
+                                context,
+                              ).inputDecorationTheme.fillColor ??
+                              Theme.of(context).colorScheme.surfaceContainer,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: AppColors.primary,
+                            color: Theme.of(context).colorScheme.primary,
                             width: 2,
                           ),
                         ),
@@ -500,13 +531,17 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                                   Icon(
                                     Icons.camera_alt,
                                     size: 48,
-                                    color: AppColors.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     'Toca para agregar foto',
                                     style: TextStyle(
-                                      color: AppColors.primary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -515,7 +550,9 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                                   Text(
                                     'Máximo 1 imagen',
                                     style: TextStyle(
-                                      color: AppColors.textSecondary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                       fontSize: 11,
                                     ),
                                   ),
@@ -529,10 +566,12 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           '1/1 imagen agregada',
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontSize: 12,
                           ),
                         ),
@@ -576,26 +615,29 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     child: ElevatedButton(
                       onPressed: cargando ? null : _enviarActualizacion,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       child: cargando
-                          ? const SizedBox(
+                          ? SizedBox(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
+                                  Theme.of(context).colorScheme.onPrimary,
                                 ),
                               ),
                             )
-                          : const Text(
+                          : Text(
                               'Enviar actualización',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onPrimary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),

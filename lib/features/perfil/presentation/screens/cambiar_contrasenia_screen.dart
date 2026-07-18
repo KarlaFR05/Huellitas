@@ -221,12 +221,12 @@ class _CambiarContraseniaScreenState extends State<CambiarContraseniaScreen> {
                 child: ElevatedButton(
                   onPressed: _guardando ? null : _cambiar,
                   child: _guardando
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         )
                       : const Text("Actualizar contraseña"),

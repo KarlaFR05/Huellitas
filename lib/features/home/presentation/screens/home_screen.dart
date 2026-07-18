@@ -178,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Stack(
           children: [
@@ -212,7 +212,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   context.push('/report-form');
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF57C29A),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   minimumSize: const Size(double.infinity, 60),
                 ),
                 child: const Text(
@@ -271,7 +272,10 @@ class _Header extends StatelessWidget {
                   children: [
                     Text(
                       'Bienvenido',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
                     ),
                     Row(
                       children: [
@@ -305,12 +309,20 @@ class _Header extends StatelessWidget {
 
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF57C29A),
+              color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(50),
+              border: Border.all(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onPrimary.withValues(alpha: 0.18),
+              ),
             ),
             child: IconButton(
               onPressed: () {},
-              icon: const Icon(Icons.notifications_none, color: Colors.white),
+              icon: Icon(
+                Icons.notifications_none,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
             ),
           ),
         ],
@@ -328,20 +340,30 @@ class _BottomBar extends StatelessWidget {
       height: 75,
       margin: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF57C29A),
+        color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(40),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Icon(Icons.home_outlined, color: Colors.white),
-          Icon(Icons.chat_bubble_outline, color: Colors.white, size: 22),
+          Icon(
+            Icons.home_outlined,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          Icon(
+            Icons.chat_bubble_outline,
+            color: Theme.of(context).colorScheme.onSurface,
+            size: 22,
+          ),
           Icon(
             Icons.volunteer_activism_outlined,
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onSurface,
             size: 28,
           ),
-          Icon(Icons.person_outline, color: Colors.white),
+          Icon(
+            Icons.person_outline,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         ],
       ),
     );
