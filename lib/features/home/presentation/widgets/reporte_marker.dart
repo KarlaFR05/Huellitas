@@ -63,6 +63,8 @@ class ReportMapMarker {
   final double radiusMeters;
   final ReportAnimal animal;
   final ReportUrgency urgency;
+  final int faseActualId;
+  final DateTime? fechaActualizacion;
 
   const ReportMapMarker({
     this.reporteId,
@@ -75,6 +77,8 @@ class ReportMapMarker {
     required this.radiusMeters,
     required this.animal,
     required this.urgency,
+    this.faseActualId = 1,
+    this.fechaActualizacion,
   });
 
   factory ReportMapMarker.fromReporte(Reporte reporte) {
@@ -89,6 +93,8 @@ class ReportMapMarker {
       radiusMeters: 180,
       animal: ReportAnimal.fromId(reporte.tipoAnimalId),
       urgency: ReportUrgency.fromId(reporte.urgenciaId),
+      faseActualId: reporte.faseActualId,
+      fechaActualizacion: reporte.fechaActualizacion,
     );
   }
 
@@ -186,8 +192,19 @@ enum ReportUrgency {
 class ReporteMarker extends StatelessWidget {
   final ReportAnimal animal;
   final ReportUrgency urgency;
+  final int faseActualId;
 
-  const ReporteMarker({super.key, required this.animal, required this.urgency});
+  const ReporteMarker({
+    super.key,
+    required this.animal,
+    required this.urgency,
+    this.faseActualId = 1,
+  });
+
+  Color get _colorEfectivo {
+    if (faseActualId == 3) return const Color(0xFF2E7D32); // verde = concluido
+    return urgency.color;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -195,7 +212,7 @@ class ReporteMarker extends StatelessWidget {
       width: 48,
       height: 58,
       child: CustomPaint(
-        painter: _PinPainter(color: urgency.color),
+        painter: _PinPainter(color: _colorEfectivo),
         child: Align(
           alignment: const Alignment(0, -0.55),
           child: Container(

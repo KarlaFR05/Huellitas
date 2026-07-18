@@ -8,6 +8,9 @@ import '../domain/entities/reporte_estado.dart';
 import 'bloc/reporte_estado_bloc.dart';
 import 'bloc/reporte_estado_event.dart';
 import 'bloc/reporte_estado_state.dart';
+import '../../auth/presentation/bloc/auth_bloc.dart';
+import '../../auth/presentation/bloc/auth_state.dart';
+import '../../auth/domain/entities/usuario.dart';
 
 class ActualizarEstadoScreen extends StatefulWidget {
   final ReporteEstado reporte;
@@ -136,10 +139,20 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
       return;
     }
 
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthSuccess || authState.data is! Usuario) {
+      _showError(
+        'No se pudo identificar al usuario. Inicia sesión nuevamente.',
+      );
+      return;
+    }
+
+    final usuarioId = (authState.data as Usuario).usuarioIdPk;
     context.read<ReporteEstadoBloc>().add(
       ActualizarEstado(
         reporteId: widget.reporte.reporteId,
         nuevaFaseId: _faseSeleccionada!,
+        usuarioId: usuarioId,
         evidencia: _evidencia!,
       ),
     );
@@ -254,44 +267,47 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  ..._todasLasFases.map((fase) {
-                    final isSelected = _faseSeleccionada == fase.id;
-                    final faseActualIndex = widget.reporte.faseActual.id;
-                    final isDisabled =
-                        fase.id < faseActualIndex ||
-                        fase.id > faseActualIndex + 1;
+                  RadioGroup<int>(
+                    groupValue: _faseSeleccionada,
+                    onChanged: _onFaseSeleccionada,
+                    child: Column(
+                      children: _todasLasFases.map((fase) {
+                        final isSelected = _faseSeleccionada == fase.id;
+                        final faseActualIndex = widget.reporte.faseActual.id;
+                        final isDisabled =
+                            fase.id < faseActualIndex ||
+                            fase.id > faseActualIndex + 1;
 
-                    return RadioListTile<int>(
-                      value: fase.id,
-                      groupValue: _faseSeleccionada,
-                      onChanged: cargando || isDisabled
-                          ? null
-                          : _onFaseSeleccionada,
-                      activeColor: _getColorFase(fase),
-                      title: Text(
-                        fase.label,
-                        style: TextStyle(
-                          color: isDisabled
-                              ? Colors.grey.shade400
-                              : Theme.of(context).colorScheme.onSurface,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                      ),
-                      secondary: Icon(
-                        fase.id == 1
-                            ? Icons.warning_amber_rounded
-                            : fase.id == 2
-                            ? Icons.medical_services
-                            : Icons.check_circle,
-                        color: isDisabled
-                            ? Theme.of(context).colorScheme.outline
-                            : _getColorFase(fase),
-                      ),
-                      contentPadding: EdgeInsets.zero,
-                    );
-                  }),
+                        return RadioListTile<int>(
+                          value: fase.id,
+                          enabled: !cargando && !isDisabled,
+                          activeColor: _getColorFase(fase),
+                          title: Text(
+                            fase.label,
+                            style: TextStyle(
+                              color: isDisabled
+                                  ? Colors.grey.shade400
+                                  : Theme.of(context).colorScheme.onSurface,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                          secondary: Icon(
+                            fase.id == 1
+                                ? Icons.warning_amber_rounded
+                                : fase.id == 2
+                                ? Icons.medical_services
+                                : Icons.check_circle,
+                            color: isDisabled
+                                ? Theme.of(context).colorScheme.outline
+                                : _getColorFase(fase),
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                        );
+                      }).toList(),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   Text(
                     'Adjuntar evidencia',

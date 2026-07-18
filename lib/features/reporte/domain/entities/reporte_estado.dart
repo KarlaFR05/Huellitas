@@ -1,4 +1,5 @@
 import 'fase_reporte.dart';
+import 'historial_fase_item.dart';
 
 class ReporteEstado {
   final int reporteId;
@@ -11,7 +12,7 @@ class ReporteEstado {
   final String raza;
   final String tamano;
   final String evidenciaUrl;
-  final List<String> historialFases;
+  final List<HistorialFaseItem> historialFases;
 
   const ReporteEstado({
     required this.reporteId,

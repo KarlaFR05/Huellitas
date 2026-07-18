@@ -106,7 +106,11 @@ class _MapWidgetState extends State<MapWidget> {
         ),
         CircleLayer(
           circles: widget.markers
-              .where((marker) => marker.tipoReporte != 'Maltrato animal')
+              .where(
+                (marker) =>
+                    marker.tipoReporte != 'Maltrato animal' &&
+                    marker.faseActualId != 3,
+              )
               .map(
                 (marker) => CircleMarker(
                   point: marker.location,
@@ -314,7 +318,11 @@ class _ReportPin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ReporteMarker(animal: report.animal, urgency: report.urgency);
+    return ReporteMarker(
+      animal: report.animal,
+      urgency: report.urgency,
+      faseActualId: report.faseActualId,
+    );
   }
 }
 

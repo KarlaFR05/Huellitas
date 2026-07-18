@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter/services.dart'; // ✅ Importar para copiar al portapapeles
+import 'package:flutter/services.dart';
 import '../../home/presentation/widgets/bottom_bar.dart';
 import '../domain/entities/fase_reporte.dart';
 import 'bloc/reporte_estado_bloc.dart';
@@ -188,7 +188,7 @@ class ReporteEstadoScreen extends StatelessWidget {
               child: Text(
                 esFaseFinal
                     ? 'Reporte finalizado'
-                    : 'Actualizar estado del reporte',
+                    : 'Realizar rescate del reporte',
                 style: TextStyle(
                   color: esFaseFinal
                       ? Theme.of(context).colorScheme.onSurfaceVariant

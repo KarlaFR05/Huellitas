@@ -3,6 +3,7 @@ import '../../domain/entities/fase_reporte.dart';
 import '../../domain/entities/tipo_urgencia.dart';
 import '../../domain/entities/tipo_animal.dart';
 import '../../domain/entities/tipo_reporte.dart';
+import '../../domain/entities/historial_fase_item.dart';
 
 class ReporteEstadoModel extends ReporteEstado {
   const ReporteEstadoModel({
@@ -31,7 +32,9 @@ class ReporteEstadoModel extends ReporteEstado {
       raza: json['raza'] ?? '',
       tamano: json['tamano'] ?? '',
       evidenciaUrl: json['evidenciaUrl'] ?? '',
-      historialFases: List<String>.from(json['historialFases'] ?? []),
+      historialFases: (json['historialFases'] as List<dynamic>? ?? [])
+          .map((e) => HistorialFaseItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 }
