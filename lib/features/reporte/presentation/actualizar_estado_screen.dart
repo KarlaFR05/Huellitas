@@ -9,6 +9,9 @@ import '../domain/entities/reporte_estado.dart';
 import 'bloc/reporte_estado_bloc.dart';
 import 'bloc/reporte_estado_event.dart';
 import 'bloc/reporte_estado_state.dart';
+import '../../auth/presentation/bloc/auth_bloc.dart';
+import '../../auth/presentation/bloc/auth_state.dart';
+import '../../auth/domain/entities/usuario.dart';
 
 class ActualizarEstadoScreen extends StatefulWidget {
   final ReporteEstado reporte;
@@ -65,8 +68,10 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Seleccionar imagen',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Seleccionar imagen',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 20),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: AppColors.primary),
@@ -74,7 +79,10 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library, color: AppColors.primary),
+              leading: const Icon(
+                Icons.photo_library,
+                color: AppColors.primary,
+              ),
               title: const Text('Seleccionar de galería'),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
@@ -92,7 +100,9 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
 
     // Validar que no se pueda retroceder
     if (nuevaFaseIndex < faseActualIndex) {
-      _showError('No puedes retroceder a una fase anterior. El reporte ya está en una fase más avanzada.');
+      _showError(
+        'No puedes retroceder a una fase anterior. El reporte ya está en una fase más avanzada.',
+      );
       return;
     }
 
@@ -121,13 +131,23 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
       return;
     }
 
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthSuccess || authState.data is! Usuario) {
+      _showError(
+        'No se pudo identificar al usuario. Inicia sesión nuevamente.',
+      );
+      return;
+    }
+
+    final usuarioId = (authState.data as Usuario).usuarioIdPk;
     context.read<ReporteEstadoBloc>().add(
-          ActualizarEstado(
-            reporteId: widget.reporte.reporteId,
-            nuevaFaseId: _faseSeleccionada!,
-            evidencia: _evidencia!,
-          ),
-        );
+      ActualizarEstado(
+        reporteId: widget.reporte.reporteId,
+        nuevaFaseId: _faseSeleccionada!,
+        usuarioId: usuarioId,
+        evidencia: _evidencia!,
+      ),
+    );
   }
 
   void _showError(String message) {
@@ -165,10 +185,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     boundaryMargin: const EdgeInsets.all(20),
                     minScale: 0.5,
                     maxScale: 4.0,
-                    child: Image.file(
-                      image,
-                      fit: BoxFit.fitWidth,
-                    ),
+                    child: Image.file(image, fit: BoxFit.fitWidth),
                   ),
                 ),
               ),
@@ -184,11 +201,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     color: Colors.black54,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 24),
                 ),
               ),
             ),
@@ -246,7 +259,9 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                   ..._todasLasFases.map((fase) {
                     final isSelected = _faseSeleccionada == fase.id;
                     final faseActualIndex = widget.reporte.faseActual.id;
-                    final isDisabled = fase.id < faseActualIndex || fase.id > faseActualIndex + 1;
+                    final isDisabled =
+                        fase.id < faseActualIndex ||
+                        fase.id > faseActualIndex + 1;
 
                     return RadioListTile<int>(
                       value: fase.id,
@@ -258,18 +273,20 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                       title: Text(
                         fase.label,
                         style: TextStyle(
-                          color: isDisabled 
-                              ? Colors.grey.shade400 
+                          color: isDisabled
+                              ? Colors.grey.shade400
                               : (AppColors.textPrimary),
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       ),
                       secondary: Icon(
-                        fase.id == 1 
+                        fase.id == 1
                             ? Icons.warning_amber_rounded
                             : fase.id == 2
-                                ? Icons.medical_services
-                                : Icons.check_circle,
+                            ? Icons.medical_services
+                            : Icons.check_circle,
                         color: isDisabled
                             ? Colors.grey.shade300
                             : _getColorFase(fase),
@@ -289,10 +306,10 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                   const SizedBox(height: 12),
                   Center(
                     child: GestureDetector(
-                      onTap: cargando 
-                          ? null 
-                          : (_evidencia != null 
-                                ? () => _showFullImage(_evidencia!) 
+                      onTap: cargando
+                          ? null
+                          : (_evidencia != null
+                                ? () => _showFullImage(_evidencia!)
                                 : _pickImage),
                       child: Container(
                         width: double.infinity,
@@ -300,7 +317,10 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                         decoration: BoxDecoration(
                           color: AppColors.secondary.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.primary, width: 2),
+                          border: Border.all(
+                            color: AppColors.primary,
+                            width: 2,
+                          ),
                         ),
                         child: _evidencia != null
                             ? Stack(
@@ -395,7 +415,9 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
                           : const Text(

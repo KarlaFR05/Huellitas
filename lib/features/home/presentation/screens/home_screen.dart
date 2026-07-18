@@ -21,6 +21,9 @@ import '../../../../core/verificacion/verificacion_cubit.dart';
 import '../../../../core/widgets/verificado_badge.dart';
 import '../../../../core/widgets/avatar_helper.dart';
 
+const int _faseConcluido = 3;
+const Duration _tiempoVisibleTrasConcluir = Duration(seconds: 20);
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -31,8 +34,32 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<ReportMapMarker> _markers = [];
   List<ReportMapMarker> _markersVisibles(bool estaVerificado) {
-    if (estaVerificado) return _markers;
-    return _markers.where((m) => m.tipoReporte != 'Maltrato animal').toList();
+    final ahora = DateTime.now();
+
+    return _markers.where((m) {
+      // Filtro de verificación existente
+      if (!estaVerificado && m.tipoReporte == 'Maltrato animal') {
+        return false;
+      }
+
+      // Si está concluido, solo se muestra durante el periodo de gracia
+      if (m.faseActualId == _faseConcluido) {
+        if (m.fechaActualizacion == null) return true;
+        final tiempoTranscurrido = ahora.difference(m.fechaActualizacion!);
+        return tiempoTranscurrido < _tiempoVisibleTrasConcluir;
+      }
+
+      if (m.faseActualId == _faseConcluido) {
+        if (m.fechaActualizacion == null) return true;
+        final tiempoTranscurrido = ahora.difference(m.fechaActualizacion!);
+        print(
+          'fecha: ${m.fechaActualizacion}, ahora: $ahora, transcurrido: $tiempoTranscurrido',
+        );
+        return tiempoTranscurrido < _tiempoVisibleTrasConcluir;
+      }
+
+      return true;
+    }).toList();
   }
 
   bool _cargando = true;
@@ -42,6 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
   LatLng? _userLocation;
   StreamSubscription<Position>? _positionStream;
   Timer? _pollingTimer;
+  Timer? _refrescoVisual;
 
   @override
   void initState() {
@@ -49,12 +77,16 @@ class _HomeScreenState extends State<HomeScreen> {
     _cargarReportes(esCargaInicial: true);
     _iniciarSeguimientoUbicacion();
     _iniciarPolling();
+    _refrescoVisual = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
   void dispose() {
     _positionStream?.cancel();
     _pollingTimer?.cancel();
+    _refrescoVisual?.cancel();
     super.dispose();
   }
 
@@ -108,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
             )
             .toList();
 
-        // 🔧 TEMPORAL: Asignar IDs secuenciales si no tienen ID
+        // TEMPORAL: Asignar IDs secuenciales si no tienen ID
         _markers = reportesValidos.asMap().entries.map((entry) {
           final index = entry.key;
           final reporte = entry.value;
@@ -129,6 +161,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   evidencia: reporte.evidencia,
                   latitud: reporte.latitud,
                   longitud: reporte.longitud,
+                  faseActualId: reporte.faseActualId,
+                  fechaActualizacion: reporte.fechaActualizacion,
                 );
 
           return ReportMapMarker.fromReporte(reporteConId);
@@ -154,10 +188,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: _cargando
                       ? const Center(child: CircularProgressIndicator())
-                      : MapWidget(
-                          markers: _markers,
-                          userLocation: _userLocation,
-                          mapController: _mapController,
+                      : BlocBuilder<VerificacionCubit, EstadoVerificacion>(
+                          builder: (context, estadoVerificacion) {
+                            final estaVerificado =
+                                estadoVerificacion ==
+                                EstadoVerificacion.verificado;
+                            return MapWidget(
+                              markers: _markersVisibles(estaVerificado),
+                              userLocation: _userLocation,
+                              mapController: _mapController,
+                            );
+                          },
                         ),
                 ),
               ],
@@ -219,7 +260,9 @@ class _Header extends StatelessWidget {
 
                 if (state is AuthSuccess && state.data is Usuario) {
                   final usuario = state.data as Usuario;
-                  nombreUsuario = usuario.nombreUsuario.isNotEmpty ? usuario.nombreUsuario : 'Usuario';
+                  nombreUsuario = usuario.nombreUsuario.isNotEmpty
+                      ? usuario.nombreUsuario
+                      : 'Usuario';
                   usuarioVerificado = usuario.verificado;
                 }
 

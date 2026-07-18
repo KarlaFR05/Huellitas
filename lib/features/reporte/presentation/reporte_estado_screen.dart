@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter/services.dart'; // ✅ Importar para copiar al portapapeles
+import 'package:flutter/services.dart';
 import '../../../../styles/constantes/app_colors.dart';
 import '../../home/presentation/widgets/bottom_bar.dart';
 import '../domain/entities/fase_reporte.dart';
 import 'bloc/reporte_estado_bloc.dart';
 import 'bloc/reporte_estado_state.dart';
-import 'bloc/reporte_estado_event.dart'; 
+import 'bloc/reporte_estado_event.dart';
 import 'reporte_detalle_screen.dart';
 import 'actualizar_estado_screen.dart';
 
@@ -19,8 +19,9 @@ class ReporteEstadoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => context.read<ReporteEstadoBloc>()
-        ..add(CargarEstadoReporte(reporteId)),
+      create: (_) =>
+          context.read<ReporteEstadoBloc>()
+            ..add(CargarEstadoReporte(reporteId)),
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
@@ -61,7 +62,8 @@ class ReporteEstadoScreen extends StatelessWidget {
   Widget _buildContenido(BuildContext context, dynamic reporte) {
     final fases = FaseReporte.values;
     final faseActualIndex = fases.indexOf(reporte.faseActual);
-    final bool esFaseFinal = reporte.faseActual == FaseReporte.seEncuentraASalvo;
+    final bool esFaseFinal =
+        reporte.faseActual == FaseReporte.seEncuentraASalvo;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -75,7 +77,11 @@ class ReporteEstadoScreen extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.warning_amber_rounded, color: Colors.black, size: 20),
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.black,
+                size: 20,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -94,7 +100,7 @@ class ReporteEstadoScreen extends StatelessWidget {
                       style: TextStyle(
                         color: _getColorUrgencia(reporte.nivelUrgencia),
                         fontSize: 15,
-                        fontWeight: FontWeight.w600, 
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -106,14 +112,20 @@ class ReporteEstadoScreen extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Tipo de reporte
-          _buildInfoRow('Tipo de reporte', reporte.tipoReporte,
-              icon: Icons.category_outlined),
+          _buildInfoRow(
+            'Tipo de reporte',
+            reporte.tipoReporte,
+            icon: Icons.category_outlined,
+          ),
 
           const SizedBox(height: 16),
 
           // Descripción
-          _buildInfoRow('Descripción', reporte.descripcion,
-              icon: Icons.description_outlined),
+          _buildInfoRow(
+            'Descripción',
+            reporte.descripcion,
+            icon: Icons.description_outlined,
+          ),
 
           const SizedBox(height: 16),
 
@@ -146,27 +158,31 @@ class ReporteEstadoScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           //Actualizar estado del reporte (Deshabilitado si es fase final)
           SizedBox(
             width: double.infinity,
             height: 55,
             child: ElevatedButton(
-              onPressed: esFaseFinal 
-                  ? null 
+              onPressed: esFaseFinal
+                  ? null
                   : () {
                       context.push('/actualizar-estado', extra: reporte);
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: esFaseFinal ? Colors.grey.shade400 : AppColors.primary,
+                backgroundColor: esFaseFinal
+                    ? Colors.grey.shade400
+                    : AppColors.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(55),
                 ),
               ),
               child: Text(
-                esFaseFinal ? 'Reporte finalizado' : 'Actualizar estado del reporte',
+                esFaseFinal
+                    ? 'Reporte finalizado'
+                    : 'Realizar rescate del reporte',
                 style: TextStyle(
                   color: esFaseFinal ? Colors.white70 : Colors.white,
                   fontWeight: FontWeight.bold,
@@ -186,7 +202,7 @@ class ReporteEstadoScreen extends StatelessWidget {
       onTap: () {
         // Copiar al portapapeles
         Clipboard.setData(ClipboardData(text: ubicacion));
-        
+
         // Mostrar mensaje
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -229,11 +245,7 @@ class ReporteEstadoScreen extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(
-            Icons.copy,
-            color: AppColors.textSecondary,
-            size: 16,
-          ),
+          const Icon(Icons.copy, color: AppColors.textSecondary, size: 16),
         ],
       ),
     );
@@ -251,9 +263,12 @@ class ReporteEstadoScreen extends StatelessWidget {
 
           Color colorFondo;
           if (esActual) {
-            if (index == 0) colorFondo = Colors.red;
-            else if (index == 1) colorFondo = const Color.fromARGB(255, 255, 196, 0);
-            else colorFondo = Colors.green;
+            if (index == 0)
+              colorFondo = Colors.red;
+            else if (index == 1)
+              colorFondo = const Color.fromARGB(255, 255, 196, 0);
+            else
+              colorFondo = Colors.green;
           } else if (esAnterior) {
             colorFondo = Colors.grey.shade500;
           } else {
@@ -274,8 +289,13 @@ class ReporteEstadoScreen extends StatelessWidget {
       ),
     );
   }
-  Widget _buildInfoRow(String label, String value,
-      {IconData? icon, Color? iconColor}) {
+
+  Widget _buildInfoRow(
+    String label,
+    String value, {
+    IconData? icon,
+    Color? iconColor,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -384,7 +404,7 @@ class _ChevronClipper extends CustomClipper<Path> {
     path.lineTo(0, size.height / 2);
     path.lineTo(0, cornerRadius);
     path.quadraticBezierTo(0, 0, cornerRadius, 0);
-    
+
     path.close();
     return path;
   }

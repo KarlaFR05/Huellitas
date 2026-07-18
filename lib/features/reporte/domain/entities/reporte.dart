@@ -12,6 +12,7 @@ class Reporte {
   final double latitud;
   final double longitud;
   final int faseActualId;
+  final DateTime? fechaActualizacion;
 
   Reporte({
     this.id,
@@ -27,5 +28,6 @@ class Reporte {
     required this.latitud,
     required this.longitud,
     this.faseActualId = 1,
+    this.fechaActualizacion,
   });
 }
