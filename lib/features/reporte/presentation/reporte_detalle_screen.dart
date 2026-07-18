@@ -9,6 +9,9 @@ class ReporteDetalleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Verificamos si el reporte está en Fase 1 (sin actualizaciones)
+    final bool esFaseInicial = reporte.faseActual.id == 1;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -22,7 +25,7 @@ class ReporteDetalleScreen extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          'Reporte',
+          'Detalle del Reporte',
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.bold,
@@ -35,7 +38,6 @@ class ReporteDetalleScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Tipo de animal
             _buildInfoRow(
               context,
               'Tipo de animal',
@@ -44,30 +46,68 @@ class ReporteDetalleScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Raza
             _buildInfoRow(context, 'Raza', reporte.raza, icon: Icons.category),
             const SizedBox(height: 16),
 
-            // Tamaño
             _buildInfoRow(
               context,
               'Tamaño',
               reporte.tamano,
               icon: Icons.straighten,
             ),
-            const SizedBox(height: 24),
 
-            // Evidencia
-            Text(
-              'Evidencia',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.w500,
-                fontSize: 16,
+            // EVIDENCIA solo en Fase 1
+            if (esFaseInicial) ...[
+              const SizedBox(height: 24),
+              Text(
+                'Evidencia',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            _buildEvidencia(context),
+              const SizedBox(height: 12),
+              _buildEvidencia(context, reporte.evidenciaUrl),
+            ],
+
+            // SECCIÓN DE ACTUALIZACIONES para Fase 2 o 3
+            if (!esFaseInicial) ...[
+              const SizedBox(height: 32),
+              const Divider(color: Colors.grey, height: 1),
+              const SizedBox(height: 24),
+
+              Text(
+                'Actualizaciones sobre el reporte',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              _buildInfoRow(
+                context,
+                'Descripción de la actualización',
+                reporte.comentarios?.isNotEmpty == true
+                    ? reporte.comentarios!
+                    : 'Sin descripción agregada',
+              ),
+              const SizedBox(height: 16),
+
+              Text(
+                'Evidencia de la actualización',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              _buildEvidencia(context, reporte.evidenciaUrl),
+            ],
           ],
         ),
       ),
@@ -118,8 +158,8 @@ class ReporteDetalleScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEvidencia(BuildContext context) {
-    if (reporte.evidenciaUrl.isEmpty) {
+  Widget _buildEvidencia(BuildContext context, String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
       return Container(
         height: 180,
         decoration: BoxDecoration(
@@ -137,7 +177,7 @@ class ReporteDetalleScreen extends StatelessWidget {
     }
 
     return GestureDetector(
-      onTap: () => _showFullImage(context, reporte.evidenciaUrl),
+      onTap: () => _showFullImage(context, imageUrl),
       child: Container(
         height: 200,
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
@@ -147,7 +187,7 @@ class ReporteDetalleScreen extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.network(
-                reporte.evidenciaUrl,
+                imageUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return const Center(
@@ -169,7 +209,7 @@ class ReporteDetalleScreen extends StatelessWidget {
                   color: Colors.black54,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.visibility, color: Colors.white, size: 16),
@@ -211,8 +251,8 @@ class ReporteDetalleScreen extends StatelessWidget {
                       imageUrl,
                       fit: BoxFit.fitWidth,
                       errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: const Icon(
+                        return const Center(
+                          child: Icon(
                             Icons.error,
                             color: Colors.white,
                             size: 48,
@@ -221,10 +261,8 @@ class ReporteDetalleScreen extends StatelessWidget {
                       },
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
-                        return Center(
-                          child: const CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
+                        return const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
                         );
                       },
                     ),
@@ -243,7 +281,7 @@ class ReporteDetalleScreen extends StatelessWidget {
                     color: Colors.black54,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.close, color: Colors.white, size: 24),
+                  child: const Icon(Icons.close, color: Colors.white, size: 24),
                 ),
               ),
             ),

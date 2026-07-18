@@ -51,7 +51,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
   // Listas locales
   final List<String> _razasPerro = [
-    'Mestizos',
+    'Mestizo',
     'Chihuahua',
     'Schnauzer',
     'Poodle (Caniche)',
@@ -758,7 +758,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                   Text(
                     'Nivel de urgencia',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -830,7 +830,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                           ),
                           TextSpan(
                             text:
-                                'Inconsciente, hemorragia severa, respiración muy difícil o convulsiones. Necesita ir a la veterinaria YA!',
+                                'Inconsciente, hemorragia severa, respiración muy difícil o convulsiones. Necesita inmediata YA!',
                           ),
                         ],
                       ),

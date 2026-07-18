@@ -29,6 +29,70 @@ class _MapWidgetState extends State<MapWidget> {
     _controller = widget.mapController ?? MapController();
   }
 
+  //mostrar imagen en pantalla completa
+  void _showFullImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Center(
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: Colors.black,
+                  child: InteractiveViewer(
+                    boundaryMargin: const EdgeInsets.all(20),
+                    minScale: 0.5,
+                    maxScale: 4.0,
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.fitWidth,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Icon(
+                            Icons.error,
+                            color: Colors.white,
+                            size: 48,
+                          ),
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 24),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -130,8 +194,7 @@ class _MapWidgetState extends State<MapWidget> {
                 point: report.location,
                 width: 52,
                 height: 62,
-                alignment: Alignment
-                    .topCenter, // reemplaza anchorPos/AnchorPos/AnchorAlign
+                alignment: Alignment.topCenter,
                 child: GestureDetector(
                   onTap: () => _showReportInfo(context, report),
                   child: _ReportPin(report: report),
@@ -202,14 +265,55 @@ class _MapWidgetState extends State<MapWidget> {
                   ),
                   const SizedBox(height: 12),
                   if (report.fotoUrl != null) ...[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        report.fotoUrl!,
-                        height: 150,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                    GestureDetector(
+                      onTap: () =>
+                          _showFullImage(sheetContext, report.fotoUrl!),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Stack(
+                          children: [
+                            Image.network(
+                              report.fotoUrl!,
+                              height: 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) =>
+                                  const SizedBox.shrink(),
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.visibility,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Ver',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -217,8 +321,8 @@ class _MapWidgetState extends State<MapWidget> {
                   _InfoRow(label: 'Tipo', value: report.tipoReporte),
                   _InfoRow(label: 'Urgencia', value: report.urgency.label),
                   _InfoRow(label: 'Animal', value: report.animal.label),
-                  _InfoRow(label: 'Tamano', value: report.tamano),
-                  _InfoRow(label: 'Ubicacion', value: report.ubicacion),
+                  _InfoRow(label: 'Tamaño', value: report.tamano),
+                  _InfoRow(label: 'Ubicación', value: report.ubicacion),
                   _InfoRow(
                     label: 'Radio',
                     value: '${report.radiusMeters.round()} m',
@@ -230,7 +334,7 @@ class _MapWidgetState extends State<MapWidget> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Ubicacion aproximada por seguridad.',
+                    'Ubicación aproximada.',
                     style: TextStyle(color: Colors.grey, fontSize: 13),
                   ),
                   const SizedBox(height: 20),
@@ -294,10 +398,7 @@ class _UserLocationDot extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.blue,
-            border: Border.all(
-              color: Theme.of(context).colorScheme.onSurface,
-              width: 2,
-            ),
+            border: Border.all(color: Colors.white, width: 2),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.3),

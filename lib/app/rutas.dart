@@ -62,6 +62,7 @@ import 'package:huellitas/features/insignias/presentation/bloc/insignia_bloc.dar
 import 'package:huellitas/features/insignias/presentation/screens/insignias_screen.dart';
 import 'package:huellitas/features/insignias/presentation/screens/insignia_detalle_screen.dart';
 
+import 'package:huellitas/features/reporte/domain/usecases/tomar_reporte_usecase.dart';
 import 'package:huellitas/features/foro/presentation/foro_screen.dart';
 import 'package:huellitas/features/donaciones/presentation/donaciones_screen.dart';
 
@@ -101,7 +102,13 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const EditarPerfilScreen(),
     ),
 
-    GoRoute(path: '/mi-perfil', builder: (_, __) => const MiPerfilScreen()),
+    GoRoute(
+      path: '/mi-perfil',
+      builder: (context, state) {
+        final usuarioId = state.extra as int?;
+        return MiPerfilScreen(usuarioId: usuarioId);
+      },
+    ),
 
     GoRoute(
       path: '/privacidad',
@@ -216,12 +223,14 @@ final GoRouter router = GoRouter(
         final dataSource = ReporteEstadoRemoteDataSourceImpl(dio);
         final repository = ReporteEstadoRepositoryImpl(dataSource);
         final getEstado = GetReporteEstadoUseCase(repository);
+        final tomarReporte = TomarReporteUseCase(repository);
         final actualizarEstado = ActualizarEstadoReporteUseCase(repository);
 
         return MaterialPage(
           child: BlocProvider(
             create: (_) => ReporteEstadoBloc(
               getEstado: getEstado,
+              tomarReporte: tomarReporte,
               actualizarEstado: actualizarEstado,
             ),
             child: ReporteEstadoScreen(reporteId: reporteId),
@@ -248,12 +257,14 @@ final GoRouter router = GoRouter(
         final dataSource = ReporteEstadoRemoteDataSourceImpl(dio);
         final repository = ReporteEstadoRepositoryImpl(dataSource);
         final getEstado = GetReporteEstadoUseCase(repository);
+        final tomarReporte = TomarReporteUseCase(repository);
         final actualizarEstado = ActualizarEstadoReporteUseCase(repository);
 
         return MaterialPage(
           child: BlocProvider(
             create: (_) => ReporteEstadoBloc(
               getEstado: getEstado,
+              tomarReporte: tomarReporte,
               actualizarEstado: actualizarEstado,
             ),
             child: ActualizarEstadoScreen(reporte: reporte),

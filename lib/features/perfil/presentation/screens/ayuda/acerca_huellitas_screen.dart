@@ -6,33 +6,21 @@ class AcercaHuellitasScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Acerca de Huellitas"),
-      ),
+      appBar: AppBar(title: const Text("Acerca de Huellitas")),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-
-            const CircleAvatar(
-              radius: 45,
-              child: Icon(
-                Icons.pets,
-                size: 45,
-              ),
-            ),
+            const CircleAvatar(radius: 45, child: Icon(Icons.pets, size: 45)),
 
             const SizedBox(height: 20),
 
-            Text(
-              "Huellitas",
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            Text("Huellitas", style: Theme.of(context).textTheme.headlineSmall),
 
             const SizedBox(height: 8),
 
             Text(
-              "Versión 1.0.0",
+              "Versión 26.2.4",
               style: Theme.of(context).textTheme.bodyMedium,
             ),
 
@@ -58,9 +46,7 @@ class AcercaHuellitasScreen extends StatelessWidget {
             const ListTile(
               leading: Icon(Icons.school),
               title: Text("Desarrollado por"),
-              subtitle: Text(
-                "Equipo 200OK\nBenemérita Universidad Autónoma de Puebla",
-              ),
+              subtitle: Text("Equipo 200OK"),
             ),
 
             const SizedBox(height: 30),

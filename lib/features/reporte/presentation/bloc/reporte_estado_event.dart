@@ -7,12 +7,18 @@ class CargarEstadoReporte extends ReporteEstadoEvent {
   CargarEstadoReporte(this.reporteId);
 }
 
+class TomarReporte extends ReporteEstadoEvent {
+  final int reporteId;
+  TomarReporte(this.reporteId);
+}
+
 class ActualizarEstado extends ReporteEstadoEvent {
   final int reporteId;
   final int nuevaFaseId;
   final int? usuarioId;
   final File evidencia;
   final String? comentarios;
+  
 
   ActualizarEstado({
     required this.reporteId,

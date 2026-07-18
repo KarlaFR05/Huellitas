@@ -20,7 +20,7 @@ class VerificadoBadge extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(1),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurface,
+                color: const Color.fromARGB(255, 241, 235, 235),
                 shape: BoxShape.circle,
               ),
               child: Icon(

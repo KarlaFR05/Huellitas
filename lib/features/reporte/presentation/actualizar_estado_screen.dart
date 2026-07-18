@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../auth/presentation/bloc/auth_bloc.dart';
+import '../../auth/presentation/bloc/auth_state.dart';
+import '../../auth/domain/entities/usuario.dart';
 import '../domain/entities/fase_reporte.dart';
 import '../domain/entities/reporte_estado.dart';
 import 'bloc/reporte_estado_bloc.dart';
 import 'bloc/reporte_estado_event.dart';
 import 'bloc/reporte_estado_state.dart';
-import '../../auth/presentation/bloc/auth_bloc.dart';
-import '../../auth/presentation/bloc/auth_state.dart';
-import '../../auth/domain/entities/usuario.dart';
 
 class ActualizarEstadoScreen extends StatefulWidget {
   final ReporteEstado reporte;
@@ -23,17 +23,81 @@ class ActualizarEstadoScreen extends StatefulWidget {
 
 class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
   final ImagePicker _picker = ImagePicker();
+  final TextEditingController _comentariosController = TextEditingController();
   File? _evidencia;
   int? _faseSeleccionada;
 
   @override
   void initState() {
     super.initState();
-    // Establecer la fase actual como seleccionada por defecto
     _faseSeleccionada = widget.reporte.faseActual.id;
   }
 
+  @override
+  void dispose() {
+    _comentariosController.dispose();
+    super.dispose();
+  }
+
   List<FaseReporte> get _todasLasFases => FaseReporte.values;
+
+  Widget _buildInfoIcon(String title, Widget content) {
+    return GestureDetector(
+      onTap: () => showDialog(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                color: Theme.of(dialogContext).colorScheme.primary,
+                size: 28,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: Theme.of(dialogContext).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: content,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                'Entendido',
+                style: TextStyle(
+                  color: Theme.of(dialogContext).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      child: Container(
+        margin: const EdgeInsets.only(left: 8),
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Icons.info_outline,
+          color: Theme.of(context).colorScheme.primary,
+          size: 18,
+        ),
+      ),
+    );
+  }
 
   Future<void> _pickImage() async {
     try {
@@ -67,7 +131,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
             color:
                 Theme.of(sheetContext).inputDecorationTheme.fillColor ??
                 Theme.of(sheetContext).colorScheme.surfaceContainer,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -106,7 +170,6 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
     final faseActualIndex = widget.reporte.faseActual.id;
     final nuevaFaseIndex = faseId;
 
-    // Validar que no se pueda retroceder
     if (nuevaFaseIndex < faseActualIndex) {
       _showError(
         'No puedes retroceder a una fase anterior. El reporte ya está en una fase más avanzada.',
@@ -114,7 +177,6 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
       return;
     }
 
-    // Validar que no se puedan saltar fases
     if (nuevaFaseIndex > faseActualIndex + 1) {
       _showError('No puedes saltarte fases. Debes avanzar secuencialmente.');
       return;
@@ -139,6 +201,11 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
       return;
     }
 
+    if (_comentariosController.text.trim().isEmpty) {
+      _showError('Es obligatorio describir el estado actual del animal');
+      return;
+    }
+
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthSuccess || authState.data is! Usuario) {
       _showError(
@@ -148,12 +215,14 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
     }
 
     final usuarioId = (authState.data as Usuario).usuarioIdPk;
+
     context.read<ReporteEstadoBloc>().add(
       ActualizarEstado(
         reporteId: widget.reporte.reporteId,
         nuevaFaseId: _faseSeleccionada!,
         usuarioId: usuarioId,
         evidencia: _evidencia!,
+        comentarios: _comentariosController.text.trim(),
       ),
     );
   }
@@ -209,7 +278,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     color: Colors.black54,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.close, color: Colors.white, size: 24),
+                  child: const Icon(Icons.close, color: Colors.white, size: 24),
                 ),
               ),
             ),
@@ -242,10 +311,12 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
             onPressed: () => context.pop(),
           ),
           title: Text(
-            'Actualizar Estado De Reporte',
+            'Actualizar Estado\nDel Reporte',
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
+              height: 1.2,
             ),
           ),
           centerTitle: true,
@@ -267,48 +338,117 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  RadioGroup<int>(
-                    groupValue: _faseSeleccionada,
-                    onChanged: _onFaseSeleccionada,
-                    child: Column(
-                      children: _todasLasFases.map((fase) {
-                        final isSelected = _faseSeleccionada == fase.id;
-                        final faseActualIndex = widget.reporte.faseActual.id;
-                        final isDisabled =
-                            fase.id < faseActualIndex ||
-                            fase.id > faseActualIndex + 1;
+                  ..._todasLasFases.map((fase) {
+                    final isSelected = _faseSeleccionada == fase.id;
+                    final faseActualIndex = widget.reporte.faseActual.id;
+                    final isDisabled =
+                        fase.id < faseActualIndex ||
+                        fase.id > faseActualIndex + 1;
 
-                        return RadioListTile<int>(
-                          value: fase.id,
-                          enabled: !cargando && !isDisabled,
-                          activeColor: _getColorFase(fase),
-                          title: Text(
-                            fase.label,
-                            style: TextStyle(
-                              color: isDisabled
-                                  ? Colors.grey.shade400
-                                  : Theme.of(context).colorScheme.onSurface,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
+                    return RadioListTile<int>(
+                      value: fase.id,
+                      groupValue: _faseSeleccionada,
+                      onChanged: cargando || isDisabled
+                          ? null
+                          : _onFaseSeleccionada,
+                      activeColor: _getColorFase(fase),
+                      title: Text(
+                        fase.label,
+                        style: TextStyle(
+                          color: isDisabled
+                              ? Colors.grey.shade400
+                              : Theme.of(context).colorScheme.onSurface,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      secondary: Icon(
+                        fase.id == 1
+                            ? Icons.warning_amber_rounded
+                            : fase.id == 2
+                            ? Icons.medical_services
+                            : Icons.check_circle,
+                        color: isDisabled
+                            ? Theme.of(context).colorScheme.outline
+                            : _getColorFase(fase),
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                    );
+                  }),
+                  const SizedBox(height: 24),
+
+                  Row(
+                    children: [
+                      Text(
+                        'Descripción del estado',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const Text(
+                        ' *',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      _buildInfoIcon(
+                        'Información del estado',
+                        Text(
+                          'Describe el estado actual del animal:\n\n'
+                          '• Mejoras observadas en su salud\n'
+                          '• Tratamientos recibidos\n'
+                          '• Comportamiento actual\n'
+                          '• Condiciones especiales\n'
+                          '• Cualquier otro detalle relevante',
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                            fontSize: 14,
+                            height: 1.5,
                           ),
-                          secondary: Icon(
-                            fase.id == 1
-                                ? Icons.warning_amber_rounded
-                                : fase.id == 2
-                                ? Icons.medical_services
-                                : Icons.check_circle,
-                            color: isDisabled
-                                ? Theme.of(context).colorScheme.outline
-                                : _getColorFase(fase),
-                          ),
-                          contentPadding: EdgeInsets.zero,
-                        );
-                      }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color:
+                          Theme.of(context).inputDecorationTheme.fillColor ??
+                          Theme.of(context).colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                    child: TextField(
+                      controller: _comentariosController,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                        hintText:
+                            'Describe el estado actual del animal, mejoras, tratamientos...',
+                        hintStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
+
                   Text(
                     'Adjuntar evidencia',
                     style: TextStyle(
@@ -363,7 +503,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                                         color: Colors.black54,
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      child: Row(
+                                      child: const Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
@@ -421,6 +561,53 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                       ),
                     ),
                   ),
+                  if (_evidencia != null) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '1/1 imagen agregada',
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                            fontSize: 12,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => setState(() => _evidencia = null),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade100,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red,
+                                  size: 16,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Eliminar',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
