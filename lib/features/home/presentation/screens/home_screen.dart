@@ -22,7 +22,7 @@ import '../../../../core/widgets/verificado_badge.dart';
 import '../../../../core/widgets/avatar_helper.dart';
 
 const int _faseConcluido = 3;
-const Duration _tiempoVisibleTrasConcluir = Duration(seconds: 20);
+const Duration _tiempoVisibleTrasConcluir = Duration(seconds: 35);
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

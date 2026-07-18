@@ -10,6 +10,9 @@ class ReporteDetalleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Verificamos si el reporte está en Fase 1 (sin actualizaciones)
+    final bool esFaseInicial = reporte.faseActual.id == 1;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -20,7 +23,7 @@ class ReporteDetalleScreen extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
         title: const Text(
-          'Reporte',
+          'Detalle del Reporte',
           style: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
@@ -33,34 +36,70 @@ class ReporteDetalleScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Tipo de animal
             _buildInfoRow('Tipo de animal', reporte.tipoAnimal, icon: Icons.pets),
             const SizedBox(height: 16),
-            
-            // Raza
             _buildInfoRow('Raza', reporte.raza, icon: Icons.category),
             const SizedBox(height: 16),
-            
-            // Tamaño
             _buildInfoRow('Tamaño', reporte.tamano, icon: Icons.straighten),
-            const SizedBox(height: 24),
-            
-            // Evidencia
-            const Text(
-              'Evidencia',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-                fontSize: 16,
+            // EVIDENCIA EN  Fase 1
+            if (esFaseInicial) ...[
+              const SizedBox(height: 24),
+              const Text(
+                'Evidencia',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            _buildEvidencia(context),
+              const SizedBox(height: 12),
+              _buildEvidencia(context, reporte.evidenciaUrl),
+            ],
+            
+            // SECCIÓN DE ACTUALIZACIONES PARA  Fase 2 o 3
+            if (!esFaseInicial) ...[
+              const SizedBox(height: 32),
+              const Divider(color: Colors.grey, height: 1),
+              const SizedBox(height: 24),
+              
+              const Text(
+                'Actualizaciones sobre el reporte',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              // Comentarios de la actualización
+              _buildInfoRow(
+                'Descripción de la actualización', 
+                reporte.comentarios?.isNotEmpty == true 
+                    ? reporte.comentarios! 
+                    : 'Sin descripción agregada',
+              ),
+              const SizedBox(height: 16),
+              
+              const Text(
+                'Evidencia de la actualización',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              // Evidencia de la actualización
+              _buildEvidencia(context, reporte.evidenciaUrl),
+            ],
           ],
         ),
       ),
     );
   }
+
   Widget _buildInfoRow(String label, String value, {IconData? icon}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,8 +135,8 @@ class ReporteDetalleScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEvidencia(BuildContext context) {
-    if (reporte.evidenciaUrl.isEmpty) {
+  Widget _buildEvidencia(BuildContext context, String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
       return Container(
         height: 180,
         decoration: BoxDecoration(
@@ -112,7 +151,7 @@ class ReporteDetalleScreen extends StatelessWidget {
     }
 
     return GestureDetector(
-      onTap: () => _showFullImage(context, reporte.evidenciaUrl),
+      onTap: () => _showFullImage(context, imageUrl),
       child: Container(
         height: 200,
         decoration: BoxDecoration(
@@ -124,7 +163,7 @@ class ReporteDetalleScreen extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.network(
-                reporte.evidenciaUrl,
+                imageUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return const Center(

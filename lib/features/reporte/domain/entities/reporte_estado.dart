@@ -15,6 +15,7 @@ class ReporteEstado {
   final int? usuarioRescateId;
   final String? usuarioRescateNombre;
   final List<HistorialFaseItem> historialFases;
+  final String? comentarios;
 
   const ReporteEstado({
     required this.reporteId,
@@ -30,5 +31,6 @@ class ReporteEstado {
     this.usuarioRescateId,
     this.usuarioRescateNombre,
     this.historialFases = const [],
+    this.comentarios,
   });
 }
