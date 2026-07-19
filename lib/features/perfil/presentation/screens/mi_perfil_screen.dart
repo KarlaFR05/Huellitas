@@ -106,6 +106,22 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
               subtitle: Text('${perfil.nombre} ${perfil.apellidos}'),
             ),
           ),
+          const SizedBox(height: 15),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.email),
+              title: const Text("Correo"),
+              subtitle: Text(perfil.correo),
+            ),
+          ),
+          const SizedBox(height: 15),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.phone),
+              title: const Text("Teléfono"),
+              subtitle: Text(perfil.numTelefono),
+            ),
+          ),
           if (perfil.verificado) ...[
             const SizedBox(height: 15),
             Card(
