@@ -400,34 +400,45 @@ class ReporteEstadoScreen extends StatelessWidget {
         ),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(
-                dialogContext,
-              ).colorScheme.onSurfaceVariant,
-            ),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.read<ReporteEstadoBloc>().add(
-                TomarReporte(reporte.reporteId),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(dialogContext).colorScheme.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    context.read<ReporteEstadoBloc>().add(
+                      TomarReporte(reporte.reporteId),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(
+                      dialogContext,
+                    ).colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: Text(
+                    'Confirmar',
+                    style: TextStyle(
+                      color: Theme.of(dialogContext).colorScheme.onPrimary,
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: Text(
-              'Confirmar',
-              style: TextStyle(
-                color: Theme.of(dialogContext).colorScheme.onPrimary,
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(
+                    dialogContext,
+                  ).colorScheme.onSurfaceVariant,
+                ),
+                child: const Text('Cancelar'),
               ),
-            ),
+            ],
           ),
         ],
       ),
@@ -445,7 +456,7 @@ class ReporteEstadoScreen extends StatelessWidget {
     if (esFaseFinal || otroLoAtiende) {
       return Theme.of(context).colorScheme.surfaceContainer;
     }
-    if (nadieLoAtiende) return _colorTomarCaso;
+    if (nadieLoAtiende) return const Color.fromARGB(255, 199, 104, 26);
     return Theme.of(context).colorScheme.primary;
   }
 

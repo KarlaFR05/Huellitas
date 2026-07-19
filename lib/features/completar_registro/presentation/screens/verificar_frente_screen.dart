@@ -44,6 +44,7 @@ class VerificarFrenteScreen extends StatelessWidget {
                   Expanded(
                     child: FotoCard(
                       titulo: "Toca para tomar la fotografía",
+                      imageQuarterTurns: 1,
                       onImageSelected: (file) {
                         context.read<CompletarPerfilBloc>().add(
                           SubirFrenteEvent(file),
