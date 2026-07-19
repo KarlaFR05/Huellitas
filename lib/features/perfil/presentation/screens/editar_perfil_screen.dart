@@ -440,46 +440,105 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
 
                       TextFormField(
                         controller: calleController,
-                        decoration: const InputDecoration(
+                        readOnly: true,
+                        enabled: false,
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? const Color(0xFFB8B8B8)
+                              : Colors.grey.shade600,
+                        ),
+                        decoration: InputDecoration(
                           labelText: 'Calle y número',
-                          prefixIcon: Icon(Icons.home_outlined),
+                          prefixIcon: Icon(
+                            Icons.home_outlined,
+                            color: isDarkMode
+                                ? const Color(0xFFB8B8B8)
+                                : Colors.grey.shade500,
+                          ),
+                          filled: true,
+                          fillColor: isDarkMode
+                              ? AppColors.darkDisabledField
+                              : Colors.grey.shade100,
+                          helperText:
+                              'Los datos de dirección no se pueden modificar.',
+                          helperStyle: TextStyle(
+                            color: isDarkMode
+                                ? const Color(0xFFB8B8B8)
+                                : Colors.grey.shade500,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 15),
                       TextFormField(
                         controller: coloniaController,
-                        decoration: const InputDecoration(
+                        readOnly: true,
+                        enabled: false,
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? const Color(0xFFB8B8B8)
+                              : Colors.grey.shade600,
+                        ),
+                        decoration: InputDecoration(
                           labelText: 'Colonia',
-                          prefixIcon: Icon(Icons.location_city_outlined),
+                          prefixIcon: Icon(
+                            Icons.location_city_outlined,
+                            color: isDarkMode
+                                ? const Color(0xFFB8B8B8)
+                                : Colors.grey.shade500,
+                          ),
+                          filled: true,
+                          fillColor: isDarkMode
+                              ? AppColors.darkDisabledField
+                              : Colors.grey.shade100,
                         ),
                       ),
                       const SizedBox(height: 15),
                       TextFormField(
                         controller: cpController,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(5),
-                        ],
-                        validator: (value) {
-                          if (value != null &&
-                              value.isNotEmpty &&
-                              value.length != 5) {
-                            return 'Debe contener 5 dígitos';
-                          }
-                          return null;
-                        },
-                        decoration: const InputDecoration(
+                        readOnly: true,
+                        enabled: false,
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? const Color(0xFFB8B8B8)
+                              : Colors.grey.shade600,
+                        ),
+                        decoration: InputDecoration(
                           labelText: 'Código Postal',
-                          prefixIcon: Icon(Icons.markunread_mailbox_outlined),
+                          prefixIcon: Icon(
+                            Icons.markunread_mailbox_outlined,
+                            color: isDarkMode
+                                ? const Color(0xFFB8B8B8)
+                                : Colors.grey.shade500,
+                          ),
+                          filled: true,
+                          fillColor: isDarkMode
+                              ? AppColors.darkDisabledField
+                              : Colors.grey.shade100,
                         ),
                       ),
                       const SizedBox(height: 15),
                       TextFormField(
                         controller: ciudadController,
-                        decoration: const InputDecoration(
+                        readOnly: true,
+                        enabled: false,
+                        style: TextStyle(
+                          color: isDarkMode
+                              ? const Color(0xFFB8B8B8)
+                              : Colors.grey.shade600,
+                        ),
+                        decoration: InputDecoration(
                           labelText: 'Ciudad',
-                          prefixIcon: Icon(Icons.location_on_outlined),
+                          prefixIcon: Icon(
+                            Icons.location_on_outlined,
+                            color: isDarkMode
+                                ? const Color(0xFFB8B8B8)
+                                : Colors.grey.shade500,
+                          ),
+                          filled: true,
+                          fillColor: isDarkMode
+                              ? AppColors.darkDisabledField
+                              : Colors.grey.shade100,
                         ),
                       ),
 

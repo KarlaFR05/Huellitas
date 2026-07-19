@@ -38,7 +38,7 @@ class ContactoScreen extends StatelessWidget {
               icon: Icons.language,
               titulo: 'Página web',
               contenido: 'www.huellitas.com',
-              botonTexto: 'Visitar sitio\n(Próximamente)',
+              botonTexto: 'Visitar sitio (Próximamente)',
               onPressed: () {
                 // Aquí puedes abrir la página web más adelante.
               },
