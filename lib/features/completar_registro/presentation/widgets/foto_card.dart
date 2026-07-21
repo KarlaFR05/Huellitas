@@ -6,11 +6,13 @@ import 'package:image_picker/image_picker.dart';
 class FotoCard extends StatefulWidget {
   final String titulo;
   final ValueChanged<File> onImageSelected;
+  final int imageQuarterTurns;
 
   const FotoCard({
     super.key,
     required this.titulo,
     required this.onImageSelected,
+    this.imageQuarterTurns = 0,
   });
 
   @override
@@ -79,11 +81,14 @@ class _FotoCardState extends State<FotoCard> {
               )
             : ClipRRect(
                 borderRadius: BorderRadius.circular(14),
-                child: Image.file(
-                  _imagen!,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
+                child: RotatedBox(
+                  quarterTurns: widget.imageQuarterTurns,
+                  child: Image.file(
+                    _imagen!,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
                 ),
               ),
       ),
