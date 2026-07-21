@@ -363,15 +363,86 @@ class ReporteEstadoScreen extends StatelessWidget {
     if (esFaseFinal || otroLoAtiende || tomando) return null;
 
     if (nadieLoAtiende) {
-      return () {
-        context.read<ReporteEstadoBloc>().add(TomarReporte(reporte.reporteId));
-      };
+      return () => _confirmarTomarReporte(context, reporte);
     }
 
     // yoLoAtiendo == true
     return () {
       context.push('/actualizar-estado', extra: reporte);
     };
+  }
+
+  void _confirmarTomarReporte(BuildContext context, ReporteEstado reporte) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Theme.of(dialogContext).colorScheme.surface,
+        icon: Icon(
+          Icons.volunteer_activism,
+          color: Theme.of(dialogContext).colorScheme.primary,
+          size: 40,
+        ),
+        title: Text(
+          '¿Realizar este rescate?',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(dialogContext).colorScheme.onSurface,
+          ),
+        ),
+        content: Text(
+          'Al confirmar, quedarás como responsable de este rescate y otros usuarios ya no podrán tomarlo.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Theme.of(dialogContext).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    context.read<ReporteEstadoBloc>().add(
+                      TomarReporte(reporte.reporteId),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(
+                      dialogContext,
+                    ).colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: Text(
+                    'Confirmar',
+                    style: TextStyle(
+                      color: Theme.of(dialogContext).colorScheme.onPrimary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(
+                    dialogContext,
+                  ).colorScheme.onSurfaceVariant,
+                ),
+                child: const Text('Cancelar'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   static const Color _colorTomarCaso = Color(0xFF2E86AB);
@@ -385,7 +456,7 @@ class ReporteEstadoScreen extends StatelessWidget {
     if (esFaseFinal || otroLoAtiende) {
       return Theme.of(context).colorScheme.surfaceContainer;
     }
-    if (nadieLoAtiende) return _colorTomarCaso;
+    if (nadieLoAtiende) return const Color.fromARGB(255, 199, 104, 26);
     return Theme.of(context).colorScheme.primary;
   }
 

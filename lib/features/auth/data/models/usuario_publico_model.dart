@@ -6,6 +6,8 @@ class UsuarioPublicoModel extends UsuarioPublico {
     required super.nombre,
     required super.apellidos,
     required super.nombreUsuario,
+    required super.correo,
+    required super.numTelefono,
     super.fotoPerfil,
     required super.verificado,
   });
@@ -16,6 +18,8 @@ class UsuarioPublicoModel extends UsuarioPublico {
       nombre: json['nombre'] ?? '',
       apellidos: json['apellidos'] ?? '',
       nombreUsuario: json['nombre_usuario'] ?? '',
+      correo: json['correo'] ?? '',
+      numTelefono: json['num_telefono'] ?? '',
       fotoPerfil: json['foto_perfil'],
       verificado: json['verificado'] ?? false,
     );

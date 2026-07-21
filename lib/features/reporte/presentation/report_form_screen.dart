@@ -750,7 +750,68 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                 ],
                 (value) => setState(() => _tipoReporte = value),
                 hintText: 'Seleccione una opción',
+                infoTitle: 'Tipos de reporte',
+                infoContent: RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                    children: const [
+                      TextSpan(
+                        text: '• ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text: 'Mascota perdida: ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text:
+                            'El animal es tuyo o de alguien conocido y no saben su paradero actual.\n\n',
+                      ),
+                      TextSpan(
+                        text: '• ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text: 'Mascota encontrada: ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text:
+                            'Encontraste un animal con dueño (collar, arnés, señales de estar acostumbrado a un hogar) y buscas ayudar a reunirlo con su familia.\n\n',
+                      ),
+                      TextSpan(
+                        text: '• ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text: 'Animal en abandono/riesgo: ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text:
+                            'Animal callejero, sin hogar aparente, en situación de calle, enfermo, herido o en peligro por su entorno (clima, tráfico, falta de alimento).\n\n',
+                      ),
+                      TextSpan(
+                        text: '• ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text: 'Maltrato animal: ',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text:
+                            'El animal está sufriendo maltrato, negligencia o abuso por parte de una persona, incluyendo casos dentro de un domicilio privado. Este tipo de reporte solo es visible para usuarios verificados.',
+                      ),
+                    ],
+                  ),
+                ),
               ),
+
               const SizedBox(height: 24),
 
               Row(
@@ -1089,17 +1150,25 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     List<String> items,
     Function(String?) onChanged, {
     String? hintText,
+    String? infoTitle,
+    Widget? infoContent,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-          ),
+        Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+            if (infoContent != null && infoTitle != null)
+              _buildInfoIcon(infoTitle, infoContent),
+          ],
         ),
         const SizedBox(height: 8),
         Container(
