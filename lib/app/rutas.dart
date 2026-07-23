@@ -65,7 +65,14 @@ import 'package:huellitas/features/insignias/presentation/screens/insignia_detal
 
 import 'package:huellitas/features/reporte/domain/usecases/tomar_reporte_usecase.dart';
 import 'package:huellitas/features/foro/presentation/foro_screen.dart';
-import 'package:huellitas/features/donaciones/presentation/donaciones_screen.dart';
+
+
+import 'package:huellitas/features/donaciones/presentation/screens/donaciones_screen.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/seleccion_cantidad_screen.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/monto_personalizado_screen.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/metodo_pago_screen.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/confirmacion_donacion_screen.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/donacion_error_screen.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -310,9 +317,36 @@ final GoRouter router = GoRouter(
 
     GoRoute(path: '/foro', builder: (context, state) => const ForoScreen()),
 
+    
     GoRoute(
       path: '/donaciones',
+      name: 'donaciones',
       builder: (context, state) => const DonacionesScreen(),
+    ),
+    GoRoute(
+      path: '/seleccion-cantidad',
+      name: 'seleccion-cantidad',
+      builder: (context, state) => const SeleccionCantidadScreen(),
+    ),
+    GoRoute(
+      path: '/monto-personalizado',
+      name: 'monto-personalizado',
+      builder: (context, state) => const MontoPersonalizadoScreen(),
+    ),
+    GoRoute(
+      path: '/metodo-pago',
+      name: 'metodo-pago',
+      builder: (context, state) => const MetodoPagoScreen(),
+    ),
+    GoRoute(
+      path: '/confirmacion-donacion',
+      name: 'confirmacion-donacion',
+      builder: (context, state) => const ConfirmacionDonacionScreen(),
+    ),
+    GoRoute(
+      path: '/donacion-error',
+      name: 'donacion-error',
+      builder: (context, state) => const DonacionErrorScreen(),
     ),
   ],
 );
