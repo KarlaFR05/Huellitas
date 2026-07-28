@@ -39,7 +39,7 @@ void main() {
   final insigniaRepository = InsigniaRepositoryImpl(insigniaDataSource);
   final getInsigniasUsuario = GetInsigniasUsuarioUseCase(insigniaRepository);
 
-  final donacionDataSource = DonacionRemoteDataSource();
+  final donacionDataSource = DonacionRemoteDataSourceImpl(dio);
   final donacionRepository = DonacionRepositoryImpl(donacionDataSource);
   final obtenerOrganizacionesUseCase = ObtenerOrganizacionesUseCase(donacionRepository);
   final crearDonacionUseCase = CrearDonacionUseCase(donacionRepository);

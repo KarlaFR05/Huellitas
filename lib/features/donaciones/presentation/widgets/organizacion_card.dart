@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../styles/constantes/app_color.dart';
 import '../../domain/entities/organizacion.dart';
 
@@ -32,29 +33,32 @@ class OrganizacionCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 60,
-              height: 60,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
                 color: AppColors.secondary.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
-              child: organizacion.logoUrl.isNotEmpty
+              child: organizacion.logoUrl != null && organizacion.logoUrl!.isNotEmpty
                   ? ClipOval(
-                      child: Image.network(
-                        organizacion.logoUrl,
+                      child: CachedNetworkImage(
+                        imageUrl: organizacion.logoUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.pets,
-                            size: 30,
-                            color: AppColors.primary,
-                          );
-                        },
+                        placeholder: (context, url) => Icon(
+                          Icons.pets,
+                          size: 40,
+                          color: AppColors.primary,
+                        ),
+                        errorWidget: (context, url, error) => Icon(
+                          Icons.pets,
+                          size: 40,
+                          color: AppColors.primary,
+                        ),
                       ),
                     )
                   : Icon(
                       Icons.pets,
-                      size: 30,
+                      size: 40,
                       color: AppColors.primary,
                     ),
             ),
@@ -65,7 +69,7 @@ class OrganizacionCard extends StatelessWidget {
                 organizacion.nombre,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 13.5,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),

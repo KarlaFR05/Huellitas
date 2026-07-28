@@ -37,7 +37,7 @@ class DonacionRemoteDataSourceImpl implements DonacionRemoteDataSource {
         throw Exception('Error al obtener organizaciones: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error de conexión: ${e.toString()}');
+      throw Exception('Error de conexion: ${e.toString()}');
     }
   }
 
@@ -62,50 +62,76 @@ class DonacionRemoteDataSourceImpl implements DonacionRemoteDataSource {
         'fechaVencimiento': fechaVencimiento,
       };
 
+      print('Enviando donacion:');
+      print('   - Usuario ID: $usuarioId');
+      print('   - Organizacion ID: $organizacionId');
+      print('   - Monto: \$$monto');
+      print('   - Payload completo: $payload');
+
       final response = await dio.post('/donaciones/', data: payload);
 
-      if (response.statusCode == 201) {
-        return _donacionFromJson(response.data);
+      print('Response status: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        print('Donacion creada exitosamente');
+        
+        final data = response.data;
+        if (data is List && data.isNotEmpty) {
+          return _donacionFromJson(data[0]);
+        } else if (data is Map<String, dynamic>) {
+          return _donacionFromJson(data);
+        } else {
+          throw Exception('Formato de respuesta inesperado');
+        }
       } else {
         final errorMessage = response.data['detail'] ?? 'Error desconocido';
-        throw Exception('Error al crear donación: $errorMessage');
+        print('Error del servidor: $errorMessage');
+        throw Exception('Error al crear donacion: $errorMessage');
       }
     } catch (e) {
+      print('Excepcion capturada: $e');
       if (e is DioException && e.response != null) {
+        print('DioException - Status: ${e.response?.statusCode}');
+        print('Response error: ${e.response?.data}');
         final errorMessage = e.response?.data['detail'] ?? e.message;
         throw Exception('Error del servidor: $errorMessage');
       }
-      throw Exception('Error de conexión: ${e.toString()}');
+      throw Exception('Error de conexion: ${e.toString()}');
     }
   }
 
-  // --- Métodos auxiliares de mapeo ---
   Organizacion _organizacionFromJson(Map<String, dynamic> json) {
     return Organizacion(
-      id: json['id'],
-      nombre: json['nombre'],
-      descripcion: json['descripcion'],
-      logoUrl: json['logoUrl'],
+      id: json['id'] ?? 0,
+      nombre: json['nombre'] ?? 'Sin nombre',
+      descripcion: json['descripcion'] ?? '',
+      logoUrl: json['logoUrl'] ?? json['logo_url'] ?? '',
       categoria: CategoriaOrganizacion.values.firstWhere(
         (e) => e.name == json['categoria'],
         orElse: () => CategoriaOrganizacion.sinFinesLucro,
       ),
-      cuentaBancaria: json['cuentaBancaria'],
+      cuentaBancaria: json['cuentaBancaria'] ?? json['cuenta_bancaria'] ?? '',
     );
   }
 
   Donacion _donacionFromJson(Map<String, dynamic> json) {
+    print('Mapeando donacion con ID: ${json['id']}');
     return Donacion(
-      id: json['id'],
-      usuarioId: json['usuarioId'],
-      organizacionId: json['organizacionId'],
-      monto: (json['monto'] as num).toDouble(),
-      numeroTarjeta: json['numeroTarjeta'],
-      titularTarjeta: json['titularTarjeta'],
-      cvv: json['cvv'],
-      fechaVencimiento: json['fechaVencimiento'],
-      fechaDonacion: DateTime.parse(json['fechaDonacion']),
-      estado: json['estado'],
+      id: json['id'] ?? 0,
+      usuarioId: json['usuario_id'] ?? json['usuarioId'] ?? 0,
+      organizacionId: json['organizacion_id'] ?? json['organizacionId'] ?? 0,
+      monto: (json['monto'] as num?)?.toDouble() ?? 0.0,
+      numeroTarjeta: json['numero_tarjeta'] ?? json['numeroTarjeta'] ?? '',
+      titularTarjeta: json['titular_tarjeta'] ?? json['titularTarjeta'] ?? '',
+      cvv: json['cvv'] ?? '',
+      fechaVencimiento: json['fecha_vencimiento'] ?? json['fechaVencimiento'] ?? '',
+      fechaDonacion: json['fecha_donacion'] != null 
+          ? DateTime.parse(json['fecha_donacion']) 
+          : (json['fechaDonacion'] != null 
+              ? DateTime.parse(json['fechaDonacion']) 
+              : DateTime.now()),
+      estado: json['estado'] ?? 'pendiente',
     );
   }
 }

@@ -218,8 +218,35 @@ class _MetodoPagoScreenState extends State<MetodoPagoScreen> {
                                 controller: _fechaVencimientoController,
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [
-                                  FilteringTextInputFormatter.allow(RegExp(r'^\d{0,2}/?\d{0,2}$')),
-                                  LengthLimitingTextInputFormatter(5),
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(4),
+                                  TextInputFormatter.withFunction((oldValue, newValue) {
+                                    final text = newValue.text;
+                                    
+                                    if (text.isEmpty) return newValue;
+                                    
+                                    final cleanText = text.replaceAll('/', '');
+                                    
+                                    if (cleanText.length <= 2) {
+                                      return TextEditingValue(
+                                        text: cleanText,
+                                        selection: TextSelection.collapsed(offset: cleanText.length),
+                                      );
+                                    }
+                                    
+                                    if (cleanText.length > 2) {
+                                      final month = cleanText.substring(0, 2);
+                                      final year = cleanText.substring(2, cleanText.length > 4 ? 4 : cleanText.length);
+                                      final formattedText = '$month/$year';
+                                      
+                                      return TextEditingValue(
+                                        text: formattedText,
+                                        selection: TextSelection.collapsed(offset: formattedText.length),
+                                      );
+                                    }
+                                    
+                                    return newValue;
+                                  }),
                                 ],
                                 decoration: InputDecoration(
                                   hintText: 'MM/AA',
