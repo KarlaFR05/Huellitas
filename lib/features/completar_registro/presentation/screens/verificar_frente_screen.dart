@@ -13,49 +13,66 @@ class VerificarFrenteScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Verifica tu identidad")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Identificación (Frente)",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "Toma una fotografía clara del frente de tu identificación oficial.",
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: FotoCard(
-                titulo: "Toca para tomar la fotografía",
-                onImageSelected: (file) {
-                  context.read<CompletarPerfilBloc>().add(
-                    SubirFrenteEvent(file),
-                  );
-                },
-              ),
-            ),
-            BlocBuilder<CompletarPerfilBloc, CompletarPerfilState>(
-              builder: (context, state) {
-                final hayFoto =
-                    state is CompletarPerfilLoaded && state.frente != null;
-                return SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: hayFoto
-                        ? () => context.push('/verificar-reverso')
-                        : null,
-                    child: const Text("Continuar"),
+      body: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: 12),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Identificación (Frente)",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                );
-              },
+                  const SizedBox(height: 10),
+                  Text(
+                    "Toma una fotografía clara del frente de tu identificación oficial.",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: FotoCard(
+                      titulo: "Toca para tomar la fotografía",
+                      imageQuarterTurns: 1,
+                      onImageSelected: (file) {
+                        context.read<CompletarPerfilBloc>().add(
+                          SubirFrenteEvent(file),
+                        );
+                      },
+                    ),
+                  ),
+                  BlocBuilder<CompletarPerfilBloc, CompletarPerfilState>(
+                    builder: (context, state) {
+                      final hayFoto =
+                          state is CompletarPerfilLoaded &&
+                          state.frente != null;
+                      return SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: hayFoto
+                              ? () => context.push('/verificar-reverso')
+                              : null,
+                          child: const Text("Continuar"),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );

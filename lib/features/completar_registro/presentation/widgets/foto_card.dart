@@ -6,11 +6,13 @@ import 'package:image_picker/image_picker.dart';
 class FotoCard extends StatefulWidget {
   final String titulo;
   final ValueChanged<File> onImageSelected;
+  final int imageQuarterTurns;
 
   const FotoCard({
     super.key,
     required this.titulo,
     required this.onImageSelected,
+    this.imageQuarterTurns = 0,
   });
 
   @override
@@ -48,34 +50,45 @@ class _FotoCardState extends State<FotoCard> {
         height: 180,
         margin: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFFA9D8C8),
-          borderRadius: BorderRadius.circular(12),
+          color:
+              Theme.of(context).inputDecorationTheme.fillColor ??
+              Theme.of(context).colorScheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2,
+          ),
         ),
         child: _imagen == null
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.camera_alt_outlined,
                     size: 45,
-                    color: Colors.black54,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(height: 12),
                   Text(
                     widget.titulo,
-                    style: const TextStyle(
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],
               )
             : ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.file(
-                  _imagen!,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
+                borderRadius: BorderRadius.circular(14),
+                child: RotatedBox(
+                  quarterTurns: widget.imageQuarterTurns,
+                  child: Image.file(
+                    _imagen!,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
                 ),
               ),
       ),

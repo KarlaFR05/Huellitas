@@ -18,6 +18,9 @@ class _RegistroFormState extends State<RegistroForm> {
   final TextEditingController apellidosController =
       TextEditingController();
 
+  final TextEditingController nombreUsuarioController =
+    TextEditingController();
+
   final TextEditingController telefonoController =
       TextEditingController();
 
@@ -56,6 +59,7 @@ class _RegistroFormState extends State<RegistroForm> {
   void dispose() {
     nombreController.dispose();
     apellidosController.dispose();
+    nombreUsuarioController.dispose();
     telefonoController.dispose();
     correoController.dispose();
     fechaController.dispose();
@@ -158,6 +162,38 @@ class _RegistroFormState extends State<RegistroForm> {
           const SizedBox(height: 16),
 
           TextFormField(
+            controller: nombreUsuarioController,
+            textCapitalization: TextCapitalization.words,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(
+                RegExp(r'[a-zA-Z0-9._]'),
+              ),
+              LengthLimitingTextInputFormatter(20),
+            ],
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Ingresa un nombre de usuario';
+              }
+
+              if (value.length < 4) {
+                return 'Debe tener mínimo 4 caracteres';
+              }
+
+              if (!RegExp(r'^[a-zA-Z0-9._]{4,20}$').hasMatch(value)) {
+                return 'Solo letras, números, punto y guion bajo';
+              }
+
+              return null;
+            },
+            decoration: const InputDecoration(
+              labelText: 'Nombre de Usuario',
+              prefixIcon: Icon(Icons.person_outline),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          TextFormField(
             controller: telefonoController,
             keyboardType: TextInputType.phone,
             inputFormatters: [
@@ -238,6 +274,8 @@ class _RegistroFormState extends State<RegistroForm> {
                   extra: {
                     'nombre': nombreController.text.trim(),
                     'apellidos': apellidosController.text.trim(),
+                    'nombreUsuario': nombreUsuarioController.text.trim(),
+                    'usuario': nombreUsuarioController.text.trim(),
                     'telefono': telefonoController.text.trim(),
                     'correo': correoController.text.trim(),
                     'fechaNacimiento': fechaNacimiento,

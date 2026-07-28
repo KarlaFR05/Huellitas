@@ -1,4 +1,5 @@
 import 'fase_reporte.dart';
+import 'historial_fase_item.dart';
 
 class ReporteEstado {
   final int reporteId;
@@ -11,7 +12,10 @@ class ReporteEstado {
   final String raza;
   final String tamano;
   final String evidenciaUrl;
-  final List<String> historialFases;
+  final int? usuarioRescateId;
+  final String? usuarioRescateNombre;
+  final List<HistorialFaseItem> historialFases;
+  final String? comentarios;
 
   const ReporteEstado({
     required this.reporteId,
@@ -24,6 +28,9 @@ class ReporteEstado {
     required this.raza,
     required this.tamano,
     required this.evidenciaUrl,
+    this.usuarioRescateId,
+    this.usuarioRescateNombre,
     this.historialFases = const [],
+    this.comentarios,
   });
 }

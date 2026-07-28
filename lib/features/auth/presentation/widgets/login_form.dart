@@ -16,17 +16,15 @@ class LoginForm extends StatefulWidget {
 class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController emailController =
-      TextEditingController();
+  final TextEditingController identificadorController = TextEditingController();
 
-  final TextEditingController passwordController =
-      TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   bool obscurePassword = true;
 
   @override
   void dispose() {
-    emailController.dispose();
+    identificadorController.dispose();
     passwordController.dispose();
     super.dispose();
   }
@@ -36,9 +34,7 @@ class _LoginFormState extends State<LoginForm> {
       return 'Ingresa tu correo';
     }
 
-    final emailRegex = RegExp(
-      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-    );
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
 
     if (!emailRegex.hasMatch(value.trim())) {
       return 'Correo inválido';
@@ -62,11 +58,11 @@ class _LoginFormState extends State<LoginForm> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
-    listener: (context, state) {
-      if (state is AuthSuccess) {
-        context.go('/home');
-      }
-    },
+      listener: (context, state) {
+        if (state is AuthSuccess) {
+          context.go('/home');
+        }
+      },
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           final isLoading = state is AuthLoading;
@@ -79,26 +75,27 @@ class _LoginFormState extends State<LoginForm> {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Inicio Sesión',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                   ),
                 ),
 
                 const SizedBox(height: 30),
 
                 TextFormField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: _validateEmail,
+                  controller: identificadorController,
                   decoration: const InputDecoration(
-                    labelText: 'Correo',
-                    prefixIcon: Icon(Icons.email_outlined),
+                    labelText: "Correo o nombre de usuario",
+                    prefixIcon: Icon(Icons.person_outline),
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Ingresa tu correo o usuario";
+                    }
+                    return null;
+                  },
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 30),
 
                 TextFormField(
                   controller: passwordController,
@@ -131,10 +128,7 @@ class _LoginFormState extends State<LoginForm> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         state.message,
-                        style: const TextStyle(
-                          color: Colors.red,
-                          fontSize: 14,
-                        ),
+                        style: const TextStyle(color: Colors.red, fontSize: 14),
                       ),
                     ),
                   ),
@@ -150,19 +144,20 @@ class _LoginFormState extends State<LoginForm> {
                             }
 
                             context.read<AuthBloc>().add(
-                                  LoginEvent(
-                                    correo: emailController.text.trim(),
-                                    password: passwordController.text,
-                                  ),
-                                );
+                              LoginEvent(
+                                identificador: identificadorController.text
+                                    .trim(),
+                                password: passwordController.text,
+                              ),
+                            );
                           },
                     child: isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onPrimary,
                             ),
                           )
                         : const Text('Iniciar Sesión'),
@@ -172,12 +167,16 @@ class _LoginFormState extends State<LoginForm> {
                 const SizedBox(height: 10),
 
                 TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor:
+                        Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Theme.of(context).colorScheme.primary,
+                  ),
                   onPressed: () {
                     context.go('/register');
                   },
-                  child: const Text(
-                    'Crear Cuenta',
-                  ),
+                  child: const Text('Crear Cuenta'),
                 ),
               ],
             ),

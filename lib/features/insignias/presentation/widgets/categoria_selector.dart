@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../../styles/constantes/app_colors.dart';
 import '../../domain/entities/categoria_insignia.dart';
 
 class CategoriaSelector extends StatelessWidget {
@@ -19,17 +18,17 @@ class CategoriaSelector extends StatelessWidget {
       {
         'label': 'Reportes',
         'icon': Icons.report_outlined,
-        'categoria': CategoriaInsignia.reporte
+        'categoria': CategoriaInsignia.reporte,
       },
       {
         'label': 'Donaciones',
         'icon': Icons.attach_money,
-        'categoria': CategoriaInsignia.donacion
+        'categoria': CategoriaInsignia.donacion,
       },
       {
         'label': 'Rescates',
         'icon': Icons.favorite_outline,
-        'categoria': CategoriaInsignia.rescate
+        'categoria': CategoriaInsignia.rescate,
       },
     ];
 
@@ -50,7 +49,6 @@ class CategoriaSelector extends StatelessWidget {
               icon: icon,
               isSelected: isSelected,
               onTap: () {
-                print('Seleccionando categoría: $label');
                 onCategoriaSeleccionada(categoria);
               },
             ),
@@ -82,11 +80,13 @@ class _CategoriaChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withOpacity(0.2)
-              : AppColors.secondary.withOpacity(0.3),
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
+              : Theme.of(context).colorScheme.surfaceContainer,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.transparent,
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -96,15 +96,17 @@ class _CategoriaChip extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
                 color: isSelected
-                    ? AppColors.primary
-                    : AppColors.textSecondary,
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 fontSize: 13,
               ),

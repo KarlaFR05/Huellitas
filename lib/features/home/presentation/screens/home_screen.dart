@@ -11,7 +11,7 @@ import '../../../home/presentation/widgets/reporte_marker.dart';
 import '../../../reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import '../../../reporte/data/repositories/reporte_repository_impl.dart';
 import '../../../reporte/domain/usecases/get_reportes_usecase.dart';
-import '../../../reporte/domain/entities/reporte.dart'; 
+import '../../../reporte/domain/entities/reporte.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/domain/entities/usuario.dart';
@@ -19,6 +19,10 @@ import '../../../reporte/presentation/location_service.dart';
 import '../widgets/bottom_bar.dart';
 import '../../../../core/verificacion/verificacion_cubit.dart';
 import '../../../../core/widgets/verificado_badge.dart';
+import '../../../../core/widgets/avatar_helper.dart';
+
+const int _faseConcluido = 3;
+const Duration _tiempoVisibleTrasConcluir = Duration(seconds: 35);
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,6 +33,35 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<ReportMapMarker> _markers = [];
+  List<ReportMapMarker> _markersVisibles(bool estaVerificado) {
+    final ahora = DateTime.now();
+
+    return _markers.where((m) {
+      // Filtro de verificación existente
+      if (!estaVerificado && m.tipoReporte == 'Maltrato animal') {
+        return false;
+      }
+
+      // Si está concluido, solo se muestra durante el periodo de gracia
+      if (m.faseActualId == _faseConcluido) {
+        if (m.fechaActualizacion == null) return true;
+        final tiempoTranscurrido = ahora.difference(m.fechaActualizacion!);
+        return tiempoTranscurrido < _tiempoVisibleTrasConcluir;
+      }
+
+      if (m.faseActualId == _faseConcluido) {
+        if (m.fechaActualizacion == null) return true;
+        final tiempoTranscurrido = ahora.difference(m.fechaActualizacion!);
+        print(
+          'fecha: ${m.fechaActualizacion}, ahora: $ahora, transcurrido: $tiempoTranscurrido',
+        );
+        return tiempoTranscurrido < _tiempoVisibleTrasConcluir;
+      }
+
+      return true;
+    }).toList();
+  }
+
   bool _cargando = true;
 
   final LocationService _locationService = LocationService();
@@ -36,6 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
   LatLng? _userLocation;
   StreamSubscription<Position>? _positionStream;
   Timer? _pollingTimer;
+  Timer? _refrescoVisual;
 
   @override
   void initState() {
@@ -43,12 +77,16 @@ class _HomeScreenState extends State<HomeScreen> {
     _cargarReportes(esCargaInicial: true);
     _iniciarSeguimientoUbicacion();
     _iniciarPolling();
+    _refrescoVisual = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
   void dispose() {
     _positionStream?.cancel();
     _pollingTimer?.cancel();
+    _refrescoVisual?.cancel();
     super.dispose();
   }
 
@@ -77,13 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _cargarReportes({bool esCargaInicial = false}) async {
     if (esCargaInicial) setState(() => _cargando = true);
     try {
-      final dio = Dio(
-        BaseOptions(
-          baseUrl: 'https://huellitas-backend-xekn.onrender.com',
-          connectTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(seconds: 30),
-        ),
-      );
+      final dio = context.read<Dio>();
 
       final repository = ReporteRepositoryImpl(
         ReporteRemoteDataSourceImpl(dio),
@@ -108,35 +140,33 @@ class _HomeScreenState extends State<HomeScreen> {
             )
             .toList();
 
-        // 🔧 TEMPORAL: Asignar IDs secuenciales si no tienen ID
-        _markers = reportesValidos
-            .asMap()
-            .entries
-            .map((entry) {
-              final index = entry.key;
-              final reporte = entry.value;
+        // TEMPORAL: Asignar IDs secuenciales si no tienen ID
+        _markers = reportesValidos.asMap().entries.map((entry) {
+          final index = entry.key;
+          final reporte = entry.value;
 
-              // Si el reporte ya tiene ID, usarlo. Si no, asignar uno temporal
-              final reporteConId = reporte.id != null
-                  ? reporte
-                  : Reporte(
-                      id: index + 1, // IDs: 1, 2, 3, 4...
-                      tipoAnimalId: reporte.tipoAnimalId,
-                      tamano: reporte.tamano,
-                      tipoReporteId: reporte.tipoReporteId,
-                      urgenciaId: reporte.urgenciaId,
-                      descripcion: reporte.descripcion,
-                      ubicacion: reporte.ubicacion,
-                      usuarioId: reporte.usuarioId,
-                      raza: reporte.raza,
-                      evidencia: reporte.evidencia,
-                      latitud: reporte.latitud,
-                      longitud: reporte.longitud,
-                    );
+          // Si el reporte ya tiene ID, usarlo. Si no, asignar uno temporal
+          final reporteConId = reporte.id != null
+              ? reporte
+              : Reporte(
+                  id: index + 1, // IDs: 1, 2, 3, 4...
+                  tipoAnimalId: reporte.tipoAnimalId,
+                  tamano: reporte.tamano,
+                  tipoReporteId: reporte.tipoReporteId,
+                  urgenciaId: reporte.urgenciaId,
+                  descripcion: reporte.descripcion,
+                  ubicacion: reporte.ubicacion,
+                  usuarioId: reporte.usuarioId,
+                  raza: reporte.raza,
+                  evidencia: reporte.evidencia,
+                  latitud: reporte.latitud,
+                  longitud: reporte.longitud,
+                  faseActualId: reporte.faseActualId,
+                  fechaActualizacion: reporte.fechaActualizacion,
+                );
 
-              return ReportMapMarker.fromReporte(reporteConId);
-            })
-            .toList();
+          return ReportMapMarker.fromReporte(reporteConId);
+        }).toList();
         _cargando = false;
       });
     } catch (e) {
@@ -148,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Stack(
           children: [
@@ -158,10 +188,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: _cargando
                       ? const Center(child: CircularProgressIndicator())
-                      : MapWidget(
-                          markers: _markers,
-                          userLocation: _userLocation,
-                          mapController: _mapController,
+                      : BlocBuilder<VerificacionCubit, EstadoVerificacion>(
+                          builder: (context, estadoVerificacion) {
+                            final estaVerificado =
+                                estadoVerificacion ==
+                                EstadoVerificacion.verificado;
+                            return MapWidget(
+                              markers: _markersVisibles(estaVerificado),
+                              userLocation: _userLocation,
+                              mapController: _mapController,
+                            );
+                          },
                         ),
                 ),
               ],
@@ -175,7 +212,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   context.push('/report-form');
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF57C29A),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   minimumSize: const Size(double.infinity, 60),
                 ),
                 child: const Text(
@@ -201,9 +239,17 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 24,
-            backgroundImage: AssetImage('assets/images/perfil.png'),
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              String? fotoPerfil;
+              if (state is AuthSuccess && state.data is Usuario) {
+                fotoPerfil = (state.data as Usuario).fotoPerfil;
+              }
+              return CircleAvatar(
+                radius: 24,
+                backgroundImage: avatarProvider(fotoPerfil),
+              );
+            },
           ),
           const SizedBox(width: 10),
 
@@ -215,7 +261,9 @@ class _Header extends StatelessWidget {
 
                 if (state is AuthSuccess && state.data is Usuario) {
                   final usuario = state.data as Usuario;
-                  nombreUsuario = usuario.nombre ?? 'Usuario';
+                  nombreUsuario = usuario.nombreUsuario.isNotEmpty
+                      ? usuario.nombreUsuario
+                      : 'Usuario';
                   usuarioVerificado = usuario.verificado;
                 }
 
@@ -224,7 +272,10 @@ class _Header extends StatelessWidget {
                   children: [
                     Text(
                       'Bienvenido',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
                     ),
                     Row(
                       children: [
@@ -258,23 +309,20 @@ class _Header extends StatelessWidget {
 
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF57C29A),
+              color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(50),
+              border: Border.all(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onPrimary.withValues(alpha: 0.18),
+              ),
             ),
             child: IconButton(
               onPressed: () {},
-              icon: const Icon(Icons.notifications_none, color: Colors.white),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF57C29A),
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.settings, color: Colors.white),
+              icon: Icon(
+                Icons.notifications_none,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
             ),
           ),
         ],
@@ -292,20 +340,30 @@ class _BottomBar extends StatelessWidget {
       height: 75,
       margin: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF57C29A),
+        color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(40),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Icon(Icons.home_outlined, color: Colors.white),
-          Icon(Icons.chat_bubble_outline, color: Colors.white, size: 22),
+          Icon(
+            Icons.home_outlined,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          Icon(
+            Icons.chat_bubble_outline,
+            color: Theme.of(context).colorScheme.onSurface,
+            size: 22,
+          ),
           Icon(
             Icons.volunteer_activism_outlined,
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onSurface,
             size: 28,
           ),
-          Icon(Icons.person_outline, color: Colors.white),
+          Icon(
+            Icons.person_outline,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         ],
       ),
     );

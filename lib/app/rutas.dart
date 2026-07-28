@@ -15,11 +15,19 @@ import 'package:huellitas/features/perfil/presentation/screens/mi_perfil_screen.
 import 'package:huellitas/features/perfil/presentation/screens/privacidad_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/configuracion_screen.dart';
 import 'package:huellitas/features/perfil/presentation/screens/ayuda_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/tema_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/ayuda/preguntas_frecuentes_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/ayuda/contacto_screen.dart';
+import 'package:huellitas/features/perfil/presentation/screens/ayuda/acerca_huellitas_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/completar_perfil_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/verificar_frente_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/verificar_reverso_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/selfie_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/perfil_completo_screen.dart';
+
+import 'package:huellitas/features/perfil/presentation/screens/cambiar_contrasenia_screen.dart';
+
+
 import 'package:huellitas/features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/create_reporte_usecase.dart';
@@ -35,12 +43,20 @@ import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.da
 
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
 
+
 //registro e incio de sesion
 import 'package:huellitas/features/auth/data/datasources/auth_remote_datasource_impl.dart';
 import 'package:huellitas/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:huellitas/features/auth/domain/usecases/registro_usecase.dart';
 import 'package:huellitas/features/auth/domain/usecases/login_usecase.dart';
 import 'package:huellitas/features/auth/presentation/bloc/auth_bloc.dart';
+// NUEVOS IMPORTS para seguimiento de reportes
+import 'package:huellitas/features/reporte/data/datasources/reporte_estado_remote_datasource.dart';
+import 'package:huellitas/features/reporte/data/datasources/reporte_estado_datasource_impl.dart';
+import 'package:huellitas/features/reporte/data/repositories/reporte_estado_repository_impl.dart';
+import 'package:huellitas/features/reporte/domain/usecases/get_reporte_estado_usecase.dart';
+import 'package:huellitas/features/reporte/domain/usecases/actualizar_estado_reporte_usecase.dart';
+
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_estado_bloc.dart';
 import 'package:huellitas/features/reporte/presentation/reporte_estado_screen.dart';
 import 'package:huellitas/features/reporte/presentation/reporte_detalle_screen.dart';
@@ -48,12 +64,26 @@ import 'package:huellitas/features/reporte/presentation/actualizar_estado_screen
 import 'package:huellitas/features/reporte/presentation/actualizar_estado_success_screen.dart';
 import 'package:huellitas/features/reporte/presentation/actualizar_estado_error_screen.dart';
 import 'package:huellitas/features/reporte/domain/entities/reporte_estado.dart';
+import 'package:huellitas/features/perfil/presentation/screens/seleccionar_foto_perfil_screen.dart';
 
 import 'package:huellitas/features/insignias/data/datasources/insignia_remote_datasource_impl.dart';
 import 'package:huellitas/features/insignias/data/repositories/insignia_repository_impl.dart';
 import 'package:huellitas/features/insignias/domain/usecases/get_insignias_usuario_usecase.dart';
+import 'package:huellitas/features/insignias/domain/entities/insignia.dart';
 import 'package:huellitas/features/insignias/presentation/bloc/insignia_bloc.dart';
 import 'package:huellitas/features/insignias/presentation/screens/insignias_screen.dart';
+import 'package:huellitas/features/insignias/presentation/screens/insignia_detalle_screen.dart';
+
+import 'package:huellitas/features/reporte/domain/usecases/tomar_reporte_usecase.dart';
+import 'package:huellitas/features/foro/presentation/foro_screen.dart';
+
+
+import 'package:huellitas/features/donaciones/presentation/screens/donaciones_screen.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/seleccion_cantidad_screen.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/monto_personalizado_screen.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/metodo_pago_screen.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/confirmacion_donacion_screen.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/donacion_error_screen.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -91,7 +121,13 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const EditarPerfilScreen(),
     ),
 
-    GoRoute(path: '/mi-perfil', builder: (_, __) => const MiPerfilScreen()),
+    GoRoute(
+      path: '/mi-perfil',
+      builder: (context, state) {
+        final usuarioId = state.extra as int?;
+        return MiPerfilScreen(usuarioId: usuarioId);
+      },
+    ),
 
     GoRoute(
       path: '/privacidad',
@@ -111,6 +147,11 @@ final GoRouter router = GoRouter(
     ),
 
     GoRoute(
+      path: '/cambiar-contrasenia',
+      builder: (context, state) => const CambiarContraseniaScreen(),
+    ),
+
+    GoRoute(
       path: '/verificar-frente',
       builder: (context, state) => const VerificarFrenteScreen(),
     ),
@@ -125,6 +166,11 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/perfil_completo',
       builder: (context, state) => const PerfilCompletoScreen(),
+    ),
+
+    GoRoute(
+      path: '/seleccionar-foto-perfil',
+      builder: (context, state) => const SeleccionarFotoPerfilScreen(),
     ),
 
     GoRoute(
@@ -186,13 +232,33 @@ final GoRouter router = GoRouter(
     ),
 
     GoRoute(
+      path: '/insignia-detalle',
+      builder: (context, state) {
+        final insignia = state.extra as Insignia;
+        return InsigniaDetalleScreen(insignia: insignia);
+      },
+    ),
+
+    GoRoute(
       path: '/reporte-estado/:id',
       pageBuilder: (context, state) {
         final reporteId = int.parse(state.pathParameters['id']!);
 
+        final dio = context.read<Dio>();
+
+        final dataSource = ReporteEstadoRemoteDataSourceImpl(dio);
+        final repository = ReporteEstadoRepositoryImpl(dataSource);
+        final getEstado = GetReporteEstadoUseCase(repository);
+        final tomarReporte = TomarReporteUseCase(repository);
+        final actualizarEstado = ActualizarEstadoReporteUseCase(repository);
+
         return MaterialPage(
           child: BlocProvider(
-            create: (_) => ReporteEstadoBloc(),
+            create: (_) => ReporteEstadoBloc(
+              getEstado: getEstado,
+              tomarReporte: tomarReporte,
+              actualizarEstado: actualizarEstado,
+            ),
             child: ReporteEstadoScreen(reporteId: reporteId),
           ),
         );
@@ -212,14 +278,27 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) {
         final reporte = state.extra as ReporteEstado;
 
+        final dio = context.read<Dio>();
+
+        final dataSource = ReporteEstadoRemoteDataSourceImpl(dio);
+        final repository = ReporteEstadoRepositoryImpl(dataSource);
+        final getEstado = GetReporteEstadoUseCase(repository);
+        final tomarReporte = TomarReporteUseCase(repository);
+        final actualizarEstado = ActualizarEstadoReporteUseCase(repository);
+
         return MaterialPage(
           child: BlocProvider(
-            create: (_) => ReporteEstadoBloc(),
+            create: (_) => ReporteEstadoBloc(
+              getEstado: getEstado,
+              tomarReporte: tomarReporte,
+              actualizarEstado: actualizarEstado,
+            ),
             child: ActualizarEstadoScreen(reporte: reporte),
           ),
         );
       },
     ),
+
     GoRoute(
       path: '/actualizar-estado-success',
       builder: (context, state) => const ActualizarEstadoSuccessScreen(),
@@ -228,6 +307,57 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/actualizar-estado-error',
       builder: (context, state) => const ActualizarEstadoErrorScreen(),
+    ),
+
+    GoRoute(path: '/tema', builder: (context, state) => const TemaScreen()),
+
+    GoRoute(
+      path: '/preguntas-frecuentes',
+      builder: (context, state) => const PreguntasFrecuentesScreen(),
+    ),
+
+    GoRoute(
+      path: '/acerca-huellitas',
+      builder: (context, state) => const AcercaHuellitasScreen(),
+    ),
+
+    GoRoute(
+      path: '/contacto',
+      builder: (context, state) => const ContactoScreen(),
+    ),
+
+    GoRoute(path: '/foro', builder: (context, state) => const ForoScreen()),
+
+    
+    GoRoute(
+      path: '/donaciones',
+      name: 'donaciones',
+      builder: (context, state) => const DonacionesScreen(),
+    ),
+    GoRoute(
+      path: '/seleccion-cantidad',
+      name: 'seleccion-cantidad',
+      builder: (context, state) => const SeleccionCantidadScreen(),
+    ),
+    GoRoute(
+      path: '/monto-personalizado',
+      name: 'monto-personalizado',
+      builder: (context, state) => const MontoPersonalizadoScreen(),
+    ),
+    GoRoute(
+      path: '/metodo-pago',
+      name: 'metodo-pago',
+      builder: (context, state) => const MetodoPagoScreen(),
+    ),
+    GoRoute(
+      path: '/confirmacion-donacion',
+      name: 'confirmacion-donacion',
+      builder: (context, state) => const ConfirmacionDonacionScreen(),
+    ),
+    GoRoute(
+      path: '/donacion-error',
+      name: 'donacion-error',
+      builder: (context, state) => const DonacionErrorScreen(),
     ),
   ],
 );

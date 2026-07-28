@@ -16,6 +16,12 @@ import 'features/insignias/data/datasources/insignia_remote_datasource_impl.dart
 import 'features/insignias/data/repositories/insignia_repository_impl.dart';
 import 'features/insignias/domain/usecases/get_insignias_usuario_usecase.dart';
 import 'features/insignias/presentation/bloc/insignia_bloc.dart';
+import 'core/theme/bloc/theme_bloc.dart';
+import 'features/donaciones/data/datasources/donacion_remote_datasource.dart';
+import 'features/donaciones/data/repositories/donacion_repository_impl.dart';
+import 'features/donaciones/domain/usecases/obtener_organizaciones_usecase.dart';
+import 'features/donaciones/domain/usecases/crear_donacion_usecase.dart';
+import 'features/donaciones/presentation/bloc/donacion_bloc.dart';
 
 void main() {
   final dio = Dio(
@@ -32,6 +38,11 @@ void main() {
   final insigniaDataSource = InsigniaRemoteDataSourceImpl(dio);
   final insigniaRepository = InsigniaRepositoryImpl(insigniaDataSource);
   final getInsigniasUsuario = GetInsigniasUsuarioUseCase(insigniaRepository);
+
+  final donacionDataSource = DonacionRemoteDataSource();
+  final donacionRepository = DonacionRepositoryImpl(donacionDataSource);
+  final obtenerOrganizacionesUseCase = ObtenerOrganizacionesUseCase(donacionRepository);
+  final crearDonacionUseCase = CrearDonacionUseCase(donacionRepository);
 
   dio.interceptors.add(
     InterceptorsWrapper(
@@ -52,6 +63,7 @@ void main() {
         RepositoryProvider<CompletarPerfilRepositoryImpl>.value(
           value: completarPerfilRepository,
         ),
+        RepositoryProvider<Dio>.value(value: dio),
         RepositoryProvider<InsigniaRepositoryImpl>.value(
           value: insigniaRepository,
         ),
@@ -76,6 +88,15 @@ void main() {
           BlocProvider(
             create: (context) =>
                 InsigniaBloc(getInsignias: getInsigniasUsuario),
+          ),
+          BlocProvider(
+            create: (_) => ThemeBloc(),
+          ),
+          BlocProvider(
+            create: (context) => DonacionBloc(
+              obtenerOrganizaciones: obtenerOrganizacionesUseCase,
+              crearDonacion: crearDonacionUseCase,
+            ),
           ),
         ],
         child: const HuellitasApp(),

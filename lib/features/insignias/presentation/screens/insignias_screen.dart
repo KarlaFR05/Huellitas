@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../styles/constantes/app_colors.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../home/presentation/widgets/bottom_bar.dart';
@@ -22,10 +21,10 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     Future.delayed(const Duration(milliseconds: 100), () {
       if (!mounted) return;
-      
+
       final authBloc = context.read<AuthBloc>();
       int? usuarioId;
 
@@ -38,7 +37,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
       }
 
       if (usuarioId != null && mounted) {
-        print('📡 Disparando CargarInsignias($usuarioId)');
+        print(' Disparando CargarInsignias($usuarioId)');
         context.read<InsigniaBloc>().add(CargarInsignias(usuarioId));
       } else if (mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -58,18 +57,21 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
+        title: Text(
           'Insignias',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -85,7 +87,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                 duration: const Duration(seconds: 5),
                 action: SnackBarAction(
                   label: 'Reintentar',
-                  textColor: Colors.white,
+                  textColor: Theme.of(context).colorScheme.onError,
                   onPressed: () {
                     final authState = context.read<AuthBloc>().state;
                     if (authState is AuthSuccess) {
@@ -104,13 +106,17 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
             if (state is InsigniaLoading) {
               return const Center(child: CircularProgressIndicator());
             }
-            
+
             if (state is InsigniaError) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'Error al cargar insignias',
@@ -123,7 +129,9 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                     const SizedBox(height: 8),
                     Text(
                       state.message,
-                      style: const TextStyle(color: Colors.grey),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -143,33 +151,35 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                 ),
               );
             }
-            
+
             if (state is InsigniaLoaded) {
               return _buildContenido(context, state);
             }
-            
+
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.workspace_premium_outlined,
                     size: 80,
-                    color: Colors.grey,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'No se pudieron cargar las insignias',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: Colors.grey,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Verifica tu conexión o inicia sesión nuevamente',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -185,7 +195,8 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                     icon: const Icon(Icons.refresh),
                     label: const Text('Intentar de nuevo'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 12,
@@ -216,21 +227,21 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
         const SizedBox(height: 16),
         Expanded(
           child: state.insigniasFiltradas.isEmpty
-              ? _buildEmptyState(state.mostrarObtenidas)
+              ? _buildEmptyState(context, state.mostrarObtenidas)
               : GridView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: 0.85,
+                    childAspectRatio: 0.6,
                   ),
                   itemCount: state.insigniasFiltradas.length,
                   itemBuilder: (context, index) {
                     final insignia = state.insigniasFiltradas[index];
                     return InsigniaCard(
                       insignia: insignia,
-                      obtenida: insignia.obtenida, 
+                      obtenida: insignia.obtenida,
                     );
                   },
                 ),
@@ -244,7 +255,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.secondary.withValues(alpha: 0.3),
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(25),
       ),
       child: Row(
@@ -258,7 +269,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
                   color: state.mostrarObtenidas
-                      ? AppColors.primary
+                      ? Theme.of(context).colorScheme.primary
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -267,8 +278,8 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: state.mostrarObtenidas
-                        ? Colors.white
-                        : AppColors.textSecondary,
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: state.mostrarObtenidas
                         ? FontWeight.bold
                         : FontWeight.normal,
@@ -286,7 +297,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
                   color: !state.mostrarObtenidas
-                      ? AppColors.primary
+                      ? Theme.of(context).colorScheme.primary
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -295,8 +306,8 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: !state.mostrarObtenidas
-                        ? Colors.white
-                        : AppColors.textSecondary,
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: !state.mostrarObtenidas
                         ? FontWeight.bold
                         : FontWeight.normal,
@@ -310,7 +321,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
     );
   }
 
-  Widget _buildEmptyState(bool mostrarObtenidas) {
+  Widget _buildEmptyState(BuildContext context, bool mostrarObtenidas) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -319,8 +330,8 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
             mostrarObtenidas
                 ? Icons.workspace_premium_outlined
                 : Icons.lock_outline,
-            size: 80,
-            color: Colors.grey.shade400,
+            size: 90,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           const SizedBox(height: 16),
           Text(
@@ -328,7 +339,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
                 ? 'Aún no tienes insignias'
                 : '¡Sigue así! Obtendrás más insignias',
             style: TextStyle(
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),

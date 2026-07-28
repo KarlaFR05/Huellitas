@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../styles/constantes/app_colors.dart';
+import 'package:flutter/services.dart';
 import '../../home/presentation/widgets/bottom_bar.dart';
+import '../../auth/presentation/bloc/auth_bloc.dart';
+import '../../auth/presentation/bloc/auth_state.dart';
+import '../../auth/domain/entities/usuario.dart';
 import '../domain/entities/fase_reporte.dart';
+import '../domain/entities/reporte_estado.dart';
 import 'bloc/reporte_estado_bloc.dart';
 import 'bloc/reporte_estado_state.dart';
-import 'bloc/reporte_estado_event.dart'; 
+import 'bloc/reporte_estado_event.dart';
 import 'reporte_detalle_screen.dart';
 import 'actualizar_estado_screen.dart';
 
@@ -18,130 +22,512 @@ class ReporteEstadoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => context.read<ReporteEstadoBloc>()
-        ..add(CargarEstadoReporte(reporteId)),
+      create: (_) =>
+          context.read<ReporteEstadoBloc>()
+            ..add(CargarEstadoReporte(reporteId)),
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: AppColors.background,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+            icon: Icon(
+              Icons.arrow_back,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             onPressed: () => context.pop(),
           ),
-          title: const Text(
+          title: Text(
             'Reporte',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
             ),
           ),
           centerTitle: true,
         ),
-        body: BlocBuilder<ReporteEstadoBloc, ReporteEstadoState>(
-          builder: (context, state) {
-            if (state is ReporteEstadoLoading) {
-              return const Center(child: CircularProgressIndicator());
+        body: BlocListener<ReporteEstadoBloc, ReporteEstadoState>(
+          listener: (context, state) {
+            if (state is ReporteTomarError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
             }
-            if (state is ReporteEstadoError) {
-              return Center(child: Text(state.message));
+            if (state is ReporteTomadoExito) {
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  icon: Icon(
+                    Icons.volunteer_activism,
+                    color: Theme.of(dialogContext).colorScheme.primary,
+                    size: 40,
+                  ),
+                  title: const Text(
+                    '¡Caso tomado!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  content: const Text(
+                    'Ahora eres el encargado de realizar el rescate.',
+                    textAlign: TextAlign.center,
+                  ),
+                  actionsAlignment: MainAxisAlignment.center,
+                  actions: [
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(
+                          dialogContext,
+                        ).colorScheme.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: Text(
+                        'Entendido',
+                        style: TextStyle(
+                          color: Theme.of(dialogContext).colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
             }
-            if (state is ReporteEstadoLoaded) {
-              return _buildContenido(context, state.reporte);
-            }
-            return const SizedBox.shrink();
           },
+          child: BlocBuilder<ReporteEstadoBloc, ReporteEstadoState>(
+            builder: (context, state) {
+              if (state is ReporteEstadoLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (state is ReporteEstadoError) {
+                return Center(child: Text(state.message));
+              }
+              if (state is ReporteEstadoLoaded) {
+                return _buildContenido(context, state.reporte, tomando: false);
+              }
+              if (state is ReporteTomando) {
+                return _buildContenido(context, state.reporte, tomando: true);
+              }
+              if (state is ReporteTomadoExito) {
+                return _buildContenido(context, state.reporte, tomando: false);
+              }
+              if (state is ReporteTomarError) {
+                return _buildContenido(context, state.reporte, tomando: false);
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ),
         bottomNavigationBar: const BottomBarWidget(currentIndex: 0),
       ),
     );
   }
 
-  Widget _buildContenido(BuildContext context, reporte) {
+  int? _obtenerUsuarioActualId(BuildContext context) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthSuccess && authState.data is Usuario) {
+      return (authState.data as Usuario).usuarioIdPk;
+    }
+    return null;
+  }
+
+  Widget _buildContenido(
+    BuildContext context,
+    ReporteEstado reporte, {
+    required bool tomando,
+  }) {
     final fases = FaseReporte.values;
     final faseActualIndex = fases.indexOf(reporte.faseActual);
+    final bool esFaseFinal =
+        reporte.faseActual == FaseReporte.seEncuentraASalvo;
+
+    final usuarioActualId = _obtenerUsuarioActualId(context);
+    final bool nadieLoAtiende = reporte.usuarioRescateId == null;
+    final bool yoLoAtiendo =
+        !nadieLoAtiende && reporte.usuarioRescateId == usuarioActualId;
+    final bool otroLoAtiende = !nadieLoAtiende && !yoLoAtiendo;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Indicador de fases con chevrón
           _buildFasesIndicator(fases, faseActualIndex),
           const SizedBox(height: 32),
 
-          // Nivel de urgencia
-          _buildInfoRow('Nivel de urgencia', reporte.nivelUrgencia,
-              icon: Icons.warning_amber_rounded,
-              iconColor: _getColorUrgencia(reporte.nivelUrgencia)),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Theme.of(context).colorScheme.onSurface,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Nivel de urgencia',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      reporte.nivelUrgencia,
+                      style: TextStyle(
+                        color: _getColorUrgencia(reporte.nivelUrgencia),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
 
           const SizedBox(height: 16),
 
-          // Tipo de reporte
-          _buildInfoRow('Tipo de reporte', reporte.tipoReporte,
-              icon: Icons.category_outlined),
+          _buildInfoRow(
+            context,
+            'Tipo de reporte',
+            reporte.tipoReporte,
+            icon: Icons.category_outlined,
+          ),
 
           const SizedBox(height: 16),
 
-          // Descripción
-          _buildInfoRow('Descripción', reporte.descripcion,
-              icon: Icons.description_outlined),
+          _buildInfoRow(
+            context,
+            'Descripción',
+            reporte.descripcion,
+            icon: Icons.description_outlined,
+          ),
 
           const SizedBox(height: 16),
 
-          // Ubicación
-          _buildInfoRow('Ubicación', reporte.ubicacion,
-              icon: Icons.location_on, iconColor: AppColors.primary),
+          _buildUbicacionCopiable(context, reporte.ubicacion),
+
+          // Estado de asignación del rescate
+          if (otroLoAtiende) ...[
+            const SizedBox(height: 16),
+            _buildInfoRow(
+              context,
+              'Atendido por',
+              reporte.usuarioRescateNombre ?? 'Otro usuario',
+              icon: Icons.person_outline,
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                onPressed: reporte.usuarioRescateId == null
+                    ? null
+                    : () {
+                        context.push(
+                          '/mi-perfil',
+                          extra: reporte.usuarioRescateId,
+                        );
+                      },
+                icon: const Icon(Icons.badge_outlined, size: 18),
+                label: const Text('Ver perfil'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+            ),
+          ],
 
           const SizedBox(height: 40),
 
-          // Botones
           SizedBox(
             width: double.infinity,
-            height: 50,
+            height: 55,
             child: ElevatedButton(
               onPressed: () {
                 context.push('/reporte-detalle', extra: reporte);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(55),
                 ),
               ),
-              child: const Text(
-                'Ver más sobre el reporte',
+              child: Text(
+                'Ver más sobre el rescate',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onPrimary,
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
                 ),
               ),
             ),
           ),
+
           const SizedBox(height: 12),
+
+          // Botón principal: cambia según quién atiende el reporte
           SizedBox(
             width: double.infinity,
-            height: 50,
+            height: 55,
             child: ElevatedButton(
-              onPressed: () {
-                context.push('/actualizar-estado', extra: reporte);
-              },
+              onPressed: _onPressedPrincipal(
+                context: context,
+                reporte: reporte,
+                esFaseFinal: esFaseFinal,
+                nadieLoAtiende: nadieLoAtiende,
+                yoLoAtiendo: yoLoAtiendo,
+                otroLoAtiende: otroLoAtiende,
+                tomando: tomando,
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.secondary,
+                backgroundColor: _colorBotonPrincipal(
+                  context: context,
+                  esFaseFinal: esFaseFinal,
+                  nadieLoAtiende: nadieLoAtiende,
+                  otroLoAtiende: otroLoAtiende,
+                ),
+                foregroundColor: (esFaseFinal || otroLoAtiende)
+                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                    : Theme.of(context).colorScheme.onPrimary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(55),
                 ),
               ),
-              child: const Text(
-                'Actualizar estado del reporte',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
+              child: tomando
+                  ? SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.onPrimary,
+                        ),
+                      ),
+                    )
+                  : Text(
+                      _textoBotonPrincipal(
+                        esFaseFinal: esFaseFinal,
+                        nadieLoAtiende: nadieLoAtiende,
+                        yoLoAtiendo: yoLoAtiendo,
+                        otroLoAtiende: otroLoAtiende,
+                        reporte: reporte,
+                      ),
+                      style: TextStyle(
+                        color: (esFaseFinal || otroLoAtiende)
+                            ? Theme.of(context).colorScheme.onSurfaceVariant
+                            : Theme.of(context).colorScheme.onPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  VoidCallback? _onPressedPrincipal({
+    required BuildContext context,
+    required ReporteEstado reporte,
+    required bool esFaseFinal,
+    required bool nadieLoAtiende,
+    required bool yoLoAtiendo,
+    required bool otroLoAtiende,
+    required bool tomando,
+  }) {
+    if (esFaseFinal || otroLoAtiende || tomando) return null;
+
+    if (nadieLoAtiende) {
+      return () => _confirmarTomarReporte(context, reporte);
+    }
+
+    // yoLoAtiendo == true
+    return () {
+      context.push('/actualizar-estado', extra: reporte);
+    };
+  }
+
+  void _confirmarTomarReporte(BuildContext context, ReporteEstado reporte) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Theme.of(dialogContext).colorScheme.surface,
+        icon: Icon(
+          Icons.volunteer_activism,
+          color: Theme.of(dialogContext).colorScheme.primary,
+          size: 40,
+        ),
+        title: Text(
+          '¿Realizar este rescate?',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(dialogContext).colorScheme.onSurface,
+          ),
+        ),
+        content: Text(
+          'Al confirmar, quedarás como responsable de este rescate y otros usuarios ya no podrán tomarlo.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Theme.of(dialogContext).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    context.read<ReporteEstadoBloc>().add(
+                      TomarReporte(reporte.reporteId),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(
+                      dialogContext,
+                    ).colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: Text(
+                    'Confirmar',
+                    style: TextStyle(
+                      color: Theme.of(dialogContext).colorScheme.onPrimary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(
+                    dialogContext,
+                  ).colorScheme.onSurfaceVariant,
+                ),
+                child: const Text('Cancelar'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const Color _colorTomarCaso = Color(0xFF2E86AB);
+
+  Color _colorBotonPrincipal({
+    required BuildContext context,
+    required bool esFaseFinal,
+    required bool nadieLoAtiende,
+    required bool otroLoAtiende,
+  }) {
+    if (esFaseFinal || otroLoAtiende) {
+      return Theme.of(context).colorScheme.surfaceContainer;
+    }
+    if (nadieLoAtiende) return const Color.fromARGB(255, 199, 104, 26);
+    return Theme.of(context).colorScheme.primary;
+  }
+
+  String _textoBotonPrincipal({
+    required bool esFaseFinal,
+    required bool nadieLoAtiende,
+    required bool yoLoAtiendo,
+    required bool otroLoAtiende,
+    required ReporteEstado reporte,
+  }) {
+    if (esFaseFinal) return 'Reporte finalizado';
+    if (otroLoAtiende) {
+      return 'Esta siendo atendido por ${reporte.usuarioRescateNombre ?? "otro usuario"}';
+    }
+    if (nadieLoAtiende) return 'Tomar caso';
+    return 'Actualizar estado del rescate';
+  }
+
+  Widget _buildUbicacionCopiable(BuildContext context, String ubicacion) {
+    return GestureDetector(
+      onTap: () {
+        Clipboard.setData(ClipboardData(text: ubicacion));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Ubicación copiada al portapapeles'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      },
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.location_on,
+            color: Theme.of(context).colorScheme.primary,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ubicación',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  ubicacion,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.copy,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            size: 16,
           ),
         ],
       ),
@@ -160,9 +546,13 @@ class ReporteEstadoScreen extends StatelessWidget {
 
           Color colorFondo;
           if (esActual) {
-            if (index == 0) colorFondo = Colors.red;
-            else if (index == 1) colorFondo = Colors.orange;
-            else colorFondo = Colors.green;
+            if (index == 0) {
+              colorFondo = Colors.red;
+            } else if (index == 1) {
+              colorFondo = const Color.fromARGB(255, 255, 196, 0);
+            } else {
+              colorFondo = Colors.green;
+            }
           } else if (esAnterior) {
             colorFondo = Colors.grey.shade500;
           } else {
@@ -184,13 +574,22 @@ class ReporteEstadoScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value,
-      {IconData? icon, Color? iconColor}) {
+  Widget _buildInfoRow(
+    BuildContext context,
+    String label,
+    String value, {
+    IconData? icon,
+    Color? iconColor,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (icon != null) ...[
-          Icon(icon, color: iconColor ?? AppColors.textSecondary, size: 20),
+          Icon(
+            icon,
+            color: iconColor ?? Theme.of(context).colorScheme.onSurface,
+            size: 20,
+          ),
           const SizedBox(width: 12),
         ],
         Expanded(
@@ -199,16 +598,16 @@ class ReporteEstadoScreen extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 13,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                 ),
@@ -225,13 +624,13 @@ class ReporteEstadoScreen extends StatelessWidget {
       case 'baja':
         return Colors.yellow.shade700;
       case 'media':
-        return Colors.orange;
+        return Colors.orange.shade700;
       case 'alta':
-        return Colors.red;
+        return Colors.red.shade700;
       case 'crítica':
-        return const Color(0xFF800020);
+        return const Color.fromARGB(255, 128, 0, 0);
       default:
-        return AppColors.textSecondary;
+        return Colors.grey;
     }
   }
 }
@@ -249,10 +648,17 @@ class _ChevronStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final activeTextColor =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+        ? Colors.white
+        : Colors.black;
+
     return ClipPath(
       clipper: const _ChevronClipper(),
       child: Container(
-        color: isActive ? color : Colors.grey.shade300,
+        color: isActive
+            ? color
+            : Theme.of(context).colorScheme.surfaceContainer,
         child: Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
@@ -260,8 +666,10 @@ class _ChevronStep extends StatelessWidget {
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: isActive ? Colors.white : Colors.grey.shade700,
-                fontSize: 9,
+                color: isActive
+                    ? activeTextColor
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 15,
                 fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                 height: 1.2,
               ),
@@ -284,33 +692,16 @@ class _ChevronClipper extends CustomClipper<Path> {
     final chevronWidth = 12.0;
     final cornerRadius = 6.0;
 
-    // Punto de inicio: esquina superior izquierda con ligero redondeo
     path.moveTo(cornerRadius, 0);
-    
-    // Línea superior hasta antes de la punta
     path.lineTo(size.width - chevronWidth, 0);
-    
-    // Punta derecha superior
     path.lineTo(size.width, size.height / 2);
-    
-    // Punta derecha inferior
     path.lineTo(size.width - chevronWidth, size.height);
-    
-    // Línea inferior hasta antes de la entrada
     path.lineTo(cornerRadius, size.height);
-    
-    // Esquina inferior izquierda redondeada
     path.quadraticBezierTo(0, size.height, 0, size.height - cornerRadius);
-    
-    // Entrada en V hacia la izquierda (centro)
     path.lineTo(0, size.height / 2);
-    
-    // Salida de la entrada
     path.lineTo(0, cornerRadius);
-    
-    // Esquina superior izquierda redondeada
     path.quadraticBezierTo(0, 0, cornerRadius, 0);
-    
+
     path.close();
     return path;
   }

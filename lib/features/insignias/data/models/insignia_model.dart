@@ -15,12 +15,12 @@ class InsigniaModel extends Insignia {
 
   factory InsigniaModel.fromJson(Map<String, dynamic> json) {
     return InsigniaModel(
-      id: json['id'] ?? 0,
+      id: json['id'] ?? json['id_insignias'] ?? 0,
       nombre: json['nombre'] ?? '',
       nivel: json['nivel'] ?? 1,
       categoria: _parseCategoria(json['categoria']),
       descripcion: json['descripcion'] ?? '',
-      imagenUrl: json['imagen_url'],
+      imagenUrl: json['imagen_url'] ?? json['imagen'],
       obtenida: json['obtenida'] ?? false,
       fechaObtencion: json['fecha_obtencion'] != null
           ? DateTime.parse(json['fecha_obtencion'])

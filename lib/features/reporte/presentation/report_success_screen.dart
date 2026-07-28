@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import '../../../../styles/constantes/app_colors.dart';
+import '../../../core/widgets/success_status_badge.dart';
 import 'package:go_router/go_router.dart';
 import '../../home/presentation/widgets/bottom_bar.dart';
 
@@ -45,21 +45,24 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           onPressed: () {
             _timer?.cancel();
             context.go('/home');
           },
         ),
-        title: const Text(
+        title: Text(
           'Reporte',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -72,104 +75,80 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Ícono circular
-              Container(
-                width: 160,
-                height: 160,
-                decoration: BoxDecoration(
-                  color: widget.isSuccess
-                      ? AppColors.secondary
-                      : Colors.red.shade50,
-                  shape: BoxShape.circle,
-                ),
-                child: Container(
-                  width: 140,
-                  height: 140,
-                  decoration: const BoxDecoration(
-                    color: AppColors.background,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    widget.isSuccess ? Icons.check : Icons.close,
-                    size: 80,
-                    color: widget.isSuccess
-                        ? AppColors.primary
-                        : Colors.red.shade700,
-                  ),
-                ),
-              ),
+              SuccessStatusBadge(isSuccess: widget.isSuccess),
               const SizedBox(height: 32),
-              
+
               // Mensaje principal
               Text(
-                widget.isSuccess
-                    ? '¡Reporte Enviado!'
-                    : 'Error al Enviar',
-                style: const TextStyle(
+                widget.isSuccess ? '¡Reporte Enviado!' : 'Error al Enviar',
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              
+
               // Mensaje secundario
               Text(
                 widget.isSuccess
-                    ? 'Tu reporte ha sido enviado y se atenderá lo antes posible.'
+                    ? 'Tu reporte ha sido enviado con éxito'
                     : 'No se pudo enviar el reporte. Inténtalo de nuevo.',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
-              
+
               // Contador regresivo
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     'Redirigiendo al inicio en ',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   Text(
                     '$_secondsRemaining',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  const Text(
+                  Text(
                     ' segundos...',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               // Barra de progreso
               SizedBox(
                 width: 200,
                 child: LinearProgressIndicator(
                   value: (5 - _secondsRemaining) / 5,
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    AppColors.primary,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainer,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Theme.of(context).colorScheme.primary,
                   ),
                   minHeight: 6,
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              
+
               // Botón solo si es error
               if (!widget.isSuccess) ...[
                 const SizedBox(height: 32),
@@ -182,15 +161,16 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Intentar de nuevo',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -202,9 +182,7 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomBarWidget(
-        currentIndex: 0,
-      ),
+      bottomNavigationBar: const BottomBarWidget(currentIndex: 0),
     );
   }
 }

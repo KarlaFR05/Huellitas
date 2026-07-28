@@ -14,6 +14,8 @@ class ReporteModel extends Reporte {
     required super.evidencia,
     required super.latitud,
     required super.longitud,
+    super.faseActualId,
+    super.fechaActualizacion,
   });
 
   factory ReporteModel.fromEntity(Reporte reporte) {
@@ -30,6 +32,8 @@ class ReporteModel extends Reporte {
       evidencia: reporte.evidencia,
       latitud: reporte.latitud,
       longitud: reporte.longitud,
+      faseActualId: reporte.faseActualId,
+      fechaActualizacion: reporte.fechaActualizacion,
     );
   }
 
@@ -47,6 +51,7 @@ class ReporteModel extends Reporte {
       'usuario_id_fk': usuarioId,
       'latitud': latitud,
       'longitud': longitud,
+      'fase_actual_id': faseActualId,
     };
   }
 
@@ -64,6 +69,10 @@ class ReporteModel extends Reporte {
       evidencia: json['evidencia'] ?? '',
       latitud: (json['latitud'] ?? 0).toDouble(),
       longitud: (json['longitud'] ?? 0).toDouble(),
+      faseActualId: json['fase_actual_id'] ?? 1,
+      fechaActualizacion: json['fecha_actualizacion'] != null
+          ? DateTime.parse('${json['fecha_actualizacion']}Z')
+          : null,
     );
   }
 }

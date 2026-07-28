@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../../core/widgets/avatar_helper.dart';
 
 class PerfilHeader extends StatelessWidget {
   const PerfilHeader({super.key});
@@ -14,23 +15,22 @@ class PerfilHeader extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         String nombre = "Usuario";
-        String correo = "";
+        String nombreUsuario = "";
+        Usuario? usuario;
 
         if (state is AuthSuccess && state.data is Usuario) {
-          final usuario = state.data as Usuario;
+          usuario = state.data as Usuario;
           nombre = "${usuario.nombre} ${usuario.apellidos}";
-          correo = usuario.correo ?? "";
+          nombreUsuario = usuario.nombreUsuario ?? "";
         }
 
         return Column(
           children: [
             Stack(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 55,
-                  backgroundImage: AssetImage(
-                    'assets/images/perfil.png',
-                  ),
+                  backgroundImage: avatarProvider(usuario?.fotoPerfil),
                 ),
 
                 Positioned(
@@ -42,13 +42,26 @@ class PerfilHeader extends StatelessWidget {
                     },
                     child: Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF57C29A),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
                         shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.surface,
+                          width: 3,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.shadow.withValues(alpha: 0.28),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.edit,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                         size: 20,
                       ),
                     ),
@@ -61,18 +74,15 @@ class PerfilHeader extends StatelessWidget {
 
             Text(
               nombre,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 5),
 
             Text(
-              correo,
-              style: const TextStyle(
-                color: Colors.grey,
+              nombreUsuario.isEmpty ? '' : '@$nombreUsuario',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
