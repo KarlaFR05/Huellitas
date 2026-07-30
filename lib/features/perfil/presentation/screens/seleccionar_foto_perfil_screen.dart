@@ -18,6 +18,8 @@ const List<String> catalogoAvatares = [
   'avatar_02.png',
   'avatar_03.png',
   'avatar_04.png',
+  'avatar_05.png',
+  'avatar_06.png',
 ];
 
 class SeleccionarFotoPerfilScreen extends StatefulWidget {

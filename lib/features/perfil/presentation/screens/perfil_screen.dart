@@ -19,13 +19,21 @@ class PerfilScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
 
       appBar: AppBar(title: const Text("Perfil"), centerTitle: true),
 
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            24,
+            24,
+            BottomBarWidget.contentClearance(context) + 28,
+          ),
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
               const PerfilHeader(),

@@ -10,6 +10,7 @@ class DonacionesScreen extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      extendBody: true,
       appBar: AppBar(
         title: const Text('Donaciones'),
         automaticallyImplyLeading: false,
@@ -60,9 +61,7 @@ class DonacionesScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomBarWidget(
-        currentIndex: 2,
-      ),
+      bottomNavigationBar: const BottomBarWidget(currentIndex: 2),
     );
   }
 }

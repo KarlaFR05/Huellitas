@@ -6,42 +6,66 @@ class BottomBarWidget extends StatelessWidget {
 
   const BottomBarWidget({super.key, required this.currentIndex});
 
+  /// Espacio que deben dejar botones flotantes o contenido interactivo para no
+  /// quedar detrás de la barra, incluyendo la zona gestual del dispositivo.
+  static double contentClearance(BuildContext context) {
+    return 114 + MediaQuery.viewPaddingOf(context).bottom;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
       minimum: const EdgeInsets.only(bottom: 4),
       child: Container(
-        height: 75,
+        height: 78,
         margin: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
+          color: Theme.of(context).scaffoldBackgroundColor,
           borderRadius: BorderRadius.circular(40),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: .08),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildItem(
               context,
-              icon: Icons.home_outlined,
+              icon: Icons.map_outlined,
+              selectedIcon: Icons.map_rounded,
+              label: 'Mapa',
               index: 0,
               route: '/home',
             ),
             _buildItem(
               context,
-              icon: Icons.chat_bubble_outline,
+              icon: Icons.mode_comment_outlined,
+              selectedIcon: Icons.mode_comment_rounded,
+              label: 'Foro',
               index: 1,
               route: '/foro',
             ),
             _buildItem(
               context,
               icon: Icons.volunteer_activism_outlined,
+              selectedIcon: Icons.volunteer_activism_rounded,
+              label: 'Donaciones',
               index: 2,
               route: '/donaciones',
             ),
             _buildItem(
               context,
               icon: Icons.person_outline,
+              selectedIcon: Icons.person_rounded,
+              label: 'Perfil',
               index: 3,
               route: '/perfil',
             ),
@@ -54,6 +78,8 @@ class BottomBarWidget extends StatelessWidget {
   Widget _buildItem(
     BuildContext context, {
     required IconData icon,
+    required IconData selectedIcon,
+    required String label,
     required int index,
     required String route,
   }) {
@@ -68,17 +94,38 @@ class BottomBarWidget extends StatelessWidget {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(10),
+        width: 76,
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 7),
         decoration: BoxDecoration(
           color: selected
-              ? Theme.of(context).colorScheme.onPrimary.withValues(alpha: .20)
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: .12)
               : Colors.transparent,
-          shape: BoxShape.circle,
+          borderRadius: BorderRadius.circular(24),
         ),
-        child: Icon(
-          icon,
-          color: Theme.of(context).colorScheme.onPrimary,
-          size: selected ? 30 : 26,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              selected ? selectedIcon : icon,
+              color: selected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              size: selected ? 26 : 24,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: selected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 10,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );

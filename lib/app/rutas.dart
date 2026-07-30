@@ -63,7 +63,7 @@ import 'package:huellitas/features/insignias/presentation/screens/insignias_scre
 import 'package:huellitas/features/insignias/presentation/screens/insignia_detalle_screen.dart';
 
 import 'package:huellitas/features/reporte/domain/usecases/tomar_reporte_usecase.dart';
-import 'package:huellitas/features/foro/presentation/foro_screen.dart';
+import 'package:huellitas/features/foro/presentation/screens/foro_screen.dart';
 import 'package:huellitas/features/donaciones/presentation/donaciones_screen.dart';
 
 final GoRouter router = GoRouter(
