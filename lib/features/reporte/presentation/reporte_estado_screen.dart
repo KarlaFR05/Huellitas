@@ -232,7 +232,7 @@ class ReporteEstadoScreen extends StatelessWidget {
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerLeft,
-              child: OutlinedButton.icon(
+              child: ElevatedButton.icon(
                 onPressed: reporte.usuarioRescateId == null
                     ? null
                     : () {
@@ -243,15 +243,15 @@ class ReporteEstadoScreen extends StatelessWidget {
                       },
                 icon: const Icon(Icons.badge_outlined, size: 18),
                 label: const Text('Ver perfil'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.primary,
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 10,
                   ),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),

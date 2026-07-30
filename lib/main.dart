@@ -50,6 +50,7 @@ void main() {
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider<AuthRepositoryImpl>.value(value: authRepository),
+        RepositoryProvider<TokenStorageService>.value(value: tokenStorage),
         RepositoryProvider<CompletarPerfilRepositoryImpl>.value(
           value: completarPerfilRepository,
         ),
@@ -79,9 +80,7 @@ void main() {
             create: (context) =>
                 InsigniaBloc(getInsignias: getInsigniasUsuario),
           ),
-          BlocProvider(
-            create: (_) => ThemeBloc(),
-          ),
+          BlocProvider(create: (_) => ThemeBloc()),
         ],
         child: const HuellitasApp(),
       ),
