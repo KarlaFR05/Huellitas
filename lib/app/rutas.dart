@@ -74,6 +74,11 @@ import 'package:huellitas/features/donaciones/presentation/screens/metodo_pago_s
 import 'package:huellitas/features/donaciones/presentation/screens/confirmacion_donacion_screen.dart';
 import 'package:huellitas/features/donaciones/presentation/screens/donacion_error_screen.dart';
 
+import 'package:huellitas/features/donaciones/presentation/screens/seleccion_tarjeta_screen.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/agregar_tarjeta_screen.dart';
+import 'package:huellitas/features/donaciones/domain/entities/tarjeta.dart';
+import 'package:huellitas/features/perfil/presentation/screens/mis_tarjetas.dart';
+
 final GoRouter router = GoRouter(
   initialLocation: '/',
   routes: [
@@ -347,6 +352,37 @@ final GoRouter router = GoRouter(
       path: '/donacion-error',
       name: 'donacion-error',
       builder: (context, state) => const DonacionErrorScreen(),
+    ),
+    GoRoute(
+      path: '/seleccion-tarjeta',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return SeleccionTarjetaScreen(
+          monto: extra['monto'] as double,
+          organizacionId: extra['organizacionId'] as int,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/agregar-tarjeta',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return AgregarTarjetaScreen(
+          monto: extra?['monto'] as double?,
+          organizacionId: extra?['organizacionId'] as int?,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/editar-tarjeta',
+      builder: (context, state) {
+        final tarjeta = state.extra as Tarjeta;
+        return AgregarTarjetaScreen(tarjeta: tarjeta);
+      },
+    ),
+    GoRoute(
+      path: '/mis-tarjetas',
+      builder: (context, state) => const MisTarjetasScreen(),
     ),
   ],
 );

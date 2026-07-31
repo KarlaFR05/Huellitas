@@ -12,24 +12,43 @@ import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../completar_registro/presentation/widgets/completar_perfil_dialog.dart';
 import '../../../../core/verificacion/verificacion_cubit.dart';
 import '../../../../core/widgets/verificado_badge.dart';
+import '../../../../styles/constantes/app_color.dart';
+import '../../../donaciones/presentation/bloc/tarjeta/tarjeta_bloc.dart';
+import '../../../donaciones/presentation/bloc/tarjeta/tarjeta_event.dart';
+import '../../../donaciones/presentation/bloc/tarjeta/tarjeta_state.dart';
 
-class PerfilScreen extends StatelessWidget {
+class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
+
+  @override
+  State<PerfilScreen> createState() => _PerfilScreenState();
+}
+
+class _PerfilScreenState extends State<PerfilScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _cargarTarjetas();
+  }
+
+  void _cargarTarjetas() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthSuccess) {
+      context.read<TarjetaBloc>().add(CargarTarjetas(authState.data.usuarioIdPk));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-
       appBar: AppBar(title: const Text("Perfil"), centerTitle: true),
-
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
               const PerfilHeader(),
-
               const SizedBox(height: 24),
 
               BlocBuilder<AuthBloc, AuthState>(
@@ -180,13 +199,78 @@ class PerfilScreen extends StatelessWidget {
                 },
               ),
 
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
 
               PerfilOption(
                 icon: Icons.person_outline,
                 titulo: 'Mi Perfil',
                 onTap: () {
                   context.push('/mi-perfil');
+                },
+              ),
+
+              // ✅ SECCIÓN DE TARJETAS CON CARD PERSONALIZADO (Opción 2)
+              BlocBuilder<TarjetaBloc, TarjetaState>(
+                builder: (context, tarjetaState) {
+                  int cantidadTarjetas = 0;
+                  if (tarjetaState is TarjetaLoaded) {
+                    cantidadTarjetas = tarjetaState.tarjetas.length;
+                  }
+
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.credit_card,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      title: const Text(
+                        'Mis tarjetas',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Text(
+                        cantidadTarjetas > 0
+                            ? '$cantidadTarjetas tarjeta(s) guardada(s)'
+                            : 'Agrega tarjetas para donaciones rápidas',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (cantidadTarjetas > 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                cantidadTarjetas.toString(),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          if (cantidadTarjetas > 0) const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward_ios, size: 16),
+                        ],
+                      ),
+                      onTap: () {
+                        context.push('/mis-tarjetas');
+                      },
+                    ),
+                  );
                 },
               ),
 
@@ -241,10 +325,8 @@ class PerfilScreen extends StatelessWidget {
                             child: ElevatedButton(
                               onPressed: () {
                                 Navigator.pop(context);
-
                                 context.read<AuthBloc>().add(LogoutEvent());
                                 context.read<VerificacionCubit>().resetear();
-
                                 context.go('/login');
                               },
                               child: const Text('Cerrar sesión'),
@@ -268,7 +350,6 @@ class PerfilScreen extends StatelessWidget {
           ),
         ),
       ),
-
       bottomNavigationBar: const BottomBarWidget(currentIndex: 3),
     );
   }

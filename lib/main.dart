@@ -22,6 +22,12 @@ import 'features/donaciones/data/repositories/donacion_repository_impl.dart';
 import 'features/donaciones/domain/usecases/obtener_organizaciones_usecase.dart';
 import 'features/donaciones/domain/usecases/crear_donacion_usecase.dart';
 import 'features/donaciones/presentation/bloc/donacion_bloc.dart';
+import 'features/donaciones/data/datasources/tarjeta_remote_datasource.dart';
+import 'features/donaciones/data/repositories/tarjeta_repository_impl.dart';
+import 'features/donaciones/domain/usecases/obtener_tarjetas_usecase.dart';
+import 'features/donaciones/domain/usecases/guardar_tarjeta_usecase.dart';
+import 'features/donaciones/domain/usecases/eliminar_tarjeta_usecase.dart';
+import 'features/donaciones/presentation/bloc/tarjeta/tarjeta_bloc.dart';
 
 void main() {
   final dio = Dio(
@@ -43,6 +49,13 @@ void main() {
   final donacionRepository = DonacionRepositoryImpl(donacionDataSource);
   final obtenerOrganizacionesUseCase = ObtenerOrganizacionesUseCase(donacionRepository);
   final crearDonacionUseCase = CrearDonacionUseCase(donacionRepository);
+
+  final tarjetaDataSource = TarjetaRemoteDataSourceMock();
+  final tarjetaRepository = TarjetaRepositoryImpl(tarjetaDataSource);
+  final obtenerTarjetasUseCase = ObtenerTarjetasUseCase(tarjetaRepository);
+  final guardarTarjetaUseCase = GuardarTarjetaUseCase(tarjetaRepository);
+  final eliminarTarjetaUseCase = EliminarTarjetaUseCase(tarjetaRepository);
+
 
   dio.interceptors.add(
     InterceptorsWrapper(
@@ -96,6 +109,13 @@ void main() {
             create: (context) => DonacionBloc(
               obtenerOrganizaciones: obtenerOrganizacionesUseCase,
               crearDonacion: crearDonacionUseCase,
+            ),
+          ),
+          BlocProvider(
+            create: (context) => TarjetaBloc(
+              obtenerTarjetas: obtenerTarjetasUseCase,
+              guardarTarjeta: guardarTarjetaUseCase,
+              eliminarTarjeta: eliminarTarjetaUseCase,
             ),
           ),
         ],
