@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../styles/constantes/app_color.dart'; // Asegúrate de que coincida con el nombre real de tu archivo (app_colors o app_color)
+import '../../../../styles/constantes/app_color.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../bloc/donacion_bloc.dart';
 import '../bloc/donacion_event.dart';
 import '../bloc/donacion_state.dart';
+import '../bloc/tarjeta/tarjeta_bloc.dart';
+import '../bloc/tarjeta/tarjeta_event.dart';
+import '../bloc/tarjeta/tarjeta_state.dart';
+import '../../domain/entities/tarjeta.dart';
 
 class SeleccionCantidadScreen extends StatelessWidget {
   const SeleccionCantidadScreen({super.key});
@@ -41,7 +47,6 @@ class SeleccionCantidadScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icono e información de la organización
                 Center(
                   child: Column(
                     children: [
@@ -78,9 +83,7 @@ class SeleccionCantidadScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                
                 const SizedBox(height: 40),
-                
                 const Text(
                   'Selecciona un monto',
                   style: TextStyle(
@@ -97,10 +100,7 @@ class SeleccionCantidadScreen extends StatelessWidget {
                     color: AppColors.textSecondary,
                   ),
                 ),
-                
                 const SizedBox(height: 32),
-                
-                // Grid de montos mejorado
                 GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -111,25 +111,22 @@ class SeleccionCantidadScreen extends StatelessWidget {
                   children: [
                     _MontoCard(
                       monto: 5,
-                      onTap: () => _mostrarDialogoConfirmacion(context, 5),
+                      onTap: () => _verificarTarjetasYContinuar(context, 5),
                     ),
                     _MontoCard(
                       monto: 15,
-                      onTap: () => _mostrarDialogoConfirmacion(context, 15),
+                      onTap: () => _verificarTarjetasYContinuar(context, 15),
                     ),
                     _MontoCard(
                       monto: 20,
-                      onTap: () => _mostrarDialogoConfirmacion(context, 20),
+                      onTap: () => _verificarTarjetasYContinuar(context, 20),
                     ),
                     _MontoPersonalizadoCard(
                       onTap: () => context.push('/monto-personalizado'),
                     ),
                   ],
                 ),
-                
                 const SizedBox(height: 24),
-                
-                // Mensaje de impacto
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -168,145 +165,192 @@ class SeleccionCantidadScreen extends StatelessWidget {
   }
 }
 
-//FUNCIÓN PARA MOSTRAR EL DIÁLOGO DE CONFIRMACIÓN
-void _mostrarDialogoConfirmacion(BuildContext context, double monto) {
-  final state = context.read<DonacionBloc>().state;
-  String nombreOrganizacion = 'esta causa';
-  
-  if (state is DonacionLoaded && state.organizacionSeleccionada != null) {
-    nombreOrganizacion = state.organizacionSeleccionada!.nombre;
+// FUNCIÓN GLOBAL DE VERIFICACIÓN DE TARJETAS
+Future<void> _verificarTarjetasYContinuar(
+  BuildContext context,
+  double monto,
+) async {
+  final donacionState = context.read<DonacionBloc>().state;
+  int? organizacionId;
+  if (donacionState is DonacionLoaded && donacionState.organizacionSeleccionada != null) {
+    organizacionId = donacionState.organizacionSeleccionada!.id;
   }
 
+  final authState = context.read<AuthBloc>().state;
+  if (authState is! AuthSuccess) {
+    context.read<DonacionBloc>().add(SeleccionarMonto(monto));
+    context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+    return;
+  }
+
+  final usuarioId = authState.data.usuarioIdPk;
+  final tarjetaState = context.read<TarjetaBloc>().state;
+  
+  if (tarjetaState is! TarjetaLoaded) {
+    context.read<TarjetaBloc>().add(CargarTarjetas(usuarioId));
+    await Future.delayed(const Duration(milliseconds: 800));
+  }
+
+  final estadoTarjetas = context.read<TarjetaBloc>().state;
+  
+  if (estadoTarjetas is TarjetaLoaded) {
+    final tarjetas = estadoTarjetas.tarjetas;
+    final predeterminada = estadoTarjetas.tarjetaPredeterminada;
+
+    if (tarjetas.isEmpty) {
+      context.read<DonacionBloc>().add(SeleccionarMonto(monto));
+      context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+    } else if (predeterminada != null) {
+      _mostrarDialogoPagoRapido(context, monto, organizacionId, predeterminada);
+    } else {
+      _mostrarDialogoElegirTarjeta(context, monto, organizacionId, tarjetas);
+    }
+  } else {
+    context.read<DonacionBloc>().add(SeleccionarMonto(monto));
+    context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+  }
+}
+
+void _mostrarDialogoPagoRapido(
+  BuildContext context,
+  double monto,
+  int? organizacionId,
+  Tarjeta predeterminada,
+) {
   showDialog(
     context: context,
-    barrierDismissible: false,
-    builder: (context) => AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+    builder: (dialogContext) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: const Row(
         children: [
-          Icon(
-            Icons.favorite,
-            color: AppColors.primary,
-            size: 24,
-          ),
           SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Confirmar donación',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
+          Text('Pago Rápido', style: TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Estás a punto de realizar una donación de:',
-            style: TextStyle(fontSize: 14),
-          ),
-          const SizedBox(height: 16),
+          const Text('Se cobrará a tu tarjeta predeterminada:'),
+          const SizedBox(height: 12),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppColors.secondary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.3),
-                width: 2,
-              ),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '\$${monto.toStringAsFixed(2)}',
+                  predeterminada.numeroEnmascarado,
                   style: const TextStyle(
-                    fontSize: 32,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
-                  'para $nombreOrganizacion',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
+                  predeterminada.titular,
+                  style: const TextStyle(fontSize: 14),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          Center(
-            child: Text(
-              '¿Deseas continuar?',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          )
         ],
       ),
       actions: [
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  context.read<DonacionBloc>().add(SeleccionarMonto(monto));
-                  context.push('/metodo-pago');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: const Text(
-                  'Sí, continuar',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                onPressed: () => Navigator.pop(context),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Cancelar',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-          ],
+        TextButton(
+          onPressed: () {
+            Navigator.pop(dialogContext);
+            context.push('/agregar-tarjeta', extra: {
+              'monto': monto,
+              'organizacionId': organizacionId,
+            });
+          },
+          child: const Text('Agregar otra'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(dialogContext);
+            context.push('/seleccion-tarjeta', extra: {
+              'monto': monto,
+              'organizacionId': organizacionId,
+            });
+          },
+          child: const Text('Cambiar'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(dialogContext);
+            context.read<DonacionBloc>().add(SeleccionarMonto(monto));
+            context.push('/seleccion-tarjeta', extra: {
+              'tarjeta': predeterminada,
+              'monto': monto,
+              'organizacionId': organizacionId,
+              'usarPredeterminada': true,
+            });
+          },
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+          child: const Text(
+            'Donar',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+void _mostrarDialogoElegirTarjeta(
+  BuildContext context,
+  double monto,
+  int? organizacionId,
+  List<Tarjeta> tarjetas,
+) {
+  showDialog(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: const Text(
+        'Tarjetas Guardadas',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Tienes ${tarjetas.length} tarjeta(s) guardada(s). ¿Cómo deseas pagar?'),
+        ],
+      ),
+      actions: [
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(dialogContext);
+            context.push('/seleccion-tarjeta', extra: {
+              'monto': monto,
+              'organizacionId': organizacionId,
+            });
+          },
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+          child: const Text(
+            'Elegir guardada',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(dialogContext);
+            context.read<DonacionBloc>().add(SeleccionarMonto(monto));
+            context.push('/agregar-tarjeta', extra: {
+              'monto': monto,
+              'organizacionId': organizacionId,
+            });
+          },
+          child: const Text('Agregar nueva'),
         ),
       ],
     ),
@@ -317,10 +361,7 @@ class _MontoCard extends StatelessWidget {
   final double monto;
   final VoidCallback onTap;
 
-  const _MontoCard({
-    required this.monto,
-    required this.onTap,
-  });
+  const _MontoCard({required this.monto, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -364,9 +405,7 @@ class _MontoCard extends StatelessWidget {
 class _MontoPersonalizadoCard extends StatelessWidget {
   final VoidCallback onTap;
 
-  const _MontoPersonalizadoCard({
-    required this.onTap,
-  });
+  const _MontoPersonalizadoCard({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -384,11 +423,7 @@ class _MontoPersonalizadoCard extends StatelessWidget {
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.edit,
-              size: 28,
-              color: AppColors.primary,
-            ),
+            Icon(Icons.edit, size: 28, color: AppColors.primary),
             SizedBox(height: 8),
             Text(
               'Otra Cantidad',

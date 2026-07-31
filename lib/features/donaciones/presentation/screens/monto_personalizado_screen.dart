@@ -3,9 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../styles/constantes/app_color.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../bloc/donacion_bloc.dart';
 import '../bloc/donacion_event.dart';
 import '../bloc/donacion_state.dart';
+import '../bloc/tarjeta/tarjeta_bloc.dart';
+import '../bloc/tarjeta/tarjeta_event.dart';
+import '../bloc/tarjeta/tarjeta_state.dart';
+import '../../domain/entities/tarjeta.dart';
 
 class MontoPersonalizadoScreen extends StatefulWidget {
   const MontoPersonalizadoScreen({super.key});
@@ -22,7 +28,6 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
   @override
   void initState() {
     super.initState();
-    // Enfocar automáticamente el campo para mostrar el teclado
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
@@ -39,162 +44,161 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
     if (_formKey.currentState!.validate()) {
       final monto = double.tryParse(_montoController.text) ?? 0;
       if (monto > 0) {
-        _mostrarDialogoConfirmacion(monto);
+        _verificarTarjetasYContinuar(monto);
       }
     }
   }
 
-  void _mostrarDialogoConfirmacion(double monto) {
-    final state = context.read<DonacionBloc>().state;
-    String nombreOrganizacion = 'esta causa';
-    
-    if (state is DonacionLoaded && state.organizacionSeleccionada != null) {
-      nombreOrganizacion = state.organizacionSeleccionada!.nombre;
+  Future<void> _verificarTarjetasYContinuar(double monto) async {
+    final donacionState = context.read<DonacionBloc>().state;
+    int? organizacionId;
+    if (donacionState is DonacionLoaded && donacionState.organizacionSeleccionada != null) {
+      organizacionId = donacionState.organizacionSeleccionada!.id;
     }
 
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthSuccess) {
+      context.read<DonacionBloc>().add(SeleccionarMonto(monto));
+      context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+      return;
+    }
 
+    final usuarioId = authState.data.usuarioIdPk;
+    final tarjetaState = context.read<TarjetaBloc>().state;
+    
+    if (tarjetaState is! TarjetaLoaded) {
+      context.read<TarjetaBloc>().add(CargarTarjetas(usuarioId));
+      await Future.delayed(const Duration(milliseconds: 800));
+    }
+
+    final estadoTarjetas = context.read<TarjetaBloc>().state;
+    
+    if (estadoTarjetas is TarjetaLoaded) {
+      final tarjetas = estadoTarjetas.tarjetas;
+      final predeterminada = estadoTarjetas.tarjetaPredeterminada;
+
+      if (tarjetas.isEmpty) {
+        context.read<DonacionBloc>().add(SeleccionarMonto(monto));
+        context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+      } else if (predeterminada != null) {
+        _mostrarDialogoPagoRapido(monto, organizacionId, predeterminada);
+      } else {
+        _mostrarDialogoElegirTarjeta(monto, organizacionId, tarjetas);
+      }
+    } else {
+      context.read<DonacionBloc>().add(SeleccionarMonto(monto));
+      context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+    }
+  }
+
+  void _mostrarDialogoPagoRapido(double monto, int? organizacionId, Tarjeta predeterminada) {
     showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: Row(
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.favorite,
-                color: AppColors.primary,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Text(
-                'Confirmar donación',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
+            SizedBox(width: 12),
+            Text('Pago Rápido', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Estás a punto de realizar una donación de:',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
+            const Text('Se cobrará a tu tarjeta predeterminada:'),
+            const SizedBox(height: 12),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.secondary.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.3),
-                  width: 2,
-                ),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '\$${monto.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
+                    predeterminada.numeroEnmascarado,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'para $nombreOrganizacion',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
+                  const SizedBox(height: 4),
+                  Text(predeterminada.titular, style: const TextStyle(fontSize: 14)),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            Center(
-              child: Text(
-                '¿Deseas continuar?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            )
           ],
         ),
         actions: [
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    context.read<DonacionBloc>().add(SeleccionarMonto(monto));
-                    context.push('/metodo-pago');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: const Text(
-                    'Sí, continuar',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Cancelar',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.read<DonacionBloc>().add(SeleccionarMonto(monto));
+              context.push('/seleccion-tarjeta', extra: {
+                'tarjeta': predeterminada,
+                'monto': monto,
+                'organizacionId': organizacionId,
+                'usarPredeterminada': true,
+              });
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Donar', style: TextStyle(color: Colors.white)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+            },
+            child: const Text('Agregar otra'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.push('/seleccion-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+            },
+            child: const Text('Cambiar'),
           ),
         ],
       ),
     );
   }
+
+  void _mostrarDialogoElegirTarjeta(double monto, int? organizacionId, List<Tarjeta> tarjetas) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Tarjetas Guardadas', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Tienes ${tarjetas.length} tarjeta(s) guardada(s). ¿Cómo deseas pagar?'),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.push('/seleccion-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Elegir guardada', style: TextStyle(color: Colors.white)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.read<DonacionBloc>().add(SeleccionarMonto(monto));
+              context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+            },
+            child: const Text('Agregar nueva'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -223,7 +227,6 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icono decorativo
               Center(
                 child: Container(
                   padding: const EdgeInsets.all(20),
@@ -231,7 +234,7 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
                     color: AppColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.volunteer_activism,
                     size: 60,
                     color: AppColors.primary,
@@ -239,8 +242,6 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              
-              // Título
               const Text(
                 'Ingresa el monto',
                 style: TextStyle(
@@ -259,10 +260,7 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              
               const SizedBox(height: 40),
-              
-              // Campo de monto mejorado
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -288,20 +286,20 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
+                    contentPadding: EdgeInsets.symmetric(
                       vertical: 40,
                       horizontal: 20,
                     ),
                     hintText: '0.00',
                     prefixText: '\$ ',
-                    prefixStyle: const TextStyle(
+                    prefixStyle: TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
                     ),
-                    hintStyle: const TextStyle(
+                    hintStyle: TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textSecondary,
@@ -319,10 +317,7 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
                   },
                 ),
               ),
-              
               const SizedBox(height: 40),
-              
-              
               SizedBox(
                 width: double.infinity,
                 height: 60,
@@ -352,17 +347,14 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
                   ),
                 ),
               ),
-              
               const SizedBox(height: 20),
-              
-              // Texto de seguridad
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.security,
                     size: 16,
-                    color: AppColors.textSecondary.withValues(alpha: 0.6),
+                    color: AppColors.textSecondary,
                   ),
                   const SizedBox(width: 6),
                   Text(

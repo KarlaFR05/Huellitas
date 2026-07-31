@@ -38,10 +38,6 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
         title: const Text('Eliminar tarjeta'),
         content: Text('¿Estás seguro de eliminar la tarjeta ${tarjeta.numeroEnmascarado}?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
           ElevatedButton(
             onPressed: () {
               context.read<TarjetaBloc>().add(EliminarTarjeta(tarjeta.id));
@@ -52,6 +48,10 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
           ),
         ],
       ),
