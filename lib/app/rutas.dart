@@ -41,7 +41,6 @@ import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.da
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
 
 // NUEVOS IMPORTS para seguimiento de reportes
-import 'package:huellitas/features/reporte/data/datasources/reporte_estado_remote_datasource.dart';
 import 'package:huellitas/features/reporte/data/datasources/reporte_estado_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_estado_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/get_reporte_estado_usecase.dart';
@@ -64,7 +63,7 @@ import 'package:huellitas/features/insignias/presentation/screens/insignias_scre
 import 'package:huellitas/features/insignias/presentation/screens/insignia_detalle_screen.dart';
 
 import 'package:huellitas/features/reporte/domain/usecases/tomar_reporte_usecase.dart';
-import 'package:huellitas/features/foro/presentation/foro_screen.dart';
+import 'package:huellitas/features/foro/presentation/screens/foro_screen.dart';
 
 
 import 'package:huellitas/features/donaciones/presentation/screens/donaciones_screen.dart';
@@ -165,14 +164,7 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/report-form',
       pageBuilder: (context, state) {
-        final dio = Dio(
-          BaseOptions(
-            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
-            connectTimeout: const Duration(seconds: 30),
-            receiveTimeout: const Duration(seconds: 30),
-            sendTimeout: const Duration(seconds: 30),
-          ),
-        );
+        final dio = context.read<Dio>();
 
         final reporteRepository = ReporteRepositoryImpl(
           ReporteRemoteDataSourceImpl(dio),
