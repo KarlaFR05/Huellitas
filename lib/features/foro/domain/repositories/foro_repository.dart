@@ -50,4 +50,13 @@ abstract class ForoRepository {
     required int grupoId,
     required int usuarioId,
   });
+
+  Future<Grupo> actualizarGrupo(
+    int grupoId, {
+    String? nombre,
+    String? descripcion,
+    PrivacidadGrupo? privacidad,
+    String? fotoPerfilLocalPath,
+    String? fotoPortadaLocalPath,
+  });
 }

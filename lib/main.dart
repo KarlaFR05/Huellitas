@@ -23,6 +23,10 @@ import 'features/donaciones/domain/usecases/obtener_organizaciones_usecase.dart'
 import 'features/donaciones/domain/usecases/crear_donacion_usecase.dart';
 import 'features/donaciones/presentation/bloc/donacion_bloc.dart';
 
+import 'features/foro/data/datasources/foro_remote_datasource_impl.dart';
+import 'features/foro/data/repositories/foro_repository_impl.dart';
+import 'features/foro/domain/repositories/foro_repository.dart';
+
 void main() {
   final dio = Dio(
     BaseOptions(baseUrl: 'https://huellitas-backend-xekn.onrender.com'),
@@ -43,6 +47,9 @@ void main() {
   final donacionRepository = DonacionRepositoryImpl(donacionDataSource);
   final obtenerOrganizacionesUseCase = ObtenerOrganizacionesUseCase(donacionRepository);
   final crearDonacionUseCase = CrearDonacionUseCase(donacionRepository);
+
+  final foroDataSource = ForoRemoteDataSourceImpl(dio);
+  final foroRepository = ForoRepositoryImpl(foroDataSource);
 
   dio.interceptors.add(
     InterceptorsWrapper(
@@ -67,6 +74,7 @@ void main() {
         RepositoryProvider<InsigniaRepositoryImpl>.value(
           value: insigniaRepository,
         ),
+        RepositoryProvider<ForoRepository>.value(value: foroRepository),
       ],
       child: MultiBlocProvider(
         providers: [
