@@ -12,18 +12,37 @@ import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../completar_registro/presentation/widgets/completar_perfil_dialog.dart';
 import '../../../../core/verificacion/verificacion_cubit.dart';
 import '../../../../core/widgets/verificado_badge.dart';
+import '../../../donaciones/presentation/bloc/tarjeta/tarjeta_bloc.dart';
+import '../../../donaciones/presentation/bloc/tarjeta/tarjeta_event.dart';
+import '../../../donaciones/presentation/bloc/tarjeta/tarjeta_state.dart';
 
-class PerfilScreen extends StatelessWidget {
+class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
+
+  @override
+  State<PerfilScreen> createState() => _PerfilScreenState();
+}
+
+class _PerfilScreenState extends State<PerfilScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _cargarTarjetas();
+  }
+
+  void _cargarTarjetas() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthSuccess) {
+      context.read<TarjetaBloc>().add(CargarTarjetas(authState.data.usuarioIdPk));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
-
       appBar: AppBar(title: const Text("Perfil"), centerTitle: true),
-
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
@@ -37,7 +56,6 @@ class PerfilScreen extends StatelessWidget {
           child: Column(
             children: [
               const PerfilHeader(),
-
               const SizedBox(height: 24),
 
               BlocBuilder<AuthBloc, AuthState>(
@@ -188,13 +206,53 @@ class PerfilScreen extends StatelessWidget {
                 },
               ),
 
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
 
               PerfilOption(
                 icon: Icons.person_outline,
                 titulo: 'Mi Perfil',
                 onTap: () {
                   context.push('/mi-perfil');
+                },
+              ),
+
+              BlocBuilder<TarjetaBloc, TarjetaState>(
+                builder: (context, tarjetaState) {
+                  int cantidadTarjetas = 0;
+                  if (tarjetaState is TarjetaLoaded) {
+                    cantidadTarjetas = tarjetaState.tarjetas.length;
+                  }
+
+                  return PerfilOption(
+                    icon: Icons.credit_card,
+                    titulo: 'Mis tarjetas',
+                    subtitulo: cantidadTarjetas > 0
+                        ? '$cantidadTarjetas tarjeta(s) guardada(s)'
+                        : null,
+                    trailing: cantidadTarjetas > 0
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              cantidadTarjetas.toString(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          )
+                        : null,
+                    onTap: () {
+                      context.push('/mis-tarjetas');
+                    },
+                  );
                 },
               ),
 
@@ -249,10 +307,8 @@ class PerfilScreen extends StatelessWidget {
                             child: ElevatedButton(
                               onPressed: () {
                                 Navigator.pop(context);
-
                                 context.read<AuthBloc>().add(LogoutEvent());
                                 context.read<VerificacionCubit>().resetear();
-
                                 context.go('/login');
                               },
                               child: const Text('Cerrar sesión'),
@@ -276,7 +332,6 @@ class PerfilScreen extends StatelessWidget {
           ),
         ),
       ),
-
       bottomNavigationBar: const BottomBarWidget(currentIndex: 3),
     );
   }

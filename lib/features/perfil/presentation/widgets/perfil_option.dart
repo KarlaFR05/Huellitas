@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 class PerfilOption extends StatelessWidget {
   final IconData icon;
   final String titulo;
+  final String? subtitulo;
+  final Widget? trailing;  
   final VoidCallback? onTap;
   final bool mostrarFlecha;
 
@@ -10,6 +12,8 @@ class PerfilOption extends StatelessWidget {
     super.key,
     required this.icon,
     required this.titulo,
+    this.subtitulo,    
+    this.trailing,       
     this.onTap,
     this.mostrarFlecha = true,
   });
@@ -41,12 +45,29 @@ class PerfilOption extends StatelessWidget {
           titulo,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
-        trailing: mostrarFlecha
-            ? Icon(
-                Icons.chevron_right,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+        subtitle: subtitulo != null 
+            ? Text(
+                subtitulo!,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               )
             : null,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (trailing != null) ...[  
+              trailing!,
+              const SizedBox(width: 8),
+            ],
+            if (mostrarFlecha)
+              Icon(
+                Icons.chevron_right,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+          ],
+        ),
         onTap: onTap,
       ),
     );
