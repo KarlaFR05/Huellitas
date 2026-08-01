@@ -71,44 +71,73 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
     if (_esModoEdicion) {
       // MODO EDICIÓN: actualizar tarjeta
       context.read<TarjetaBloc>().add(
-            ActualizarTarjeta(
-              tarjetaId: widget.tarjeta!.id,
-              titular: _titularController.text,
-              fechaVencimiento: _vencimientoController.text,
-              esPredeterminada: _esPredeterminada,
-            ),
-          );
+        ActualizarTarjeta(
+          tarjetaId: widget.tarjeta!.id,
+          titular: _titularController.text,
+          fechaVencimiento: _vencimientoController.text,
+          esPredeterminada: _esPredeterminada,
+        ),
+      );
+      
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tarjeta actualizada exitosamente')),
-      );
-      context.pop();
+        await showDialog(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.check_circle, color: Colors.green, size: 48),
+                const SizedBox(height: 16),
+                const Text(
+                  '¡Actualizado!',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'La tarjeta se ha actualizado correctamente.',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext); // Cierra el diálogo
+                  Navigator.pop(context);       // Cierra la pantalla
+                },
+                child: const Text('Aceptar'),
+              ),
+            ],
+          ),
+        );
+      context.pop(); 
       return;
     }
 
-    // MODO AGREGAR
     if (_guardarTarjeta) {
-      // Guardar tarjeta y luego procesar pago (si es flujo de donación)
       setState(() => _procesandoPago = true);
       
       try {
         context.read<TarjetaBloc>().add(
-              GuardarNuevaTarjeta(
-                usuarioId: usuarioId,
-                numeroTarjeta: _numeroController.text.replaceAll(' ', ''),
-                titular: _titularController.text,
-                fechaVencimiento: _vencimientoController.text,
-                cvv: _cvvController.text,
-                esPredeterminada: _esPredeterminada,
-              ),
-            );
+          GuardarNuevaTarjeta(
+            usuarioId: usuarioId,
+            numeroTarjeta: _numeroController.text.replaceAll(' ', ''),
+            titular: _titularController.text,
+            fechaVencimiento: _vencimientoController.text,
+            cvv: _cvvController.text,
+            esPredeterminada: _esPredeterminada,
+          ),
+        );
 
-        // Esperar a que se guarde
         await Future.delayed(const Duration(milliseconds: 800));
         if (!mounted) return;
 
-        // Si es flujo de donación, procesar el pago
         if (_esFlujoDonacion) {
           final exito = await _procesarPagoService.procesarPago(
             monto: widget.monto!,
@@ -127,7 +156,6 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
             context.go('/donacion-error');
           }
         } else {
-          // Solo era agregar tarjeta desde perfil
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Tarjeta guardada exitosamente')),
           );
@@ -175,27 +203,27 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-          onPressed: _procesandoPago ? null : () => context.pop(),
-        ),
-        title: Text(
-          _esModoEdicion ? 'Editar tarjeta' : 'Agregar tarjeta',
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.background,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+              onPressed: _procesandoPago ? null : () => context.pop(),
+            ),
+            title: Text(
+              _esModoEdicion ? 'Editar tarjeta' : 'Agregar tarjeta',
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            centerTitle: true,
           ),
-        ),
-        centerTitle: true,
-      ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
+          body: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Form(
               key: _formKey,
@@ -230,7 +258,6 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Número de tarjeta (solo en modo agregar)
                   if (!_esModoEdicion) ...[
                     const Text(
                       'Número de tarjeta',
@@ -401,7 +428,6 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Opciones de guardar/predeterminada (solo en modo agregar)
                   if (!_esModoEdicion) ...[
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -540,7 +566,6 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.lock, color: Colors.white, size: 20),
                                 const SizedBox(width: 8),
                                 Text(
                                   _esModoEdicion
@@ -582,36 +607,50 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
               ),
             ),
           ),
+        ),
 
-          // Overlay de procesamiento
-          if (_procesandoPago)
-            Container(
-              color: Colors.black54,
-              child: const Center(
+        // Overlay de procesamiento
+        if (_procesandoPago)
+          DefaultTextStyle(
+            style: const TextStyle(
+              color: Colors.white,
+              decoration: TextDecoration.none,
+              fontFamily: 'Roboto',
+            ),
+            child: Container(
+              color: Colors.black87, 
+              child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircularProgressIndicator(color: Colors.white),
-                    SizedBox(height: 24),
-                    Text(
-                      'Procesando pago...',
+                    const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Procesando...',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.none,
                       ),
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Por favor no cierres la app',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Por favor no cierres la aplicación',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        decoration: TextDecoration.none, 
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }

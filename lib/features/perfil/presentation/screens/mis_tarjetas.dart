@@ -34,14 +34,14 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
   void _confirmarEliminarTarjeta(BuildContext context, Tarjeta tarjeta) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Eliminar tarjeta'),
         content: Text('¿Estás seguro de eliminar la tarjeta ${tarjeta.numeroEnmascarado}?'),
         actions: [
           ElevatedButton(
             onPressed: () {
               context.read<TarjetaBloc>().add(EliminarTarjeta(tarjeta.id));
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Tarjeta eliminada')),
               );
@@ -50,7 +50,7 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
             child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancelar'),
           ),
         ],
@@ -60,150 +60,162 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return BlocListener<TarjetaBloc, TarjetaState>(
+      listener: (context, state) {
+        if (state is TarjetaEliminada) {
+          _cargarTarjetas();
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-          onPressed: () => context.pop(),
-        ),
-        title: const Text(
-          'Mis tarjetas',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+            onPressed: () => context.pop(),
           ),
+          title: const Text(
+            'Mis tarjetas',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
         ),
-        centerTitle: true,
-      ),
-      body: BlocBuilder<TarjetaBloc, TarjetaState>(
-        builder: (context, state) {
-          if (state is TarjetaLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+        body: BlocBuilder<TarjetaBloc, TarjetaState>(
+          builder: (context, state) {
+            if (state is TarjetaLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (state is TarjetaLoaded) {
-            if (state.tarjetas.isEmpty) {
+            if (state is TarjetaLoaded) {
+              if (state.tarjetas.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.credit_card,
+                        size: 80,
+                        color: AppColors.textSecondary.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No tienes tarjetas guardadas',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Agrega una tarjeta para hacer donaciones más rápido',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
+                      ElevatedButton.icon(
+                        onPressed: () => context.push('/agregar-tarjeta'),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Agregar tarjeta'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${state.tarjetas.length} tarjeta(s) guardada(s)',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () => context.push('/agregar-tarjeta'),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Agregar'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: state.tarjetas.length,
+                      itemBuilder: (context, index) {
+                        final tarjeta = state.tarjetas[index];
+                        return TarjetaCard(
+                          tarjeta: tarjeta,
+                          onTap: () {
+                            _mostrarOpcionesTarjeta(context, tarjeta);
+                          },
+                          onEdit: () async {
+                            await context.push('/editar-tarjeta', extra: tarjeta);
+                            _cargarTarjetas();
+                          },
+                          onDelete: () {
+                            _confirmarEliminarTarjeta(context, tarjeta);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            if (state is TarjetaError) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.credit_card,
-                      size: 80,
-                      color: AppColors.textSecondary.withValues(alpha: 0.5),
-                    ),
+                    const Icon(Icons.error_outline, size: 64, color: Colors.red),
                     const SizedBox(height: 16),
-                    const Text(
-                      'No tienes tarjetas guardadas',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Agrega una tarjeta para hacer donaciones más rápido',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 32),
-                    ElevatedButton.icon(
-                      onPressed: () => context.push('/agregar-tarjeta'),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Agregar tarjeta'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                    Text(state.message),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _cargarTarjetas,
+                      child: const Text('Reintentar'),
                     ),
                   ],
                 ),
               );
             }
 
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${state.tarjetas.length} tarjeta(s) guardada(s)',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      TextButton.icon(
-                        onPressed: () => context.push('/agregar-tarjeta'),
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Agregar'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: state.tarjetas.length,
-                    itemBuilder: (context, index) {
-                      final tarjeta = state.tarjetas[index];
-                      return TarjetaCard(
-                        tarjeta: tarjeta,
-                        onTap: () {
-                          _mostrarOpcionesTarjeta(context, tarjeta);
-                        },
-                        onEdit: () {
-                          context.push('/editar-tarjeta', extra: tarjeta);
-                        },
-                        onDelete: () {
-                          _confirmarEliminarTarjeta(context, tarjeta);
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          }
+            if (state is TarjetaEliminada) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (state is TarjetaError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(state.message),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _cargarTarjetas,
-                    child: const Text('Reintentar'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return const SizedBox.shrink();
-        },
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
   }
@@ -227,9 +239,45 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
               ListTile(
                 leading: const Icon(Icons.star),
                 title: const Text('Establecer como predeterminada'),
-                onTap: () {
-                  context.read<TarjetaBloc>().add(EstablecerPredeterminada(tarjeta.id));
+                onTap: () async {
                   Navigator.pop(context);
+                  context.read<TarjetaBloc>().add(EstablecerPredeterminada(tarjeta.id));
+                  await Future.delayed(const Duration(milliseconds: 600));
+                  _cargarTarjetas();
+                  if (mounted) {
+                    showDialog(
+                      context: context,
+                      builder: (dialogContext) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.green, size: 48),
+                            const SizedBox(height: 16),
+                            const Text(
+                              '¡Listo!',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Tarjeta establecida como predeterminada',
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(dialogContext),
+                            child: const Text('Aceptar'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                 },
               ),
             ListTile(

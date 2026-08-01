@@ -70,7 +70,7 @@ import 'package:huellitas/features/foro/presentation/foro_screen.dart';
 import 'package:huellitas/features/donaciones/presentation/screens/donaciones_screen.dart';
 import 'package:huellitas/features/donaciones/presentation/screens/seleccion_cantidad_screen.dart';
 import 'package:huellitas/features/donaciones/presentation/screens/monto_personalizado_screen.dart';
-import 'package:huellitas/features/donaciones/presentation/screens/metodo_pago_screen.dart';
+
 import 'package:huellitas/features/donaciones/presentation/screens/confirmacion_donacion_screen.dart';
 import 'package:huellitas/features/donaciones/presentation/screens/donacion_error_screen.dart';
 
@@ -337,11 +337,6 @@ final GoRouter router = GoRouter(
       path: '/monto-personalizado',
       name: 'monto-personalizado',
       builder: (context, state) => const MontoPersonalizadoScreen(),
-    ),
-    GoRoute(
-      path: '/metodo-pago',
-      name: 'metodo-pago',
-      builder: (context, state) => const MetodoPagoScreen(),
     ),
     GoRoute(
       path: '/confirmacion-donacion',
