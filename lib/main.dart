@@ -31,6 +31,10 @@ import 'features/donaciones/presentation/bloc/tarjeta/tarjeta_bloc.dart';
 import 'features/donaciones/domain/usecases/actualizar_tarjeta_usecase.dart';
 import 'features/donaciones/domain/usecases/establecer_predeterminada_usecase.dart';
 
+import 'features/foro/data/datasources/foro_remote_datasource_impl.dart';
+import 'features/foro/data/repositories/foro_repository_impl.dart';
+import 'features/foro/domain/repositories/foro_repository.dart';
+
 void main() {
   final dio = Dio(
     BaseOptions(baseUrl: 'https://huellitas-backend-xekn.onrender.com'),
@@ -62,6 +66,8 @@ void main() {
   
   final actualizarTarjetaUseCase = ActualizarTarjetaUseCase(tarjetaRepository);
   final establecerPredeterminadaUseCase = EstablecerPredeterminadaUseCase(tarjetaRepository);
+  final foroDataSource = ForoRemoteDataSourceImpl(dio);
+  final foroRepository = ForoRepositoryImpl(foroDataSource);
 
   dio.interceptors.add(
     InterceptorsWrapper(
@@ -86,6 +92,7 @@ void main() {
         RepositoryProvider<InsigniaRepositoryImpl>.value(
           value: insigniaRepository,
         ),
+        RepositoryProvider<ForoRepository>.value(value: foroRepository),
       ],
       child: MultiBlocProvider(
         providers: [
