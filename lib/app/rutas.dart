@@ -82,7 +82,13 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const PasswordScreen(),
     ),
 
-    GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+    GoRoute(
+      path: '/home',
+      builder: (context, state) {
+        final reporteIdInicial = state.extra as int?;
+        return HomeScreen(reporteIdInicial: reporteIdInicial);
+      },
+    ),
 
     GoRoute(
       path: '/report-success',

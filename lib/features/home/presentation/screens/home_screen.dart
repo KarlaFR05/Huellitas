@@ -25,7 +25,9 @@ const int _faseConcluido = 3;
 const Duration _tiempoVisibleTrasConcluir = Duration(seconds: 35);
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final int? reporteIdInicial;
+
+  const HomeScreen({super.key, this.reporteIdInicial});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -197,6 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               markers: _markersVisibles(estaVerificado),
                               userLocation: _userLocation,
                               mapController: _mapController,
+                              reporteIdInicial: widget.reporteIdInicial,
                             );
                           },
                         ),

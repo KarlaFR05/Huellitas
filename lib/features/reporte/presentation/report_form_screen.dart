@@ -13,6 +13,8 @@ import '../../auth/presentation/bloc/auth_bloc.dart';
 import '../../auth/presentation/bloc/auth_state.dart';
 import '../../auth/domain/entities/usuario.dart';
 import 'package:flutter/services.dart';
+import 'widgets/dialogo_duplicado.dart';
+import 'widgets/loading_dialog.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -44,6 +46,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   String? _otraRazaError;
 
   final LocationService _locationService = LocationService();
+
+  bool _loadingDialogVisible = false;
 
   // Evidencia (Límite de 1 imagen)
   final List<File> _evidenceImages = [];
@@ -698,10 +702,41 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   Widget build(BuildContext context) {
     return BlocListener<ReporteBloc, ReporteState>(
       listener: (context, state) {
+        final estaCargando = state is ReporteSubmitting;
+
+        if (estaCargando && !_loadingDialogVisible) {
+          _loadingDialogVisible = true;
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const LoadingDialog(),
+          );
+        } else if (!estaCargando && _loadingDialogVisible) {
+          _loadingDialogVisible = false;
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+
         if (state is ReporteSuccess) {
           context.go('/report-success');
         } else if (state is ReporteError) {
           _showErrorDialog(state.message);
+        } else if (state is ReporteDuplicadoDetectado) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (dialogContext) => DialogoDuplicado(
+              candidatos: state.candidatos,
+              onEsDiferente: () {
+                Navigator.of(dialogContext).pop();
+                context.read<ReporteBloc>().add(ConfirmarCreacionForzada());
+              },
+              onVerEnMapa: (reporteId) {
+                Navigator.of(dialogContext).pop();
+                context.read<ReporteBloc>().add(CancelarCreacionPorDuplicado());
+                context.go('/home', extra: reporteId);
+              },
+            ),
+          );
         }
       },
       child: Scaffold(
