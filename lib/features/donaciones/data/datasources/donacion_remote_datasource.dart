@@ -10,10 +10,12 @@ abstract class DonacionRemoteDataSource {
     required int usuarioId,
     required int organizacionId,
     required double monto,
-    required String numeroTarjeta,
+    /*required String numeroTarjeta,
     required String titularTarjeta,
     required String cvv,
-    required String fechaVencimiento,
+    required String fechaVencimiento,*/
+    required int tarjetaId,
+    String metodoPago, 
   });
 }
 
@@ -46,20 +48,24 @@ class DonacionRemoteDataSourceImpl implements DonacionRemoteDataSource {
     required int usuarioId,
     required int organizacionId,
     required double monto,
-    required String numeroTarjeta,
+    /*required String numeroTarjeta,
     required String titularTarjeta,
     required String cvv,
-    required String fechaVencimiento,
+    required String fechaVencimiento,*/
+    required int tarjetaId,
+    String metodoPago = 'tarjeta',
   }) async {
     try {
       final payload = {
         'usuarioId': usuarioId,
         'organizacionId': organizacionId,
         'monto': monto,
-        'numeroTarjeta': numeroTarjeta,
+        /*'numeroTarjeta': numeroTarjeta,
         'titularTarjeta': titularTarjeta,
         'cvv': cvv,
-        'fechaVencimiento': fechaVencimiento,
+        'fechaVencimiento': fechaVencimiento,*/
+        'tarjetaId': tarjetaId,
+        'metodoPago': metodoPago,
       };
 
       print('Enviando donacion:');
@@ -122,10 +128,12 @@ class DonacionRemoteDataSourceImpl implements DonacionRemoteDataSource {
       usuarioId: json['usuario_id'] ?? json['usuarioId'] ?? 0,
       organizacionId: json['organizacion_id'] ?? json['organizacionId'] ?? 0,
       monto: (json['monto'] as num?)?.toDouble() ?? 0.0,
-      numeroTarjeta: json['numero_tarjeta'] ?? json['numeroTarjeta'] ?? '',
+      /*numeroTarjeta: json['numero_tarjeta'] ?? json['numeroTarjeta'] ?? '',
       titularTarjeta: json['titular_tarjeta'] ?? json['titularTarjeta'] ?? '',
       cvv: json['cvv'] ?? '',
-      fechaVencimiento: json['fecha_vencimiento'] ?? json['fechaVencimiento'] ?? '',
+      fechaVencimiento: json['fecha_vencimiento'] ?? json['fechaVencimiento'] ?? '',*/
+      tarjetaId: json['tarjeta_id'] ?? json['tarjetaId'] ?? 0,
+      metodoPago: json['metodo_pago'] ?? json['metodoPago'] ?? 'tarjeta',
       fechaDonacion: json['fecha_donacion'] != null 
           ? DateTime.parse(json['fecha_donacion']) 
           : (json['fechaDonacion'] != null 

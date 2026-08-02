@@ -10,19 +10,23 @@ class CrearDonacionUseCase {
     required int usuarioId,
     required int organizacionId,
     required double monto,
-    required String numeroTarjeta,
+    /*required String numeroTarjeta,
     required String titularTarjeta,
     required String cvv,
-    required String fechaVencimiento,
+    required String fechaVencimiento,*/
+    required int tarjetaId,
+    String metodoPago = 'tarjeta',
   }) async {
     return await repository.crearDonacion(
       usuarioId: usuarioId,
       organizacionId: organizacionId,
       monto: monto,
-      numeroTarjeta: numeroTarjeta,
+      /*numeroTarjeta: numeroTarjeta,
       titularTarjeta: titularTarjeta,
       cvv: cvv,
-      fechaVencimiento: fechaVencimiento,
+      fechaVencimiento: fechaVencimiento,*/
+      tarjetaId: tarjetaId,
+      metodoPago: metodoPago,
     );
   }
 }

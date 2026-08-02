@@ -8,9 +8,11 @@ abstract class DonacionRepository {
     required int usuarioId,
     required int organizacionId,
     required double monto,
-    required String numeroTarjeta,
+    /*required String numeroTarjeta,
     required String titularTarjeta,
     required String cvv,
-    required String fechaVencimiento,
+    required String fechaVencimiento,*/
+    required int tarjetaId, 
+    String metodoPago,
   });
 }

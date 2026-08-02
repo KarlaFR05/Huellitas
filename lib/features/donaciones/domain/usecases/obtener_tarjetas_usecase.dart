@@ -6,7 +6,7 @@ class ObtenerTarjetasUseCase {
 
   ObtenerTarjetasUseCase(this.repository);
 
-  Future<List<Tarjeta>> call(int usuarioId) async {
-    return await repository.obtenerTarjetasUsuario(usuarioId);
+  Future<List<Tarjeta>> call(/*int usuarioId*/) async {
+    return await repository.obtenerTarjetasUsuario(/*usuarioId*/);
   }
 }
