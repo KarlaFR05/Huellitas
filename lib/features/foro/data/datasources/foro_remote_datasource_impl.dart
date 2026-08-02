@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
 import 'foro_remote_datasource.dart';
 import '../models/comentario_model.dart';
@@ -20,16 +19,16 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
     String? cursor,
     int limite = 20,
   }) async {
-    final res = await dio.get('/publicaciones/feed', queryParameters: {
-      if (categoria != null) 'categoria': categoria,
-      if (grupoId != null) 'grupo_id': grupoId,
-      if (cursor != null) 'cursor': cursor,
-      'limite': limite,
-    });
-    return PaginaModel.fromJson(
-      res.data,
-      (j) => PublicacionModel.fromJson(j),
+    final res = await dio.get(
+      '/publicaciones/feed',
+      queryParameters: {
+        if (categoria != null) 'categoria': categoria,
+        if (grupoId != null) 'grupo_id': grupoId,
+        if (cursor != null) 'cursor': cursor,
+        'limite': limite,
+      },
     );
+    return PaginaModel.fromJson(res.data, (j) => PublicacionModel.fromJson(j));
   }
 
   @override
@@ -104,15 +103,9 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
   }) async {
     final res = await dio.get(
       '/publicaciones/$publicacionId/comentarios',
-      queryParameters: {
-        if (cursor != null) 'cursor': cursor,
-        'limite': limite,
-      },
+      queryParameters: {if (cursor != null) 'cursor': cursor, 'limite': limite},
     );
-    return PaginaModel.fromJson(
-      res.data,
-      (j) => ComentarioModel.fromJson(j),
-    );
+    return PaginaModel.fromJson(res.data, (j) => ComentarioModel.fromJson(j));
   }
 
   @override
@@ -121,11 +114,14 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
     required String contenido,
     int? comentarioPadreId,
   }) async {
-    final res = await dio.post('/comentarios', data: {
-      'publicacion_id': publicacionId,
-      'contenido': contenido,
-      if (comentarioPadreId != null) 'comentario_padre_id': comentarioPadreId,
-    });
+    final res = await dio.post(
+      '/comentarios',
+      data: {
+        'publicacion_id': publicacionId,
+        'contenido': contenido,
+        if (comentarioPadreId != null) 'comentario_padre_id': comentarioPadreId,
+      },
+    );
     return ComentarioModel.fromJson(res.data);
   }
 
@@ -151,11 +147,14 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
     String? cursor,
     int limite = 20,
   }) async {
-    final res = await dio.get('/grupos', queryParameters: {
-      if (busqueda != null) 'busqueda': busqueda,
-      if (cursor != null) 'cursor': cursor,
-      'limite': limite,
-    });
+    final res = await dio.get(
+      '/grupos',
+      queryParameters: {
+        if (busqueda != null) 'busqueda': busqueda,
+        if (cursor != null) 'cursor': cursor,
+        'limite': limite,
+      },
+    );
     return (res.data as List).map((j) => GrupoModel.fromJson(j)).toList();
   }
 
@@ -252,8 +251,30 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
   @override
   Future<List<MembresiaGrupoModel>> obtenerSolicitudes(int grupoId) async {
     final res = await dio.get('/grupos/$grupoId/solicitudes');
-    return (res.data as List)
-        .map((j) => MembresiaGrupoModel.fromJson(j))
+    final data = res.data is Map && res.data['solicitudes'] is List
+        ? res.data['solicitudes'] as List
+        : res.data as List;
+    return data
+        .map(
+          (json) => MembresiaGrupoModel.fromJson(
+            Map<String, dynamic>.from(json as Map),
+          ),
+        )
+        .toList();
+  }
+
+  @override
+  Future<List<MembresiaGrupoModel>> obtenerMiembros(int grupoId) async {
+    final res = await dio.get('/grupos/$grupoId/miembros');
+    final data = res.data is Map && res.data['miembros'] is List
+        ? res.data['miembros'] as List
+        : res.data as List;
+    return data
+        .map(
+          (json) => MembresiaGrupoModel.fromJson(
+            Map<String, dynamic>.from(json as Map),
+          ),
+        )
         .toList();
   }
 
@@ -263,10 +284,10 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
     required int usuarioId,
     required bool aceptar,
   }) async {
-    await dio.post('/grupos/$grupoId/solicitudes/responder', data: {
-      'usuario_id': usuarioId,
-      'aceptar': aceptar,
-    });
+    await dio.post(
+      '/grupos/$grupoId/solicitudes/responder',
+      data: {'usuario_id': usuarioId, 'aceptar': aceptar},
+    );
   }
 
   @override
@@ -274,8 +295,9 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
     required int grupoId,
     required int usuarioId,
   }) async {
-    await dio.post('/grupos/$grupoId/miembros/eliminar', data: {
-      'usuario_id': usuarioId,
-    });
+    await dio.post(
+      '/grupos/$grupoId/miembros/eliminar',
+      data: {'usuario_id': usuarioId},
+    );
   }
 }

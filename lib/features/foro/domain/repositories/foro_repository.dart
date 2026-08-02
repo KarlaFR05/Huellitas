@@ -14,6 +14,7 @@ abstract class ForoRepository {
     String? titulo,
     String? contenido,
     CategoriaPublicacion? categoria,
+    String? imagenLocalPath,
   });
   Future<void> eliminarPublicacion(int publicacionId);
   Future<Publicacion> cambiarMeGusta(int publicacionId);

@@ -40,13 +40,27 @@ class PublicacionModel {
   });
 
   factory PublicacionModel.fromJson(Map<String, dynamic> json) {
+    final usuario = json['usuario'] is Map
+        ? Map<String, dynamic>.from(json['usuario'] as Map)
+        : const <String, dynamic>{};
     return PublicacionModel(
       id: json['publicacion_id'] as int,
       usuarioId: json['usuario_id'] as int?,
       grupoId: json['grupo_id_fk'] as int?,
       titulo: json['titulo'] as String,
-      nombreUsuario: json['nombre_usuario'] as String,
-      fotoUsuarioUrl: json['foto_usuario'] as String?,
+      nombreUsuario:
+          (json['nombre_usuario'] ??
+                  usuario['nombre_usuario'] ??
+                  usuario['nombreUsuario'] ??
+                  usuario['nombre'] ??
+                  'Usuario')
+              .toString(),
+      fotoUsuarioUrl: _textoOpcional(
+        json['foto_usuario'] ??
+            json['foto_perfil'] ??
+            usuario['foto_perfil'] ??
+            usuario['fotoPerfil'],
+      ),
       contenido: json['contenido'] as String,
       imagenUrl: json['imagen_url'] as String?,
       categoria: json['categoria'] as String?,
@@ -66,33 +80,33 @@ class PublicacionModel {
   }
 
   Map<String, dynamic> toJson() => {
-        'publicacion_id': id,
-        'usuario_id': usuarioId,
-        'grupo_id_fk': grupoId,
-        'titulo': titulo,
-        'contenido': contenido,
-        'categoria': categoria,
-      };
+    'publicacion_id': id,
+    'usuario_id': usuarioId,
+    'grupo_id_fk': grupoId,
+    'titulo': titulo,
+    'contenido': contenido,
+    'categoria': categoria,
+  };
 
   Publicacion toEntity() => Publicacion(
-        id: id,
-        usuarioId: usuarioId,
-        grupoId: grupoId,
-        titulo: titulo,
-        nombreUsuario: nombreUsuario,
-        fotoUsuarioUrl: fotoUsuarioUrl,
-        contenido: contenido,
-        imagenUrl: imagenUrl,
-        categoria: _parseCategoria(categoria),
-        estado: _parseEstado(estado),
-        nombreGrupo: nombreGrupo,
-        fecha: fecha,
-        fechaActualizacion: fechaActualizacion,
-        fechaEliminacion: fechaEliminacion,
-        meGusta: meGusta,
-        comentarios: comentarios,
-        leGustaAlUsuario: leGustaAlUsuario,
-      );
+    id: id,
+    usuarioId: usuarioId,
+    grupoId: grupoId,
+    titulo: titulo,
+    nombreUsuario: nombreUsuario,
+    fotoUsuarioUrl: fotoUsuarioUrl,
+    contenido: contenido,
+    imagenUrl: imagenUrl,
+    categoria: _parseCategoria(categoria),
+    estado: _parseEstado(estado),
+    nombreGrupo: nombreGrupo,
+    fecha: fecha,
+    fechaActualizacion: fechaActualizacion,
+    fechaEliminacion: fechaEliminacion,
+    meGusta: meGusta,
+    comentarios: comentarios,
+    leGustaAlUsuario: leGustaAlUsuario,
+  );
 
   static CategoriaPublicacion _parseCategoria(String? c) {
     if (c == null) return CategoriaPublicacion.cuidado;
@@ -107,5 +121,10 @@ class PublicacionModel {
       (x) => x.name == e,
       orElse: () => EstadoPublicacion.activa,
     );
+  }
+
+  static String? _textoOpcional(Object? valor) {
+    final texto = valor?.toString().trim();
+    return texto == null || texto.isEmpty ? null : texto;
   }
 }

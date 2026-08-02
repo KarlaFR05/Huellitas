@@ -32,13 +32,27 @@ class ComentarioModel {
   });
 
   factory ComentarioModel.fromJson(Map<String, dynamic> json) {
+    final usuario = json['usuario'] is Map
+        ? Map<String, dynamic>.from(json['usuario'] as Map)
+        : const <String, dynamic>{};
     return ComentarioModel(
       id: json['comentario_id'] as int,
       publicacionId: json['publicacion_id_fk'] as int,
       usuarioId: json['usuario_id_fk'] as int?,
       comentarioPadreId: json['comentario_padre_id'] as int?,
-      nombreUsuario: json['nombre_usuario'] as String,
-      fotoUsuarioUrl: json['foto_usuario'] as String?,
+      nombreUsuario:
+          (json['nombre_usuario'] ??
+                  usuario['nombre_usuario'] ??
+                  usuario['nombreUsuario'] ??
+                  usuario['nombre'] ??
+                  'Usuario')
+              .toString(),
+      fotoUsuarioUrl: _textoOpcional(
+        json['foto_usuario'] ??
+            json['foto_perfil'] ??
+            usuario['foto_perfil'] ??
+            usuario['fotoPerfil'],
+      ),
       contenido: json['contenido'] as String,
       estado: json['estado'] as String,
       fechaCreacion: DateTime.parse(json['fecha_creacion'] as String),
@@ -54,21 +68,26 @@ class ComentarioModel {
   }
 
   Comentario toEntity() => Comentario(
-        id: id,
-        publicacionId: publicacionId,
-        usuarioId: usuarioId,
-        comentarioPadreId: comentarioPadreId,
-        nombreUsuario: nombreUsuario,
-        fotoUsuarioUrl: fotoUsuarioUrl,
-        contenido: contenido,
-        estado: EstadoComentario.values.firstWhere(
-          (e) => e.name == estado,
-          orElse: () => EstadoComentario.activo,
-        ),
-        fechaCreacion: fechaCreacion,
-        fechaEdicion: fechaEdicion,
-        fechaEliminacion: fechaEliminacion,
-        cantidadMeGusta: cantidadMeGusta,
-        leGustaAlUsuario: leGustaAlUsuario,
-      );
+    id: id,
+    publicacionId: publicacionId,
+    usuarioId: usuarioId,
+    comentarioPadreId: comentarioPadreId,
+    nombreUsuario: nombreUsuario,
+    fotoUsuarioUrl: fotoUsuarioUrl,
+    contenido: contenido,
+    estado: EstadoComentario.values.firstWhere(
+      (e) => e.name == estado,
+      orElse: () => EstadoComentario.activo,
+    ),
+    fechaCreacion: fechaCreacion,
+    fechaEdicion: fechaEdicion,
+    fechaEliminacion: fechaEliminacion,
+    cantidadMeGusta: cantidadMeGusta,
+    leGustaAlUsuario: leGustaAlUsuario,
+  );
+
+  static String? _textoOpcional(Object? valor) {
+    final texto = valor?.toString().trim();
+    return texto == null || texto.isEmpty ? null : texto;
+  }
 }

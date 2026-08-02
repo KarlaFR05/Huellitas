@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/errors/mensaje_error.dart';
+import '../../../auth/domain/entities/usuario.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/grupo.dart';
 import '../../domain/entities/publicacion.dart';
+import '../../domain/entities/solicitudes_foro.dart';
+import '../../domain/repositories/foro_repository.dart';
 import '../widgets/publicacion_card.dart';
 import '../widgets/grupo_imagen.dart';
 import 'comentarios_screen.dart';
+import 'crear_grupo_screen.dart';
 import 'crear_publicacion_screen.dart';
+import 'administrar_grupo_screen.dart';
 
 class GrupoDetalleScreen extends StatefulWidget {
   final Grupo grupo;
@@ -19,35 +28,73 @@ class GrupoDetalleScreen extends StatefulWidget {
 class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
   late Grupo _grupo;
   final List<Publicacion> _publicaciones = [];
+  bool _inicializado = false;
+  bool _cargando = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
     _grupo = widget.grupo;
-    _publicaciones.add(
-      Publicacion(
-        id: 101,
-        titulo: 'Bienvenidos al grupo',
-        nombreUsuario: 'Administración',
-        contenido:
-            'Este espacio es para compartir información relacionada con ${_grupo.nombre}.',
-        fecha: DateTime.now().subtract(const Duration(hours: 5)),
-        meGusta: 9,
-        comentarios: 2,
-        categoria: CategoriaPublicacion.cuidado,
-        nombreGrupo: _grupo.nombre,
-      ),
-    );
   }
 
-  void _cambiarMembresia() {
-    final seUne = !_grupo.esMiembro;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_inicializado) return;
+    _inicializado = true;
+    _cargar();
+  }
+
+  Future<void> _cargar() async {
     setState(() {
-      _grupo = _grupo.copyWith(
-        esMiembro: seUne,
-        cantidadMiembros: _grupo.cantidadMiembros + (seUne ? 1 : -1),
-      );
+      _cargando = true;
+      _error = null;
     });
+    try {
+      final repository = context.read<ForoRepository>();
+      final grupo = await repository.obtenerGrupo(_grupo.id);
+      final pagina = await repository.obtenerFeed(
+        FiltroPublicaciones(grupoId: _grupo.id),
+      );
+      if (!mounted) return;
+      setState(() {
+        _grupo = grupo;
+        _publicaciones
+          ..clear()
+          ..addAll(pagina.elementos);
+        _cargando = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _cargando = false;
+        _error = mensajeDeError(error);
+      });
+    }
+  }
+
+  Future<void> _cambiarMembresia() async {
+    if (_grupo.solicitudPendiente) return;
+    try {
+      final repository = context.read<ForoRepository>();
+      late Grupo actualizado;
+      if (!_grupo.esMiembro && _grupo.privacidad == PrivacidadGrupo.privado) {
+        actualizado = await repository.solicitarIngresoGrupo(_grupo.id);
+        actualizado = actualizado.copyWith(solicitudPendiente: true);
+      } else if (_grupo.esMiembro) {
+        actualizado = await repository.salirDeGrupo(_grupo.id);
+      } else {
+        actualizado = await repository.unirseAGrupo(_grupo.id);
+      }
+      if (mounted) setState(() => _grupo = actualizado);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(mensajeDeError(error))));
+      }
+    }
   }
 
   Future<void> _crearPublicacion() async {
@@ -64,32 +111,118 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
     );
     if (resultado == null || !mounted) return;
 
-    setState(() {
-      _publicaciones.insert(
-        0,
-        Publicacion(
-          id: DateTime.now().millisecondsSinceEpoch,
+    try {
+      final creada = await context.read<ForoRepository>().crearPublicacion(
+        CrearPublicacionSolicitud(
           titulo: resultado['titulo'] as String,
-          nombreUsuario: 'Usuario actual',
           contenido: resultado['contenido'] as String,
           categoria: resultado['categoria'] as CategoriaPublicacion,
-          nombreGrupo: _grupo.nombre,
-          imagenPath: (resultado['imagen'] as dynamic)?.path as String?,
-          fecha: DateTime.now(),
+          grupoId: _grupo.id,
+          imagenLocalPath: (resultado['imagen'] as dynamic)?.path as String?,
         ),
       );
-    });
+      if (mounted) setState(() => _publicaciones.insert(0, creada));
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(mensajeDeError(error))));
+      }
+    }
+  }
+
+  Future<void> _editarGrupo() async {
+    final resultado = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(builder: (_) => CrearGrupoScreen(grupo: _grupo)),
+    );
+    if (resultado == null || !mounted) return;
+    try {
+      final actualizado = await context.read<ForoRepository>().actualizarGrupo(
+        _grupo.id,
+        nombre: resultado['nombre'] as String,
+        descripcion: resultado['descripcion'] as String,
+        privacidad: resultado['privacidad'] as PrivacidadGrupo,
+        fotoPerfilLocalPath: resultado['perfilPath'] as String?,
+        fotoPortadaLocalPath: resultado['portadaPath'] as String?,
+      );
+      if (mounted) setState(() => _grupo = actualizado);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(mensajeDeError(error))));
+      }
+    }
+  }
+
+  Future<void> _editarPublicacionGrupo(Publicacion publicacion) async {
+    final resultado = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CrearPublicacionScreen(publicacion: publicacion),
+      ),
+    );
+    if (resultado == null || !mounted) return;
+    try {
+      final actualizada = await context
+          .read<ForoRepository>()
+          .actualizarPublicacion(
+            publicacion.id,
+            titulo: resultado['titulo'] as String,
+            contenido: resultado['contenido'] as String,
+            categoria: resultado['categoria'] as CategoriaPublicacion,
+            imagenLocalPath: (resultado['imagen'] as dynamic)?.path as String?,
+          );
+      final index = _publicaciones.indexWhere(
+        (item) => item.id == actualizada.id,
+      );
+      if (mounted && index >= 0) {
+        setState(() => _publicaciones[index] = actualizada);
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(mensajeDeError(error))));
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    final usuarioId = authState is AuthSuccess && authState.data is Usuario
+        ? (authState.data as Usuario).usuarioIdPk
+        : null;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) Navigator.pop(context, _grupo);
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Comunidad')),
+        appBar: AppBar(
+          title: const Text('Comunidad'),
+          actions: [
+            if (_grupo.esAdministradorActual)
+              IconButton(
+                tooltip: 'Editar grupo',
+                onPressed: _editarGrupo,
+                icon: const Icon(Icons.edit_outlined),
+              ),
+            if (_grupo.esAdministradorActual)
+              IconButton(
+                tooltip: 'Administrar miembros',
+                onPressed: () => Navigator.push<void>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AdministrarGrupoScreen(grupo: _grupo),
+                  ),
+                ),
+                icon: const Icon(Icons.manage_accounts_outlined),
+              ),
+          ],
+        ),
         body: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
@@ -205,7 +338,13 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
                     const SizedBox(height: 14),
                     SizedBox(
                       width: double.infinity,
-                      child: _grupo.esMiembro
+                      child: _grupo.solicitudPendiente
+                          ? OutlinedButton.icon(
+                              onPressed: null,
+                              icon: const Icon(Icons.schedule_rounded),
+                              label: const Text('Solicitud pendiente'),
+                            )
+                          : _grupo.esMiembro
                           ? OutlinedButton.icon(
                               onPressed: _cambiarMembresia,
                               icon: const Icon(Icons.check_rounded),
@@ -229,31 +368,65 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
               ),
             ),
             SliverList.builder(
-              itemCount: _publicaciones.length,
-              itemBuilder: (context, index) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: PublicacionCard(
-                  publicacion: _publicaciones[index],
-                  avatarAsset: _grupo.fotoPerfil,
-                  onMeGusta: () {
-                    final publicacion = _publicaciones[index];
-                    final leGusta = !publicacion.leGustaAlUsuario;
-                    setState(() {
-                      _publicaciones[index] = publicacion.copyWith(
-                        leGustaAlUsuario: leGusta,
-                        meGusta: publicacion.meGusta + (leGusta ? 1 : -1),
-                      );
-                    });
-                  },
-                  onComentarios: () => Navigator.push<void>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          ComentariosScreen(publicacion: _publicaciones[index]),
+              itemCount: _cargando || _error != null || _publicaciones.isEmpty
+                  ? 1
+                  : _publicaciones.length,
+              itemBuilder: (context, index) {
+                if (_cargando) {
+                  return const Padding(
+                    padding: EdgeInsets.all(40),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                if (_error != null) {
+                  return Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: TextButton.icon(
+                        onPressed: _cargar,
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: const Text('Reintentar'),
+                      ),
                     ),
+                  );
+                }
+                if (_publicaciones.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(40),
+                    child: Center(
+                      child: Text('Este grupo todavía no tiene publicaciones.'),
+                    ),
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: PublicacionCard(
+                    publicacion: _publicaciones[index],
+                    avatarUrl: _publicaciones[index].fotoUsuarioUrl,
+                    onMeGusta: () async {
+                      try {
+                        final actualizada = await context
+                            .read<ForoRepository>()
+                            .cambiarMeGusta(_publicaciones[index].id);
+                        if (mounted) {
+                          setState(() => _publicaciones[index] = actualizada);
+                        }
+                      } catch (_) {}
+                    },
+                    onComentarios: () => Navigator.push<void>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ComentariosScreen(
+                          publicacion: _publicaciones[index],
+                        ),
+                      ),
+                    ),
+                    onEditar: _publicaciones[index].usuarioId == usuarioId
+                        ? () => _editarPublicacionGrupo(_publicaciones[index])
+                        : null,
                   ),
-                ),
-              ),
+                );
+              },
             ),
             const SliverPadding(padding: EdgeInsets.only(bottom: 90)),
           ],

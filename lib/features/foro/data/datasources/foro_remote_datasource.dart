@@ -72,13 +72,11 @@ abstract class ForoRemoteDataSource {
   Future<GrupoModel> solicitarIngreso(int id);
   Future<void> cancelarSolicitud(int id);
   Future<List<MembresiaGrupoModel>> obtenerSolicitudes(int grupoId);
+  Future<List<MembresiaGrupoModel>> obtenerMiembros(int grupoId);
   Future<void> responderSolicitud({
     required int grupoId,
     required int usuarioId,
     required bool aceptar,
   });
-  Future<void> eliminarMiembro({
-    required int grupoId,
-    required int usuarioId,
-  });
+  Future<void> eliminarMiembro({required int grupoId, required int usuarioId});
 }

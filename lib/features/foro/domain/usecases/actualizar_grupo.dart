@@ -12,13 +12,12 @@ class ActualizarGrupo {
     PrivacidadGrupo? privacidad,
     String? fotoPerfilLocalPath,
     String? fotoPortadaLocalPath,
-  }) =>
-      repository.actualizarGrupo(
-        grupoId,
-        nombre: nombre,
-        descripcion: descripcion,
-        privacidad: privacidad,
-        fotoPerfilLocalPath: fotoPerfilLocalPath,
-        fotoPortadaLocalPath: fotoPortadaLocalPath,
-      );
+  }) => repository.actualizarGrupo(
+    grupoId,
+    nombre: nombre,
+    descripcion: descripcion,
+    privacidad: privacidad,
+    fotoPerfilLocalPath: fotoPerfilLocalPath,
+    fotoPortadaLocalPath: fotoPortadaLocalPath,
+  );
 }

@@ -39,22 +39,18 @@ class ForoInjection {
       ObtenerFeedForo(repository(dio));
   static ObtenerPublicacion obtenerPublicacion(Dio dio) =>
       ObtenerPublicacion(repository(dio));
-  static ToggleMeGusta toggleMeGusta(Dio dio) =>
-      ToggleMeGusta(repository(dio));
+  static ToggleMeGusta toggleMeGusta(Dio dio) => ToggleMeGusta(repository(dio));
   static ObtenerComentarios obtenerComentarios(Dio dio) =>
       ObtenerComentarios(repository(dio));
   static CrearComentario crearComentario(Dio dio) =>
       CrearComentario(repository(dio));
-  static ObtenerGrupos obtenerGrupos(Dio dio) =>
-      ObtenerGrupos(repository(dio));
+  static ObtenerGrupos obtenerGrupos(Dio dio) => ObtenerGrupos(repository(dio));
   static ObtenerMisGrupos obtenerMisGrupos(Dio dio) =>
       ObtenerMisGrupos(repository(dio));
-  static CrearGrupo crearGrupo(Dio dio) =>
-      CrearGrupo(repository(dio));
+  static CrearGrupo crearGrupo(Dio dio) => CrearGrupo(repository(dio));
   static ActualizarGrupo actualizarGrupo(Dio dio) =>
       ActualizarGrupo(repository(dio));
-  static UnirseAGrupo unirseAGrupo(Dio dio) =>
-      UnirseAGrupo(repository(dio));
+  static UnirseAGrupo unirseAGrupo(Dio dio) => UnirseAGrupo(repository(dio));
   static SolicitarIngresoGrupo solicitarIngresoGrupo(Dio dio) =>
       SolicitarIngresoGrupo(repository(dio));
   static EliminarPublicacion eliminarPublicacion(Dio dio) =>

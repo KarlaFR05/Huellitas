@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/errors/mensaje_error.dart';
 import '../../domain/entities/grupo.dart';
 import '../../domain/entities/membresia_grupo.dart';
 import '../../domain/entities/solicitudes_foro.dart';
@@ -223,7 +224,7 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
       emit(
         state.copyWith(
           status: GruposStatus.error,
-          mensajeError: error.toString(),
+          mensajeError: mensajeDeError(error),
         ),
       );
     }
@@ -237,7 +238,7 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
       final grupos = await repository.obtenerMisGrupos();
       emit(state.copyWith(misGrupos: grupos, limpiarError: true));
     } catch (error) {
-      emit(state.copyWith(mensajeError: error.toString()));
+      emit(state.copyWith(mensajeError: mensajeDeError(error)));
     }
   }
 
@@ -272,7 +273,7 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
       emit(
         state.copyWith(
           limpiarGrupoActualizando: true,
-          mensajeError: error.toString(),
+          mensajeError: mensajeDeError(error),
         ),
       );
     }
@@ -290,7 +291,12 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
         ),
       );
     } catch (error) {
-      emit(state.copyWith(creandoGrupo: false, mensajeError: error.toString()));
+      emit(
+        state.copyWith(
+          creandoGrupo: false,
+          mensajeError: mensajeDeError(error),
+        ),
+      );
     }
   }
 
@@ -302,7 +308,8 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
       state.copyWith(actualizandoGrupoId: event.grupoId, limpiarError: true),
     );
     try {
-      final actualizado = await repository.solicitarIngresoGrupo(event.grupoId);
+      final respuesta = await repository.solicitarIngresoGrupo(event.grupoId);
+      final actualizado = respuesta.copyWith(solicitudPendiente: true);
       emit(
         state.copyWith(
           grupos: _reemplazarGrupo(state.grupos, actualizado),
@@ -313,7 +320,7 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
       emit(
         state.copyWith(
           limpiarGrupoActualizando: true,
-          mensajeError: error.toString(),
+          mensajeError: mensajeDeError(error),
         ),
       );
     }
@@ -344,7 +351,7 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
       emit(
         state.copyWith(
           limpiarGrupoActualizando: true,
-          mensajeError: error.toString(),
+          mensajeError: mensajeDeError(error),
         ),
       );
     }
@@ -369,7 +376,7 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
       emit(
         state.copyWith(
           cargandoAdministracion: false,
-          mensajeError: error.toString(),
+          mensajeError: mensajeDeError(error),
         ),
       );
     }
@@ -389,7 +396,7 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
       emit(
         state.copyWith(
           cargandoAdministracion: false,
-          mensajeError: error.toString(),
+          mensajeError: mensajeDeError(error),
         ),
       );
     }
@@ -426,7 +433,7 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
       emit(
         state.copyWith(
           limpiarUsuarioGestionado: true,
-          mensajeError: error.toString(),
+          mensajeError: mensajeDeError(error),
         ),
       );
     }
@@ -456,7 +463,7 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
       emit(
         state.copyWith(
           limpiarUsuarioGestionado: true,
-          mensajeError: error.toString(),
+          mensajeError: mensajeDeError(error),
         ),
       );
     }

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/widgets/avatar_helper.dart';
 import '../../domain/entities/publicacion.dart';
 
 class PublicacionCard extends StatelessWidget {
@@ -11,12 +12,16 @@ class PublicacionCard extends StatelessWidget {
     required this.onMeGusta,
     required this.onComentarios,
     this.avatarAsset,
+    this.avatarUrl,
+    this.onEditar,
   });
 
   final Publicacion publicacion;
   final VoidCallback onMeGusta;
   final VoidCallback onComentarios;
   final String? avatarAsset;
+  final String? avatarUrl;
+  final VoidCallback? onEditar;
 
   String _formatearFecha(DateTime fecha) {
     final diferencia = DateTime.now().difference(fecha);
@@ -88,10 +93,12 @@ class PublicacionCard extends StatelessWidget {
                 CircleAvatar(
                   radius: 23,
                   backgroundColor: colors.primaryContainer,
-                  backgroundImage: avatarAsset == null
+                  backgroundImage: avatarUrl != null
+                      ? avatarProvider(avatarUrl)
+                      : avatarAsset == null
                       ? null
                       : AssetImage(avatarAsset!),
-                  child: avatarAsset == null
+                  child: avatarAsset == null && avatarUrl == null
                       ? Icon(Icons.person_rounded, color: colors.primary)
                       : null,
                 ),
@@ -113,6 +120,12 @@ class PublicacionCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (onEditar != null)
+                  IconButton(
+                    tooltip: 'Editar publicación',
+                    onPressed: onEditar,
+                    icon: const Icon(Icons.edit_outlined),
+                  ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [

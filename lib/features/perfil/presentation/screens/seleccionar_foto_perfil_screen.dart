@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/errors/mensaje_error.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -66,11 +67,9 @@ class _SeleccionarFotoPerfilScreenState
       context.pop();
     } on DioException catch (e) {
       if (!mounted) return;
-      final mensaje =
-          e.response?.data?['detail'] ?? 'Error al actualizar la foto';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(mensaje.toString()),
+          content: Text(mensajeDeError(e)),
           backgroundColor: Colors.red,
         ),
       );

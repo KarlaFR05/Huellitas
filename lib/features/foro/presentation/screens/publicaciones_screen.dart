@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../auth/domain/entities/usuario.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'; //añadiyo
 
 import '../../domain/entities/publicacion.dart';
@@ -15,67 +18,19 @@ import 'crear_publicacion_screen.dart';
 class PublicacionesScreen extends StatelessWidget {
   const PublicacionesScreen({super.key});
 
-  //@override
-  //State<PublicacionesScreen> createState() => _PublicacionesScreenState();
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ForoBloc(
-        repository: context.read<ForoRepository>(),
-      )..add(const ForoFeedSolicitado(recargar: true)),
+      create: (_) =>
+          ForoBloc(repository: context.read<ForoRepository>())
+            ..add(const ForoFeedSolicitado(recargar: true)),
       child: const _PublicacionesView(),
     );
   }
 }
-/*
-class _PublicacionesScreenState extends State<PublicacionesScreen> {
-  final List<Publicacion> _publicaciones = [
-    Publicacion(
-      id: 1,
-      titulo: 'Perrito perdido',
-      nombreUsuario: 'María López',
-      contenido:
-          'Encontré un perrito cerca del centro. Parece estar perdido y tiene un collar azul.',
-      fecha: DateTime.now().subtract(const Duration(minutes: 35)),
-      meGusta: 14,
-      comentarios: 5,
-      categoria: CategoriaPublicacion.extraviados,
-    ),
-    Publicacion(
-      id: 2,
-      titulo: 'Campaña de esterilización',
-      nombreUsuario: 'Carlos Hernández',
-      contenido:
-          'Comparto información sobre una campaña de esterilización a bajo costo este fin de semana.',
-      fecha: DateTime.now().subtract(const Duration(hours: 3)),
-      meGusta: 28,
-      comentarios: 7,
-      categoria: CategoriaPublicacion.salud,
-    ),
-    Publicacion(
-      id: 3,
-      titulo: 'Rescate completado',
-      nombreUsuario: 'Ana Martínez',
-      contenido:
-          'Gracias a las personas que ayudaron con el rescate de la gatita. Ya se encuentra a salvo.',
-      fecha: DateTime.now().subtract(const Duration(days: 1)),
-      meGusta: 42,
-      comentarios: 12,
-      categoria: CategoriaPublicacion.cuidado,
-    ),
-    Publicacion(
-      id: 4,
-      titulo: 'Necesitamos apoyo para un rescate',
-      nombreUsuario: 'Sofía Ramírez',
-      contenido:
-          'Buscamos voluntarios que puedan ayudarnos con el traslado de un perrito rescatado esta tarde.',
-      fecha: DateTime.now().subtract(const Duration(hours: 2)),
-      meGusta: 31,
-      comentarios: 9,
-      categoria: CategoriaPublicacion.adopcion,
-      nombreGrupo: 'Rescatistas Huellitas',
-    ),
-  ];
+
+class _PublicacionesView extends StatelessWidget {
+  const _PublicacionesView();
 
   static const _categorias =
       <
@@ -129,141 +84,13 @@ class _PublicacionesScreenState extends State<PublicacionesScreen> {
           categoria: CategoriaPublicacion.cuidado,
         ),
       ];
-  CategoriaPublicacion? _filtroActivo;
-
-  void _alternarMeGusta(int index) {
-    final publicacion = _publicaciones[index];
-    final nuevoEstado = !publicacion.leGustaAlUsuario;
-    setState(() {
-      _publicaciones[index] = publicacion.copyWith(
-        leGustaAlUsuario: nuevoEstado,
-        meGusta: publicacion.meGusta + (nuevoEstado ? 1 : -1),
-      );
-    });
-  }
-
-  Future<void> _abrirComentarios(Publicacion publicacion) async {
-    await Navigator.push<void>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ComentariosScreen(publicacion: publicacion),
-      ),
-    );
-  }
-
-  Future<void> _crearPublicacion() async {
-    final resultado = await Navigator.push<Map<String, dynamic>>(
-      context,
-      MaterialPageRoute(builder: (_) => const CrearPublicacionScreen()),
-    );
-    if (resultado == null || !mounted) return;
-
-    setState(() {
-      _publicaciones.insert(
-        0,
-        Publicacion(
-          id: DateTime.now().millisecondsSinceEpoch,
-          titulo: resultado['titulo'] as String,
-          nombreUsuario: 'Usuario actual',
-          contenido: resultado['contenido'] as String,
-          categoria: resultado['categoria'] as CategoriaPublicacion,
-          imagenPath: (resultado['imagen'] as dynamic)?.path as String?,
-          fecha: DateTime.now(),
-        ),
-      );
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Publicación creada correctamente')),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
-    final publicacionesVisibles = _filtroActivo == null
-        ? _publicaciones
-        : _publicaciones
-              .where((publicacion) => publicacion.categoria == _filtroActivo)
-              .toList();
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: RefreshIndicator(
-        onRefresh: () =>
-            Future<void>.delayed(const Duration(milliseconds: 700)),
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(
-            16,
-            8,
-            16,
-            BottomBarWidget.contentClearance(context) + 88,
-          ),
-          children: [
-            _CategoriasCard(
-              categorias: _categorias,
-              seleccionada: _filtroActivo,
-              onSeleccionar: (categoria) {
-                setState(() {
-                  _filtroActivo = _filtroActivo == categoria ? null : categoria;
-                });
-              },
-            ),
-            const SizedBox(height: 18),
-            if (_filtroActivo == null ||
-                _filtroActivo == CategoriaPublicacion.adopcion) ...[
-              const _AdopcionDestacada(),
-              const SizedBox(height: 10),
-            ],
-            if (publicacionesVisibles.isEmpty &&
-                _filtroActivo != CategoriaPublicacion.adopcion)
-              _SinResultados(
-                onLimpiar: () => setState(() => _filtroActivo = null),
-              ),
-            for (final publicacion in publicacionesVisibles)
-              PublicacionCard(
-                publicacion: publicacion,
-                avatarAsset:
-                    'assets/images/avatares/avatar_0${(_publicaciones.indexOf(publicacion) % 6) + 1}.png',
-                onMeGusta: () =>
-                    _alternarMeGusta(_publicaciones.indexOf(publicacion)),
-                onComentarios: () => _abrirComentarios(publicacion),
-              ),
-          ],
-        ),
-      ),
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(
-          bottom: BottomBarWidget.contentClearance(context) + 18,
-        ),
-        child: FloatingActionButton.extended(
-          onPressed: _crearPublicacion,
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('Publicar'),
-        ),
-      ),
-    );
-  }
-}
-*/
-class _PublicacionesView extends StatelessWidget {
-  const _PublicacionesView();
-
-  static const _categorias = <({
-    IconData icon,
-    String nombre,
-    Color color,
-    CategoriaPublicacion categoria,
-  })>[
-    (icon: Icons.pets_rounded, nombre: 'Adopción', color: Color(0xFFFF9F2F), categoria: CategoriaPublicacion.adopcion),
-    (icon: Icons.vaccines_rounded, nombre: 'Vacunación', color: Color(0xFF3679D8), categoria: CategoriaPublicacion.vacunacion),
-    (icon: Icons.health_and_safety_rounded, nombre: 'Salud', color: Color(0xFF27A56D), categoria: CategoriaPublicacion.salud),
-    (icon: Icons.search_rounded, nombre: 'Extraviados', color: Color(0xFF7557D5), categoria: CategoriaPublicacion.extraviados),
-    (icon: Icons.restaurant_rounded, nombre: 'Alimentación', color: Color(0xFF69B643), categoria: CategoriaPublicacion.alimentacion),
-    (icon: Icons.school_rounded, nombre: 'Entrenamiento', color: Color(0xFF3971C8), categoria: CategoriaPublicacion.entrenamiento),
-    (icon: Icons.favorite_rounded, nombre: 'Cuidado', color: Color(0xFFE65B70), categoria: CategoriaPublicacion.cuidado),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    final usuarioId = authState is AuthSuccess && authState.data is Usuario
+        ? (authState.data as Usuario).usuarioIdPk
+        : null;
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: BlocBuilder<ForoBloc, ForoState>(
@@ -271,12 +98,14 @@ class _PublicacionesView extends StatelessWidget {
           final publicacionesVisibles = state.categoria == null
               ? state.publicaciones
               : state.publicaciones
-                  .where((p) => p.categoria == state.categoria)
-                  .toList();
+                    .where((p) => p.categoria == state.categoria)
+                    .toList();
 
           return RefreshIndicator(
             onRefresh: () async {
-              context.read<ForoBloc>().add(const ForoFeedSolicitado(recargar: true));
+              context.read<ForoBloc>().add(
+                const ForoFeedSolicitado(recargar: true),
+              );
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -291,34 +120,41 @@ class _PublicacionesView extends StatelessWidget {
                   categorias: _categorias,
                   seleccionada: state.categoria,
                   onSeleccionar: (categoria) {
-                    context.read<ForoBloc>().add(ForoFiltroCambiado(categoria));
+                    context.read<ForoBloc>().add(
+                      ForoFiltroCambiado(
+                        state.categoria == categoria ? null : categoria,
+                      ),
+                    );
                   },
                 ),
                 const SizedBox(height: 18),
-                if (state.categoria == null || state.categoria == CategoriaPublicacion.adopcion) ...[
-                  const _AdopcionDestacada(),
-                  const SizedBox(height: 10),
-                ],
-                if (state.status == ForoStatus.cargando && state.publicaciones.isEmpty)
+                if (state.status == ForoStatus.cargando &&
+                    state.publicaciones.isEmpty)
                   const _CargandoFeed(),
-                if (state.status == ForoStatus.error && state.publicaciones.isEmpty)
-                  _ErrorFeed(mensaje: state.mensajeError ?? 'Error desconocido'),
+                if (state.status == ForoStatus.error &&
+                    state.publicaciones.isEmpty)
+                  _ErrorFeed(
+                    mensaje: state.mensajeError ?? 'Error desconocido',
+                  ),
                 if (publicacionesVisibles.isEmpty &&
-                    state.status == ForoStatus.exito &&
-                    state.categoria != CategoriaPublicacion.adopcion)
+                    state.status == ForoStatus.exito)
                   _SinResultados(
-                    onLimpiar: () => context.read<ForoBloc>().add(const ForoFiltroCambiado(null)),
+                    onLimpiar: () => context.read<ForoBloc>().add(
+                      const ForoFiltroCambiado(null),
+                    ),
                   ),
                 for (final publicacion in publicacionesVisibles)
                   PublicacionCard(
                     publicacion: publicacion,
-                    avatarAsset: publicacion.fotoUsuarioUrl != null
-                        ? null // Usar NetworkImage en vez de AssetImage
-                        : 'assets/images/avatares/avatar_0${(publicacionesVisibles.indexOf(publicacion) % 6) + 1}.png',
+                    avatarUrl: publicacion.fotoUsuarioUrl,
                     onMeGusta: () => context.read<ForoBloc>().add(
                       ForoMeGustaCambiado(publicacion.id),
                     ),
-                    onComentarios: () => _abrirComentarios(context, publicacion),
+                    onComentarios: () =>
+                        _abrirComentarios(context, publicacion),
+                    onEditar: publicacion.usuarioId == usuarioId
+                        ? () => _editarPublicacion(context, publicacion)
+                        : null,
                   ),
                 if (state.hayMas && state.status == ForoStatus.exito)
                   const Padding(
@@ -343,7 +179,10 @@ class _PublicacionesView extends StatelessWidget {
     );
   }
 
-  Future<void> _abrirComentarios(BuildContext context, Publicacion publicacion) async {
+  Future<void> _abrirComentarios(
+    BuildContext context,
+    Publicacion publicacion,
+  ) async {
     await Navigator.push<void>(
       context,
       MaterialPageRoute(
@@ -366,6 +205,28 @@ class _PublicacionesView extends StatelessWidget {
       imagenLocalPath: (resultado['imagen'] as dynamic)?.path as String?,
     );
     context.read<ForoBloc>().add(ForoPublicacionCreada(solicitud));
+  }
+
+  Future<void> _editarPublicacion(
+    BuildContext context,
+    Publicacion publicacion,
+  ) async {
+    final resultado = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CrearPublicacionScreen(publicacion: publicacion),
+      ),
+    );
+    if (resultado == null || !context.mounted) return;
+    context.read<ForoBloc>().add(
+      ForoPublicacionEditada(
+        publicacionId: publicacion.id,
+        titulo: resultado['titulo'] as String,
+        contenido: resultado['contenido'] as String,
+        categoria: resultado['categoria'] as CategoriaPublicacion,
+        imagenLocalPath: (resultado['imagen'] as dynamic)?.path as String?,
+      ),
+    );
   }
 }
 
@@ -392,7 +253,11 @@ class _ErrorFeed extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 42),
       child: Column(
         children: [
-          Icon(Icons.error_outline_rounded, size: 54, color: Theme.of(context).colorScheme.error),
+          Icon(
+            Icons.error_outline_rounded,
+            size: 54,
+            color: Theme.of(context).colorScheme.error,
+          ),
           const SizedBox(height: 12),
           const Text(
             'No se pudieron cargar las publicaciones',
@@ -400,9 +265,17 @@ class _ErrorFeed extends StatelessWidget {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
-          Text(mensaje, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(
+            mensaje,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           TextButton(
-            onPressed: () => context.read<ForoBloc>().add(const ForoFeedSolicitado(recargar: true)),
+            onPressed: () => context.read<ForoBloc>().add(
+              const ForoFeedSolicitado(recargar: true),
+            ),
             child: const Text('Reintentar'),
           ),
         ],

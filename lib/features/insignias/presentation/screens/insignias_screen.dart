@@ -44,7 +44,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Error: No hay usuario autenticado'),
+                content: Text('Inicia sesión para consultar tus insignias.'),
                 backgroundColor: Colors.red,
               ),
             );
@@ -82,7 +82,7 @@ class _InsigniasScreenState extends State<InsigniasScreen> {
           if (state is InsigniaError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error: ${state.message}'),
+                content: Text(state.message),
                 backgroundColor: Colors.red,
                 duration: const Duration(seconds: 5),
                 action: SnackBarAction(

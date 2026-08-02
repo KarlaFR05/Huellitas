@@ -6,7 +6,9 @@ import 'package:image_picker/image_picker.dart';
 import '../../domain/entities/publicacion.dart';
 
 class CrearPublicacionScreen extends StatefulWidget {
-  const CrearPublicacionScreen({super.key});
+  const CrearPublicacionScreen({super.key, this.publicacion});
+
+  final Publicacion? publicacion;
 
   @override
   State<CrearPublicacionScreen> createState() => _CrearPublicacionScreenState();
@@ -19,6 +21,19 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
   File? _imagen;
   bool _publicando = false;
   CategoriaPublicacion _categoria = CategoriaPublicacion.adopcion;
+
+  bool get _editando => widget.publicacion != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final publicacion = widget.publicacion;
+    if (publicacion != null) {
+      _tituloController.text = publicacion.titulo;
+      _contenidoController.text = publicacion.contenido;
+      _categoria = publicacion.categoria;
+    }
+  }
 
   static const _categorias = <(CategoriaPublicacion, String, IconData)>[
     (CategoriaPublicacion.adopcion, 'Adopción', Icons.pets_rounded),
@@ -110,12 +125,12 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Crear publicación'),
+        title: Text(_editando ? 'Editar publicación' : 'Crear publicación'),
         actions: [
           TextButton(
             onPressed: _publicando ? null : _publicar,
-            child: const Text(
-              'Publicar',
+            child: Text(
+              _editando ? 'Guardar' : 'Publicar',
               style: TextStyle(fontWeight: FontWeight.w800),
             ),
           ),

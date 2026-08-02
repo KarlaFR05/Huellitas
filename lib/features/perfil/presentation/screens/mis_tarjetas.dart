@@ -27,7 +27,9 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
   void _cargarTarjetas() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthSuccess) {
-      context.read<TarjetaBloc>().add(CargarTarjetas(authState.data.usuarioIdPk));
+      context.read<TarjetaBloc>().add(
+        CargarTarjetas(authState.data.usuarioIdPk),
+      );
     }
   }
 
@@ -36,7 +38,9 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Eliminar tarjeta'),
-        content: Text('¿Estás seguro de eliminar la tarjeta ${tarjeta.numeroEnmascarado}?'),
+        content: Text(
+          '¿Estás seguro de eliminar la tarjeta ${tarjeta.numeroEnmascarado}?',
+        ),
         actions: [
           ElevatedButton(
             onPressed: () {
@@ -47,7 +51,10 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Eliminar',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -126,9 +133,10 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
+                          minimumSize: const Size(0, 44),
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 16,
+                            horizontal: 12,
+                            vertical: 12,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -177,7 +185,10 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                             _mostrarOpcionesTarjeta(context, tarjeta);
                           },
                           onEdit: () async {
-                            await context.push('/editar-tarjeta', extra: tarjeta);
+                            await context.push(
+                              '/editar-tarjeta',
+                              extra: tarjeta,
+                            );
                             _cargarTarjetas();
                           },
                           onDelete: () {
@@ -196,7 +207,11 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red,
+                    ),
                     const SizedBox(height: 16),
                     Text(state.message),
                     const SizedBox(height: 16),
@@ -241,18 +256,26 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                 title: const Text('Establecer como predeterminada'),
                 onTap: () async {
                   Navigator.pop(context);
-                  context.read<TarjetaBloc>().add(EstablecerPredeterminada(tarjeta.id));
+                  context.read<TarjetaBloc>().add(
+                    EstablecerPredeterminada(tarjeta.id),
+                  );
                   await Future.delayed(const Duration(milliseconds: 600));
                   _cargarTarjetas();
                   if (mounted) {
                     showDialog(
                       context: context,
                       builder: (dialogContext) => AlertDialog(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.check_circle, color: Colors.green, size: 48),
+                            const Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 48,
+                            ),
                             const SizedBox(height: 16),
                             const Text(
                               '¡Listo!',
@@ -290,7 +313,10 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Eliminar tarjeta', style: TextStyle(color: Colors.red)),
+              title: const Text(
+                'Eliminar tarjeta',
+                style: TextStyle(color: Colors.red),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _confirmarEliminarTarjeta(context, tarjeta);

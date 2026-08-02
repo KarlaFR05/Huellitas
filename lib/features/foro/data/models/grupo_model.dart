@@ -51,31 +51,39 @@ class GrupoModel {
           : null,
       cantidadMiembros: json['cantidad_miembros'] as int? ?? 0,
       esMiembro: json['es_miembro'] as bool? ?? false,
-      esAdministradorActual: json['es_administrador_actual'] as bool? ?? false,
-      solicitudPendiente: json['solicitud_pendiente'] as bool? ?? false,
+      esAdministradorActual:
+          (json['es_administrador_actual'] ??
+                  json['es_admin'] ??
+                  json['esAdministrador'])
+              as bool? ??
+          false,
+      solicitudPendiente:
+          (json['solicitud_pendiente'] ?? json['tiene_solicitud_pendiente'])
+              as bool? ??
+          false,
     );
   }
 
   Grupo toEntity() => Grupo(
-        id: id,
-        creadorUsuarioId: creadorUsuarioId,
-        nombre: nombre,
-        descripcion: descripcion,
-        fotoPerfil: fotoPerfil,
-        fotoPortada: fotoPortada,
-        privacidad: PrivacidadGrupo.values.firstWhere(
-          (e) => e.name == privacidad,
-          orElse: () => PrivacidadGrupo.publico,
-        ),
-        estado: EstadoGrupo.values.firstWhere(
-          (e) => e.name == estado,
-          orElse: () => EstadoGrupo.activo,
-        ),
-        fechaCreacion: fechaCreacion,
-        fechaActualizacion: fechaActualizacion,
-        cantidadMiembros: cantidadMiembros,
-        esMiembro: esMiembro,
-        esAdministradorActual: esAdministradorActual,
-        solicitudPendiente: solicitudPendiente,
-      );
+    id: id,
+    creadorUsuarioId: creadorUsuarioId,
+    nombre: nombre,
+    descripcion: descripcion,
+    fotoPerfil: fotoPerfil,
+    fotoPortada: fotoPortada,
+    privacidad: PrivacidadGrupo.values.firstWhere(
+      (e) => e.name == privacidad,
+      orElse: () => PrivacidadGrupo.publico,
+    ),
+    estado: EstadoGrupo.values.firstWhere(
+      (e) => e.name == estado,
+      orElse: () => EstadoGrupo.activo,
+    ),
+    fechaCreacion: fechaCreacion,
+    fechaActualizacion: fechaActualizacion,
+    cantidadMiembros: cantidadMiembros,
+    esMiembro: esMiembro,
+    esAdministradorActual: esAdministradorActual,
+    solicitudPendiente: solicitudPendiente,
+  );
 }

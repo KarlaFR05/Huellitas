@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/errors/mensaje_error.dart';
 import '../../domain/entities/comentario.dart';
 import '../../domain/entities/solicitudes_foro.dart';
 import '../../domain/repositories/foro_repository.dart';
@@ -41,6 +42,19 @@ class ComentarioEliminado extends ComentariosEvent {
 
   @override
   List<Object?> get props => [comentarioId];
+}
+
+class ComentarioEditado extends ComentariosEvent {
+  final int comentarioId;
+  final String contenido;
+
+  const ComentarioEditado({
+    required this.comentarioId,
+    required this.contenido,
+  });
+
+  @override
+  List<Object?> get props => [comentarioId, contenido];
 }
 
 enum ComentariosStatus { inicial, cargando, exito, error }
@@ -108,6 +122,7 @@ class ComentariosBloc extends Bloc<ComentariosEvent, ComentariosState> {
     on<ComentariosSolicitados>(_cargar);
     on<ComentarioEnviado>(_enviar);
     on<ComentarioEliminado>(_eliminar);
+    on<ComentarioEditado>(_editar);
   }
 
   Future<void> _cargar(
@@ -148,7 +163,7 @@ class ComentariosBloc extends Bloc<ComentariosEvent, ComentariosState> {
       emit(
         state.copyWith(
           status: ComentariosStatus.error,
-          mensajeError: error.toString(),
+          mensajeError: mensajeDeError(error),
         ),
       );
     }
@@ -168,7 +183,9 @@ class ComentariosBloc extends Bloc<ComentariosEvent, ComentariosState> {
         ),
       );
     } catch (error) {
-      emit(state.copyWith(enviando: false, mensajeError: error.toString()));
+      emit(
+        state.copyWith(enviando: false, mensajeError: mensajeDeError(error)),
+      );
     }
   }
 
@@ -186,7 +203,30 @@ class ComentariosBloc extends Bloc<ComentariosEvent, ComentariosState> {
         ),
       );
     } catch (error) {
-      emit(state.copyWith(mensajeError: error.toString()));
+      emit(state.copyWith(mensajeError: mensajeDeError(error)));
+    }
+  }
+
+  Future<void> _editar(
+    ComentarioEditado event,
+    Emitter<ComentariosState> emit,
+  ) async {
+    try {
+      final actualizado = await repository.actualizarComentario(
+        event.comentarioId,
+        event.contenido,
+      );
+      emit(
+        state.copyWith(
+          comentarios: [
+            for (final item in state.comentarios)
+              if (item.id == actualizado.id) actualizado else item,
+          ],
+          limpiarError: true,
+        ),
+      );
+    } catch (error) {
+      emit(state.copyWith(mensajeError: mensajeDeError(error)));
     }
   }
 }

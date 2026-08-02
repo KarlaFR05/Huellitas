@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/errors/mensaje_error.dart';
 import '../../domain/usecases/registro_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import 'auth_event.dart';
@@ -40,7 +41,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(AuthSuccess(message: 'Registro exitoso', data: usuario));
     } catch (e) {
-      emit(AuthError(message: e.toString()));
+      emit(AuthError(message: mensajeDeError(e)));
     }
   }
 

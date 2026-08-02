@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/errors/mensaje_error.dart';
 import '../../domain/entities/solicitudes_foro.dart';
 import '../../domain/repositories/foro_repository.dart';
 import 'foro_event.dart';
@@ -12,6 +13,7 @@ class ForoBloc extends Bloc<ForoEvent, ForoState> {
     on<ForoFeedSolicitado>(_cargarFeed);
     on<ForoFiltroCambiado>(_cambiarFiltro);
     on<ForoPublicacionCreada>(_crearPublicacion);
+    on<ForoPublicacionEditada>(_editarPublicacion);
     on<ForoMeGustaCambiado>(_cambiarMeGusta);
     on<ForoPublicacionEliminada>(_eliminarPublicacion);
   }
@@ -54,7 +56,7 @@ class ForoBloc extends Bloc<ForoEvent, ForoState> {
       emit(
         state.copyWith(
           status: ForoStatus.error,
-          mensajeError: error.toString(),
+          mensajeError: mensajeDeError(error),
         ),
       );
     }
@@ -95,7 +97,7 @@ class ForoBloc extends Bloc<ForoEvent, ForoState> {
         state.copyWith(
           publicando: false,
           status: ForoStatus.error,
-          mensajeError: error.toString(),
+          mensajeError: mensajeDeError(error),
         ),
       );
     }
@@ -135,9 +137,35 @@ class ForoBloc extends Bloc<ForoEvent, ForoState> {
       emit(
         state.copyWith(
           publicaciones: anteriores,
-          mensajeError: error.toString(),
+          mensajeError: mensajeDeError(error),
         ),
       );
+    }
+  }
+
+  Future<void> _editarPublicacion(
+    ForoPublicacionEditada event,
+    Emitter<ForoState> emit,
+  ) async {
+    try {
+      final actualizada = await repository.actualizarPublicacion(
+        event.publicacionId,
+        titulo: event.titulo,
+        contenido: event.contenido,
+        categoria: event.categoria,
+        imagenLocalPath: event.imagenLocalPath,
+      );
+      emit(
+        state.copyWith(
+          publicaciones: [
+            for (final item in state.publicaciones)
+              if (item.id == actualizada.id) actualizada else item,
+          ],
+          limpiarError: true,
+        ),
+      );
+    } catch (error) {
+      emit(state.copyWith(mensajeError: mensajeDeError(error)));
     }
   }
 
@@ -155,7 +183,7 @@ class ForoBloc extends Bloc<ForoEvent, ForoState> {
         ),
       );
     } catch (error) {
-      emit(state.copyWith(mensajeError: error.toString()));
+      emit(state.copyWith(mensajeError: mensajeDeError(error)));
     }
   }
 }

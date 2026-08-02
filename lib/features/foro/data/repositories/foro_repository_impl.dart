@@ -35,7 +35,9 @@ class ForoRepositoryImpl implements ForoRepository {
   }
 
   @override
-  Future<Publicacion> crearPublicacion(CrearPublicacionSolicitud solicitud) async {
+  Future<Publicacion> crearPublicacion(
+    CrearPublicacionSolicitud solicitud,
+  ) async {
     final model = await remote.crearPublicacion(
       titulo: solicitud.titulo,
       contenido: solicitud.contenido,
@@ -52,12 +54,14 @@ class ForoRepositoryImpl implements ForoRepository {
     String? titulo,
     String? contenido,
     CategoriaPublicacion? categoria,
+    String? imagenLocalPath,
   }) async {
     final model = await remote.actualizarPublicacion(
       publicacionId,
       titulo: titulo,
       contenido: contenido,
       categoria: categoria?.name,
+      imagenPath: imagenLocalPath,
     );
     return model.toEntity();
   }
@@ -104,7 +108,10 @@ class ForoRepositoryImpl implements ForoRepository {
   }
 
   @override
-  Future<Comentario> actualizarComentario(int comentarioId, String contenido) async {
+  Future<Comentario> actualizarComentario(
+    int comentarioId,
+    String contenido,
+  ) async {
     final model = await remote.actualizarComentario(comentarioId, contenido);
     return model.toEntity();
   }
@@ -130,9 +137,7 @@ class ForoRepositoryImpl implements ForoRepository {
     );
     return Pagina(
       elementos: lista.map((m) => m.toEntity()).toList(),
-      siguienteCursor: lista.length >= limite
-          ? lista.last.id.toString()
-          : null,
+      siguienteCursor: lista.length >= limite ? lista.last.id.toString() : null,
       hayMas: lista.length >= limite,
     );
   }
@@ -192,9 +197,7 @@ class ForoRepositoryImpl implements ForoRepository {
 
   @override
   Future<List<MembresiaGrupo>> obtenerMiembrosGrupo(int grupoId) async {
-    // Reutilizamos obtenerSolicitudes pero filtrando por estado activa
-    // (o puedes agregar un método específico en el backend)
-    final lista = await remote.obtenerSolicitudes(grupoId);
+    final lista = await remote.obtenerMiembros(grupoId);
     return lista.map((m) => m.toEntity()).toList();
   }
 

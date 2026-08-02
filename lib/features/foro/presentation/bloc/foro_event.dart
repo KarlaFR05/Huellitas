@@ -37,6 +37,31 @@ class ForoPublicacionCreada extends ForoEvent {
   List<Object?> get props => [solicitud];
 }
 
+class ForoPublicacionEditada extends ForoEvent {
+  final int publicacionId;
+  final String titulo;
+  final String contenido;
+  final CategoriaPublicacion categoria;
+  final String? imagenLocalPath;
+
+  const ForoPublicacionEditada({
+    required this.publicacionId,
+    required this.titulo,
+    required this.contenido,
+    required this.categoria,
+    this.imagenLocalPath,
+  });
+
+  @override
+  List<Object?> get props => [
+    publicacionId,
+    titulo,
+    contenido,
+    categoria,
+    imagenLocalPath,
+  ];
+}
+
 class ForoMeGustaCambiado extends ForoEvent {
   final int publicacionId;
 

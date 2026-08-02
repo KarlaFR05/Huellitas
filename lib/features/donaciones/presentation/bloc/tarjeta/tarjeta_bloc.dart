@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../../core/errors/mensaje_error.dart';
 import '../../../domain/usecases/obtener_tarjetas_usecase.dart';
 import '../../../domain/usecases/guardar_tarjeta_usecase.dart';
 import '../../../domain/usecases/eliminar_tarjeta_usecase.dart';
@@ -41,7 +42,7 @@ class TarjetaBloc extends Bloc<TarjetaEvent, TarjetaState> {
         tarjetaPredeterminada: predeterminada,
       ));
     } catch (e) {
-      emit(TarjetaError(e.toString()));
+      emit(TarjetaError(mensajeDeError(e)));
     }
   }
 
@@ -62,7 +63,7 @@ class TarjetaBloc extends Bloc<TarjetaEvent, TarjetaState> {
       emit(TarjetaGuardada(tarjeta));
       add(CargarTarjetas(event.usuarioId));
     } catch (e) {
-      emit(TarjetaError(e.toString()));
+      emit(TarjetaError(mensajeDeError(e)));
     }
   }
 
@@ -75,7 +76,7 @@ class TarjetaBloc extends Bloc<TarjetaEvent, TarjetaState> {
       await eliminarTarjeta(event.tarjetaId);
       emit(TarjetaEliminada());
     } catch (e) {
-      emit(TarjetaError(e.toString()));
+      emit(TarjetaError(mensajeDeError(e)));
     }
   }
 
@@ -94,7 +95,7 @@ class TarjetaBloc extends Bloc<TarjetaEvent, TarjetaState> {
       );
       emit(TarjetaEliminada()); 
     } catch (e) {
-      emit(TarjetaError(e.toString()));
+      emit(TarjetaError(mensajeDeError(e)));
     }
   }
 
@@ -109,7 +110,7 @@ class TarjetaBloc extends Bloc<TarjetaEvent, TarjetaState> {
       // Emitimos TarjetaEliminada como señal de "éxito" para que el Listener recargue la lista
       emit(TarjetaEliminada());
     } catch (e) {
-      emit(TarjetaError(e.toString()));
+      emit(TarjetaError(mensajeDeError(e)));
     }
   }
 }

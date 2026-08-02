@@ -6,7 +6,9 @@ import 'package:image_picker/image_picker.dart';
 import '../../domain/entities/grupo.dart';
 
 class CrearGrupoScreen extends StatefulWidget {
-  const CrearGrupoScreen({super.key});
+  const CrearGrupoScreen({super.key, this.grupo});
+
+  final Grupo? grupo;
 
   @override
   State<CrearGrupoScreen> createState() => _CrearGrupoScreenState();
@@ -20,6 +22,19 @@ class _CrearGrupoScreenState extends State<CrearGrupoScreen> {
   File? _portada;
   bool _guardando = false;
   PrivacidadGrupo _privacidad = PrivacidadGrupo.publico;
+
+  bool get _editando => widget.grupo != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final grupo = widget.grupo;
+    if (grupo != null) {
+      _nombreController.text = grupo.nombre;
+      _descripcionController.text = grupo.descripcion;
+      _privacidad = grupo.privacidad;
+    }
+  }
 
   @override
   void dispose() {
@@ -75,12 +90,12 @@ class _CrearGrupoScreenState extends State<CrearGrupoScreen> {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Crear grupo'),
+        title: Text(_editando ? 'Editar grupo' : 'Crear grupo'),
         actions: [
           TextButton(
             onPressed: _guardando ? null : _crear,
-            child: const Text(
-              'Crear',
+            child: Text(
+              _editando ? 'Guardar' : 'Crear',
               style: TextStyle(fontWeight: FontWeight.w800),
             ),
           ),

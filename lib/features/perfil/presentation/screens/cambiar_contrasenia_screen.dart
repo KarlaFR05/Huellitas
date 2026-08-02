@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/errors/mensaje_error.dart';
 import '../../data/datasources/editar_perfil_remote_datasource.dart';
 
 class CambiarContraseniaScreen extends StatefulWidget {
@@ -122,11 +123,9 @@ class _CambiarContraseniaScreenState extends State<CambiarContraseniaScreen> {
       _mostrarExito();
     } on DioException catch (e) {
       if (!mounted) return;
-      final mensaje =
-          e.response?.data?['detail'] ?? 'Error al cambiar la contraseña';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(mensaje.toString()),
+          content: Text(mensajeDeError(e)),
           backgroundColor: Colors.red,
         ),
       );
