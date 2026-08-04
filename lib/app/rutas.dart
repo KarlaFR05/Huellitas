@@ -104,7 +104,16 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const PasswordScreen(),
     ),
 
-    GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+    GoRoute(
+      path: '/home',
+      builder: (context, state) {
+        final reporteIdParam = state.uri.queryParameters['reporteId'];
+        final reporteIdInicial = reporteIdParam != null
+            ? int.tryParse(reporteIdParam)
+            : null;
+        return HomeScreen(reporteIdInicial: reporteIdInicial);
+      },
+    ),
 
     GoRoute(
       path: '/report-success',

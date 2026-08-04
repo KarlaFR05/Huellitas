@@ -85,6 +85,7 @@ void main() {
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider<AuthRepositoryImpl>.value(value: authRepository),
+        RepositoryProvider<TokenStorageService>.value(value: tokenStorage),
         RepositoryProvider<CompletarPerfilRepositoryImpl>.value(
           value: completarPerfilRepository,
         ),

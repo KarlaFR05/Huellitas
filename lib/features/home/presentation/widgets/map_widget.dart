@@ -8,12 +8,14 @@ class MapWidget extends StatefulWidget {
   final List<ReportMapMarker> markers;
   final LatLng? userLocation;
   final MapController? mapController;
+  final int? reporteIdInicial;
 
   const MapWidget({
     super.key,
     required this.markers,
     this.userLocation,
     this.mapController,
+    this.reporteIdInicial,
   });
 
   @override
@@ -27,6 +29,49 @@ class _MapWidgetState extends State<MapWidget> {
   void initState() {
     super.initState();
     _controller = widget.mapController ?? MapController();
+
+    if (widget.reporteIdInicial != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _enfocarReporteInicial();
+      });
+    } else {}
+  }
+
+  @override
+  void didUpdateWidget(covariant MapWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.reporteIdInicial != null &&
+        widget.reporteIdInicial != oldWidget.reporteIdInicial) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _enfocarReporteInicial();
+      });
+    }
+  }
+
+  void _enfocarReporteInicial() {
+    if (!mounted) {
+      return;
+    }
+
+    ReportMapMarker? marcador;
+    for (final m in widget.markers) {
+      if (m.reporteId == widget.reporteIdInicial) {
+        marcador = m;
+        break;
+      }
+    }
+
+    if (marcador == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No pudimos ubicar ese reporte en el mapa'),
+        ),
+      );
+      return;
+    }
+    _controller.move(marcador.location, 17);
+    _showReportInfo(context, marcador);
   }
 
   //mostrar imagen en pantalla completa
