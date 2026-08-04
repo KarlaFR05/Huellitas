@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/errors/mensaje_error.dart';
 import '../../domain/entities/reporte_estado.dart';
 import '../../domain/usecases/get_reporte_estado_usecase.dart';
 import '../../domain/usecases/tomar_reporte_usecase.dart';
@@ -31,7 +32,7 @@ class ReporteEstadoBloc extends Bloc<ReporteEstadoEvent, ReporteEstadoState> {
       emit(ReporteEstadoLoaded(reporte));
     } catch (e) {
       print('Error en _onCargar: $e');
-      emit(ReporteEstadoError(e.toString()));
+      emit(ReporteEstadoError(mensajeDeError(e)));
     }
   }
 
@@ -73,12 +74,11 @@ class ReporteEstadoBloc extends Bloc<ReporteEstadoEvent, ReporteEstadoState> {
       emit(ReporteEstadoActualizado());
     } catch (e) {
       print('Error en _onActualizar: $e');
-      emit(ReporteEstadoError(e.toString()));
+      emit(ReporteEstadoError(mensajeDeError(e)));
     }
   }
 
   String _extraerMensaje(Object e) {
-    final texto = e.toString();
-    return texto.replaceFirst('Exception: ', '');
+    return mensajeDeError(e);
   }
 }

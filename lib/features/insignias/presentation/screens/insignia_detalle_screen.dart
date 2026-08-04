@@ -127,7 +127,7 @@ class InsigniaDetalleScreen extends StatelessWidget {
                       child: Image.network(
                         insignia.imagenUrl!,
                         fit: BoxFit
-                            .contain, // ← CAMBIO: contain en lugar de cover
+                            .contain,
                         errorBuilder: (context, error, stackTrace) {
                           return _buildFallbackIcon(context);
                         },

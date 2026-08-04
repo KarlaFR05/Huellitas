@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/errors/mensaje_error.dart';
 import 'reporte_event.dart';
 import 'reporte_state.dart';
 import '../../domain/entities/reporte.dart';
@@ -48,7 +49,7 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
         ),
       );
     } catch (e) {
-      emit(ReporteError(message: e.toString()));
+      emit(ReporteError(message: mensajeDeError(e)));
     }
   }
 
@@ -73,7 +74,7 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
 
       emit(ReporteSuccess());
     } catch (e) {
-      emit(ReporteError(message: e.toString()));
+      emit(ReporteError(message: mensajeDeError(e)));
     }
   }
 

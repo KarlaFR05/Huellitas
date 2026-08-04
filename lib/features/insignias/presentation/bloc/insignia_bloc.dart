@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/errors/mensaje_error.dart';
 import '../../domain/entities/insignia.dart';
 import '../../domain/entities/categoria_insignia.dart';
 import '../../domain/usecases/get_insignias_usuario_usecase.dart';
@@ -33,7 +34,7 @@ class InsigniaBloc extends Bloc<InsigniaEvent, InsigniaState> {
       
     } catch (e) {
       print('Error en _onCargarInsignias: $e');
-      emit(InsigniaError(e.toString()));
+      emit(InsigniaError(mensajeDeError(e)));
     }
   }
 

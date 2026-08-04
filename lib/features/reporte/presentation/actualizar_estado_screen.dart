@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../auth/presentation/bloc/auth_bloc.dart';
 import '../../auth/presentation/bloc/auth_state.dart';
 import '../../auth/domain/entities/usuario.dart';
+import '../../insignias/presentation/bloc/insignia_bloc.dart';
+import '../../insignias/presentation/bloc/insignia_event.dart';
 import '../domain/entities/fase_reporte.dart';
 import '../domain/entities/reporte_estado.dart';
 import 'bloc/reporte_estado_bloc.dart';
@@ -293,6 +295,18 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
     return BlocListener<ReporteEstadoBloc, ReporteEstadoState>(
       listener: (context, state) {
         if (state is ReporteEstadoActualizado) {
+          // Esperar 3 segundos para que el backend procese
+          Future.delayed(const Duration(seconds: 3), () {
+            if (!mounted) return;
+            
+            final authState = context.read<AuthBloc>().state;
+            if (authState is AuthSuccess) {
+              final usuarioId = authState.data.usuarioIdPk;
+              print('Recargando insignias para usuario $usuarioId...');
+              context.read<InsigniaBloc>().add(CargarInsignias(usuarioId));
+            }
+          });
+          
           context.go('/actualizar-estado-success');
         } else if (state is ReporteEstadoError) {
           context.go('/actualizar-estado-error');
