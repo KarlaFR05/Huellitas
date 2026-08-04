@@ -33,7 +33,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   void _cargarTarjetas() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthSuccess) {
-      context.read<TarjetaBloc>().add(CargarTarjetas(authState.data.usuarioIdPk));
+      context.read<TarjetaBloc>().add(CargarTarjetas());
     }
   }
 

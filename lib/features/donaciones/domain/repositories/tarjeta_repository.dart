@@ -13,7 +13,7 @@ abstract class TarjetaRepository {
   Future<void> eliminarTarjeta(int tarjetaId);
   Future<void> actualizarTarjeta({
     required int tarjetaId,
-    String? numeroTarjeta,
+    //String? numeroTarjeta,
     String? titular,
     String? fechaVencimiento,
     /*String? cvv,*/

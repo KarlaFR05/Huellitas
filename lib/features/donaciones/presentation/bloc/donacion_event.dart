@@ -17,8 +17,23 @@ class SeleccionarMonto extends DonacionEvent {
   final double monto;
   SeleccionarMonto(this.monto);
 }
-
 class ProcesarPago extends DonacionEvent {
+  final int usuarioId;
+  final int organizacionId;
+  final double monto;
+  final int tarjetaId;            
+  final String metodoPago;      
+
+  ProcesarPago({
+    required this.usuarioId,
+    required this.organizacionId,
+    required this.monto,
+    required this.tarjetaId,
+    this.metodoPago = 'tarjeta',
+  });
+}
+
+/*class ProcesarPago extends DonacionEvent {
   final int usuarioId;
   final int organizacionId;
   final double monto;
@@ -36,4 +51,4 @@ class ProcesarPago extends DonacionEvent {
     required this.cvv,
     required this.fechaVencimiento,
   });
-}
+}*/

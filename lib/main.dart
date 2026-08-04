@@ -58,7 +58,7 @@ void main() {
   final obtenerOrganizacionesUseCase = ObtenerOrganizacionesUseCase(donacionRepository);
   final crearDonacionUseCase = CrearDonacionUseCase(donacionRepository);
 
-  final tarjetaDataSource = TarjetaRemoteDataSourceMock();
+  final tarjetaDataSource = TarjetaRemoteDataSourceImpl(dio);
   final tarjetaRepository = TarjetaRepositoryImpl(tarjetaDataSource);
   final obtenerTarjetasUseCase = ObtenerTarjetasUseCase(tarjetaRepository);
   final guardarTarjetaUseCase = GuardarTarjetaUseCase(tarjetaRepository);

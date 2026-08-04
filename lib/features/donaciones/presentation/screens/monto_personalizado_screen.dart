@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../styles/constantes/app_color.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../bloc/donacion_bloc.dart';
@@ -12,7 +11,6 @@ import '../bloc/tarjeta/tarjeta_bloc.dart';
 import '../bloc/tarjeta/tarjeta_event.dart';
 import '../bloc/tarjeta/tarjeta_state.dart';
 import '../../domain/entities/tarjeta.dart';
-import '../../data/services/procesar_pago_service.dart';
 
 class MontoPersonalizadoScreen extends StatefulWidget {
   const MontoPersonalizadoScreen({super.key});
@@ -25,8 +23,6 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
   final TextEditingController _montoController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final FocusNode _focusNode = FocusNode();
-  final _procesarPagoService = ProcesarPagoService();
-  bool _procesando = false;
 
   @override
   void initState() {
@@ -66,11 +62,10 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
       return;
     }
 
-    final usuarioId = authState.data.usuarioIdPk;
     final tarjetaState = context.read<TarjetaBloc>().state;
     
     if (tarjetaState is! TarjetaLoaded) {
-      context.read<TarjetaBloc>().add(CargarTarjetas(usuarioId));
+      context.read<TarjetaBloc>().add(CargarTarjetas());
       await Future.delayed(const Duration(milliseconds: 800));
     }
 
@@ -86,7 +81,7 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
       } else if (predeterminada != null) {
         _mostrarDialogoPagoRapido(monto, organizacionId, predeterminada);
       } else {
-        _mostrarDialogoElegirTarjeta(monto, organizacionId, tarjetas);
+        _mostrarDialogoElegirTarjeta(monto, organizacionId);
       }
     } else {
       context.read<DonacionBloc>().add(SeleccionarMonto(monto));
@@ -94,64 +89,55 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
     }
   }
 
-  
-  Future<void> _procesarPagoDirecto(double monto, int? organizacionId, Tarjeta tarjeta) async {
-    Navigator.pop(context); // Cerrar el diálogo
-    setState(() => _procesando = true);
+  void _procesarPagoDirecto(double monto, int? organizacionId, Tarjeta tarjeta) {
+    Navigator.pop(context);
 
-    try {
-      final exito = await _procesarPagoService.procesarPago(
-        monto: monto,
-        organizacionId: organizacionId ?? 0,
-        numeroTarjeta: tarjeta.numeroEnmascarado,
-        titular: tarjeta.titular,
-        fechaVencimiento: tarjeta.fechaVencimiento,
-      );
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthSuccess) return;
 
-      if (!mounted) return;
-
-      context.read<DonacionBloc>().add(SeleccionarMonto(monto));
-
-      if (exito) {
-        context.go('/confirmacion-donacion');
-      } else {
-        context.go('/donacion-error');
-      }
-    } catch (e) {
-      if (!mounted) return;
-      context.go('/donacion-error');
-    } finally {
-      if (mounted) {
-        setState(() => _procesando = false);
-      }
-    }
+    context.read<DonacionBloc>().add(ProcesarPago(
+      usuarioId: authState.data.usuarioIdPk,
+      organizacionId: organizacionId ?? 0,
+      monto: monto,
+      tarjetaId: tarjeta.id,
+    ));
   }
 
   void _mostrarDialogoPagoRapido(double monto, int? organizacionId, Tarjeta predeterminada) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     showDialog(
       context: context,
-      barrierDismissible: !_procesando, // No permitir cerrar si se está procesando
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            SizedBox(width: 12),
-            Text('Pago Rápido', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(width: 12),
+            Text(
+              'Pago Rápido',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Se cobrará a tu tarjeta predeterminada:'),
+            Text(
+              'Se cobrará a tu tarjeta predeterminada:',
+              style: TextStyle(color: colorScheme.onSurface),
+            ),
             const SizedBox(height: 12),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.2),
+                color: colorScheme.secondary.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,20 +145,40 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Monto a donar:', style: TextStyle(fontWeight: FontWeight.w600)),
+                      Text(
+                        'Monto a donar:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
                       Text(
                         '\$${monto.toStringAsFixed(2)}',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
                       ),
                     ],
                   ),
                   const Divider(height: 16),
                   Text(
                     predeterminada.numeroEnmascarado,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
                   const SizedBox(height: 4),
-                  Text(predeterminada.titular, style: const TextStyle(fontSize: 14)),
+                  Text(
+                    predeterminada.titular,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -180,12 +186,11 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
         ),
         actions: [
           ElevatedButton(
-            onPressed: _procesando ? null : () => _procesarPagoDirecto(monto, organizacionId, predeterminada),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Donar', style: TextStyle(color: Colors.white)),
+            onPressed: () => _procesarPagoDirecto(monto, organizacionId, predeterminada),
+            child: const Text('Donar'),
           ),
           TextButton(
-            onPressed: _procesando ? null : () {
+            onPressed: () {
               Navigator.pop(dialogContext);
               context.push('/seleccion-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
             },
@@ -196,18 +201,23 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
     );
   }
 
-  void _mostrarDialogoElegirTarjeta(double monto, int? organizacionId, List<Tarjeta> tarjetas) {
+  void _mostrarDialogoElegirTarjeta(double monto, int? organizacionId) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Tarjetas Guardadas', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Tienes ${tarjetas.length} tarjeta(s) guardada(s). ¿Cómo deseas pagar?'),
-          ],
+        title: Text(
+          'Tarjetas Guardadas',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        content: Text(
+          '¿Cómo deseas pagar?',
+          style: TextStyle(color: colorScheme.onSurface),
         ),
         actions: [
           ElevatedButton(
@@ -215,8 +225,7 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
               Navigator.pop(dialogContext);
               context.push('/seleccion-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Elegir guardada', style: TextStyle(color: Colors.white)),
+            child: const Text('Elegir guardada'),
           ),
           TextButton(
             onPressed: () {
@@ -233,221 +242,241 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: AppBar(
-            backgroundColor: AppColors.background,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-              onPressed: _procesando ? null : () => context.pop(),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return BlocListener<DonacionBloc, DonacionState>(
+      listener: (context, state) {
+        if (state is DonacionCompletada) {
+          context.go('/confirmacion-donacion');
+        } else if (state is DonacionError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: colorScheme.error,
             ),
-            title: const Text(
-              'Tu ayuda puede salvar vidas',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+          );
+        }
+      },
+      child: Stack(
+        children: [
+          Scaffold(
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            appBar: AppBar(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              elevation: 0,
+              leading: BlocBuilder<DonacionBloc, DonacionState>(
+                builder: (context, state) {
+                  final procesando = state is DonacionProcesando;
+                  return IconButton(
+                    icon: Icon(Icons.arrow_back, color: colorScheme.primary),
+                    onPressed: procesando ? null : () => context.pop(),
+                  );
+                },
               ),
-            ),
-            centerTitle: true,
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.volunteer_activism,
-                        size: 60,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Ingresa el monto',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Cualquier cantidad ayuda',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 40),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: TextFormField(
-                      controller: _montoController,
-                      focusNode: _focusNode,
-                      enabled: !_procesando,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                      ],
-                      style: const TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 40,
-                          horizontal: 20,
-                        ),
-                        hintText: '0.00',
-                        prefixText: '\$ ',
-                        prefixStyle: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                        hintStyle: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Ingresa un monto';
-                        }
-                        final monto = double.tryParse(value);
-                        if (monto == null || monto <= 0) {
-                          return 'Ingresa un monto válido';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 60,
-                    child: ElevatedButton(
-                      onPressed: _procesando ? null : _mostrarConfirmacion,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 4,
-                        shadowColor: AppColors.primary.withValues(alpha: 0.3),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(width: 12),
-                          Text(
-                            'Continuar',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.security,
-                        size: 16,
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Pago seguro',
-                        style: TextStyle(
-                          color: AppColors.textSecondary.withValues(alpha: 0.6),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              title: Text(
+                'Tu ayuda puede salvar vidas',
+                style: TextStyle(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
               ),
+              centerTitle: true,
             ),
-          ),
-        ),
-        //Overlay de procesamiento
-        if (_procesando)
-          DefaultTextStyle(
-            style: const TextStyle(
-              color: Colors.white,
-              decoration: TextDecoration.none,
-              fontFamily: 'Roboto',
-            ),
-            child: Container(
-              color: Colors.black87, 
-              child: Center(
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.volunteer_activism,
+                          size: 60,
+                          color: colorScheme.primary,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 24),
-                    const Text(
-                      'Procesando...',
+                    Text(
+                      'Ingresa el monto',
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.none,
+                        color: colorScheme.onSurface,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Por favor no cierres la aplicación',
+                    Text(
+                      'Cualquier cantidad ayuda',
                       style: TextStyle(
-                        color: Colors.white70,
                         fontSize: 14,
-                        decoration: TextDecoration.none, 
+                        color: colorScheme.onSurfaceVariant,
                       ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 40),
+                    BlocBuilder<DonacionBloc, DonacionState>(
+                      builder: (context, state) {
+                        final procesando = state is DonacionProcesando;
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: colorScheme.onSurface.withValues(alpha: 0.08),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: TextFormField(
+                            controller: _montoController,
+                            focusNode: _focusNode,
+                            enabled: !procesando,
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                            ],
+                            style: TextStyle(
+                              fontSize: 48,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 40,
+                                horizontal: 20,
+                              ),
+                              hintText: '0.00',
+                              prefixText: '\$ ',
+                              prefixStyle: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                              hintStyle: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Ingresa un monto';
+                              }
+                              final monto = double.tryParse(value);
+                              if (monto == null || monto <= 0) {
+                                return 'Ingresa un monto válido';
+                              }
+                              return null;
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 40),
+                    BlocBuilder<DonacionBloc, DonacionState>(
+                      builder: (context, state) {
+                        final procesando = state is DonacionProcesando;
+                        return SizedBox(
+                          width: double.infinity,
+                          height: 60,
+                          child: ElevatedButton(
+                            onPressed: procesando ? null : _mostrarConfirmacion,
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: Text(
+                              procesando ? 'Procesando...' : 'Continuar',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.security,
+                          size: 16,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Pago seguro',
+                          style: TextStyle(
+                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
-        ),
-      ],
+          ),
+          
+          BlocBuilder<DonacionBloc, DonacionState>(
+            builder: (context, state) {
+              if (state is! DonacionProcesando) {
+                return const SizedBox.shrink();
+              }
+              return Material(
+                color: Colors.black87,
+                child: const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                      SizedBox(height: 24),
+                      Text(
+                        'Procesando...',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Por favor no cierres la aplicación',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

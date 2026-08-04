@@ -33,4 +33,6 @@ class TarjetaGuardada extends TarjetaState {
   TarjetaGuardada(this.tarjeta);
 }
 
+class TarjetaActualizada extends TarjetaState {}
+
 class TarjetaEliminada extends TarjetaState {}

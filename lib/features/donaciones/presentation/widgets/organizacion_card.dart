@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../styles/constantes/app_color.dart';
 import '../../domain/entities/organizacion.dart';
 
 class OrganizacionCard extends StatelessWidget {
@@ -14,15 +13,17 @@ class OrganizacionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface, 
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: colorScheme.onSurface.withValues(alpha: 0.08), 
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -35,7 +36,7 @@ class OrganizacionCard extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.3),
+                color: colorScheme.secondary.withValues(alpha: 0.2), 
                 shape: BoxShape.circle,
               ),
               child: organizacion.logoUrl.isNotEmpty
@@ -47,23 +48,29 @@ class OrganizacionCard extends StatelessWidget {
                         fit: BoxFit.cover,
                         loadingBuilder: (context, child, progress) {
                           if (progress == null) return child;
-                          return const Center(
+                          return Center(
                             child: SizedBox(
                               width: 24,
                               height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.primary, 
+                              ),
                             ),
                           );
                         },
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(
-                              Icons.pets,
-                              size: 40,
-                              color: AppColors.primary,
-                            ),
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          Icons.pets,
+                          size: 40,
+                          color: colorScheme.primary, 
+                        ),
                       ),
                     )
-                  : const Icon(Icons.pets, size: 40, color: AppColors.primary),
+                  : Icon(
+                      Icons.pets,
+                      size: 40,
+                      color: colorScheme.primary, 
+                    ),
             ),
             const SizedBox(height: 12),
             Padding(
@@ -71,10 +78,10 @@ class OrganizacionCard extends StatelessWidget {
               child: Text(
                 organizacion.nombre,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: colorScheme.onSurface, 
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,

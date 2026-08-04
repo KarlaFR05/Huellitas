@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../styles/constantes/app_color.dart';
 import '../../../home/presentation/widgets/bottom_bar.dart';
 import '../../domain/entities/categoria_organizacion.dart';
 import '../bloc/donacion_bloc.dart';
@@ -28,19 +27,21 @@ class _DonacionesScreenState extends State<DonacionesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          icon: Icon(Icons.arrow_back, color: colorScheme.primary),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
+        title: Text(
           'Donar',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -53,7 +54,12 @@ class _DonacionesScreenState extends State<DonacionesScreen> {
           }
 
           if (state is DonacionError) {
-            return Center(child: Text(state.message));
+            return Center(
+              child: Text(
+                state.message,
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+            );
           }
 
           if (state is DonacionLoaded) {

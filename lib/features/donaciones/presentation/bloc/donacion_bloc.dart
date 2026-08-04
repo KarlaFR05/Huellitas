@@ -70,10 +70,8 @@ class DonacionBloc extends Bloc<DonacionEvent, DonacionState> {
         usuarioId: event.usuarioId,
         organizacionId: event.organizacionId,
         monto: event.monto,
-        numeroTarjeta: event.numeroTarjeta,
-        titularTarjeta: event.titularTarjeta,
-        cvv: event.cvv,
-        fechaVencimiento: event.fechaVencimiento,
+        tarjetaId: event.tarjetaId,         
+        metodoPago: event.metodoPago,
       );
       emit(DonacionCompletada(donacion));
     } catch (e) {

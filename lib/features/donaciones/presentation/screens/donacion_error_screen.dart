@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
-import '../../../../styles/constantes/app_color.dart';
 import '../../../home/presentation/widgets/bottom_bar.dart';
 
 class DonacionErrorScreen extends StatefulWidget {
@@ -35,7 +34,6 @@ class _DonacionErrorScreenState extends State<DonacionErrorScreen> {
         });
       } else {
         timer.cancel();
-        // Redirige de vuelta al método de pago para que pueda corregir sus datos
         context.go('/metodo-pago');
       }
     });
@@ -43,19 +41,21 @@ class _DonacionErrorScreenState extends State<DonacionErrorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.red),
+          icon: Icon(Icons.arrow_back, color: colorScheme.error),
           onPressed: () => context.go('/metodo-pago'),
         ),
-        title: const Text(
+        title: Text(
           'Error',
           style: TextStyle(
-            color: Colors.red,
+            color: colorScheme.error,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -67,82 +67,76 @@ class _DonacionErrorScreenState extends State<DonacionErrorScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Icono de X roja
-              const Icon(
+              Icon(
                 Icons.cancel,
                 size: 120,
-                color: Colors.red,
+                color: colorScheme.error,
               ),
               const SizedBox(height: 32),
-              
-              // Título de error
-              const Text(
+
+              Text(
                 '¡Ups! Algo salió mal',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: colorScheme.onSurface,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              
-              // Subtítulo tranquilizador
-              const Text(
+
+              Text(
                 'No pudimos procesar tu donación. Verifica los datos de tu tarjeta e intenta nuevamente. No se ha realizado ningún cobro.',
                 style: TextStyle(
                   fontSize: 16,
-                  color: AppColors.textSecondary,
+                  color: colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
-              
-              // Contador regresivo
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     'Redirigiendo al formulario en ',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                   Text(
                     '$_secondsRemaining',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.red, // Número en rojo para coincidir
+                      color: colorScheme.error,
                     ),
                   ),
-                  const Text(
+                  Text(
                     ' segundos...',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              
-              // Barra de progreso roja
+
               SizedBox(
                 width: 200,
                 child: LinearProgressIndicator(
                   value: (5 - _secondsRemaining) / 5,
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+                  backgroundColor: colorScheme.surfaceContainerHighest,
+                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.error),
                   minHeight: 6,
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
-              // Botón manual para no obligar al usuario a esperar
+
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -151,7 +145,8 @@ class _DonacionErrorScreenState extends State<DonacionErrorScreen> {
                     context.go('/metodo-pago');
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: colorScheme.error,
+                    foregroundColor: colorScheme.onError,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -159,7 +154,6 @@ class _DonacionErrorScreenState extends State<DonacionErrorScreen> {
                   child: const Text(
                     'Intentar de nuevo',
                     style: TextStyle(
-                      color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),

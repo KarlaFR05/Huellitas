@@ -1,8 +1,9 @@
 abstract class TarjetaEvent {}
 
 class CargarTarjetas extends TarjetaEvent {
-  final int usuarioId;
-  CargarTarjetas(this.usuarioId);
+  /*final int usuarioId;
+  CargarTarjetas(this.usuarioId);*/
+  CargarTarjetas();
 }
 
 class GuardarNuevaTarjeta extends TarjetaEvent {
