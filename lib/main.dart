@@ -43,18 +43,18 @@ void main() {
   final authDataSource = AuthRemoteDataSourceImpl(dio);
   final authRepository = AuthRepositoryImpl(authDataSource);
   final tokenStorage = TokenStorageService();
-  
+
   final completarPerfilDataSource = CompletarPerfilRemoteDataSourceImpl(dio);
   final completarPerfilRepository = CompletarPerfilRepositoryImpl(
     completarPerfilDataSource,
   );
-  
   final insigniaDataSource = InsigniaRemoteDataSourceImpl(dio);
   final insigniaRepository = InsigniaRepositoryImpl(insigniaDataSource);
   final getInsigniasUsuario = GetInsigniasUsuarioUseCase(insigniaRepository);
 
   final donacionDataSource = DonacionRemoteDataSourceImpl(dio);
   final donacionRepository = DonacionRepositoryImpl(donacionDataSource);
+
   final obtenerOrganizacionesUseCase = ObtenerOrganizacionesUseCase(donacionRepository);
   final crearDonacionUseCase = CrearDonacionUseCase(donacionRepository);
 
@@ -63,9 +63,10 @@ void main() {
   final obtenerTarjetasUseCase = ObtenerTarjetasUseCase(tarjetaRepository);
   final guardarTarjetaUseCase = GuardarTarjetaUseCase(tarjetaRepository);
   final eliminarTarjetaUseCase = EliminarTarjetaUseCase(tarjetaRepository);
-  
+
   final actualizarTarjetaUseCase = ActualizarTarjetaUseCase(tarjetaRepository);
   final establecerPredeterminadaUseCase = EstablecerPredeterminadaUseCase(tarjetaRepository);
+
   final foroDataSource = ForoRemoteDataSourceImpl(dio);
   final foroRepository = ForoRepositoryImpl(foroDataSource);
 
@@ -133,6 +134,7 @@ void main() {
               establecerPredeterminada: establecerPredeterminadaUseCase,
             ),
           ),
+
         ],
         child: const HuellitasApp(),
       ),
