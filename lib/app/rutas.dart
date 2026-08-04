@@ -85,7 +85,10 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/home',
       builder: (context, state) {
-        final reporteIdInicial = state.extra as int?;
+        final reporteIdParam = state.uri.queryParameters['reporteId'];
+        final reporteIdInicial = reporteIdParam != null
+            ? int.tryParse(reporteIdParam)
+            : null;
         return HomeScreen(reporteIdInicial: reporteIdInicial);
       },
     ),

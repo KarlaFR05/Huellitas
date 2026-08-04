@@ -34,11 +34,25 @@ class _MapWidgetState extends State<MapWidget> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _enfocarReporteInicial();
       });
+    } else {}
+  }
+
+  @override
+  void didUpdateWidget(covariant MapWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.reporteIdInicial != null &&
+        widget.reporteIdInicial != oldWidget.reporteIdInicial) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _enfocarReporteInicial();
+      });
     }
   }
 
   void _enfocarReporteInicial() {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     ReportMapMarker? marcador;
     for (final m in widget.markers) {
@@ -56,7 +70,6 @@ class _MapWidgetState extends State<MapWidget> {
       );
       return;
     }
-
     _controller.move(marcador.location, 17);
     _showReportInfo(context, marcador);
   }

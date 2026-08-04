@@ -733,7 +733,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               onVerEnMapa: (reporteId) {
                 Navigator.of(dialogContext).pop();
                 context.read<ReporteBloc>().add(CancelarCreacionPorDuplicado());
-                context.go('/home', extra: reporteId);
+                context.go('/home?reporteId=$reporteId');
               },
             ),
           );
