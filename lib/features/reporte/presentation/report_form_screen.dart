@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors/mensaje_error.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../../styles/constantes/app_color.dart';
@@ -153,7 +154,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         });
       }
     } catch (e) {
-      _showErrorDialog(e.toString());
+      _showErrorDialog(mensajeDeError(e));
     } finally {
       setState(() => _obteniendoUbicacion = false);
     }
@@ -191,7 +192,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         });
       }
     } catch (e) {
-      _showErrorDialog('Error al seleccionar la imagen: ${e.toString()}');
+      _showErrorDialog('No se pudo seleccionar la imagen. Inténtalo de nuevo.');
     }
   }
 

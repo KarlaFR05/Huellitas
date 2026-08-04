@@ -96,7 +96,7 @@ class _DonacionesScreenState extends State<DonacionesScreen> {
           return const SizedBox.shrink();
         },
       ),
-      bottomNavigationBar: const BottomBarWidget(currentIndex: 3),
+      bottomNavigationBar: const BottomBarWidget(currentIndex: 2),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/errors/mensaje_error.dart';
 import '../../domain/usecases/obtener_organizaciones_usecase.dart';
 import '../../domain/usecases/crear_donacion_usecase.dart';
 import 'donacion_event.dart';
@@ -27,7 +28,7 @@ class DonacionBloc extends Bloc<DonacionEvent, DonacionState> {
       final organizaciones = await obtenerOrganizaciones(event.categoria);
       emit(DonacionLoaded(organizaciones: organizaciones));
     } catch (e) {
-      emit(DonacionError(e.toString()));
+      emit(DonacionError(mensajeDeError(e)));
     }
   }
 
@@ -76,7 +77,7 @@ class DonacionBloc extends Bloc<DonacionEvent, DonacionState> {
       );
       emit(DonacionCompletada(donacion));
     } catch (e) {
-      emit(DonacionError(e.toString()));
+      emit(DonacionError(mensajeDeError(e)));
     }
   }
 }

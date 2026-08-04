@@ -51,7 +51,6 @@ import 'package:huellitas/features/auth/domain/usecases/registro_usecase.dart';
 import 'package:huellitas/features/auth/domain/usecases/login_usecase.dart';
 import 'package:huellitas/features/auth/presentation/bloc/auth_bloc.dart';
 // NUEVOS IMPORTS para seguimiento de reportes
-import 'package:huellitas/features/reporte/data/datasources/reporte_estado_remote_datasource.dart';
 import 'package:huellitas/features/reporte/data/datasources/reporte_estado_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_estado_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/get_reporte_estado_usecase.dart';
@@ -75,15 +74,20 @@ import 'package:huellitas/features/insignias/presentation/screens/insignias_scre
 import 'package:huellitas/features/insignias/presentation/screens/insignia_detalle_screen.dart';
 
 import 'package:huellitas/features/reporte/domain/usecases/tomar_reporte_usecase.dart';
-import 'package:huellitas/features/foro/presentation/foro_screen.dart';
+import 'package:huellitas/features/foro/presentation/screens/foro_screen.dart';
 
 
 import 'package:huellitas/features/donaciones/presentation/screens/donaciones_screen.dart';
 import 'package:huellitas/features/donaciones/presentation/screens/seleccion_cantidad_screen.dart';
 import 'package:huellitas/features/donaciones/presentation/screens/monto_personalizado_screen.dart';
-import 'package:huellitas/features/donaciones/presentation/screens/metodo_pago_screen.dart';
+
 import 'package:huellitas/features/donaciones/presentation/screens/confirmacion_donacion_screen.dart';
 import 'package:huellitas/features/donaciones/presentation/screens/donacion_error_screen.dart';
+
+import 'package:huellitas/features/donaciones/presentation/screens/seleccion_tarjeta_screen.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/agregar_tarjeta_screen.dart';
+import 'package:huellitas/features/donaciones/domain/entities/tarjeta.dart';
+import 'package:huellitas/features/perfil/presentation/screens/mis_tarjetas.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -176,14 +180,7 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/report-form',
       pageBuilder: (context, state) {
-        final dio = Dio(
-          BaseOptions(
-            baseUrl: 'https://huellitas-backend-xekn.onrender.com',
-            connectTimeout: const Duration(seconds: 30),
-            receiveTimeout: const Duration(seconds: 30),
-            sendTimeout: const Duration(seconds: 30),
-          ),
-        );
+        final dio = context.read<Dio>();
 
         final reporteRepository = ReporteRepositoryImpl(
           ReporteRemoteDataSourceImpl(dio),
@@ -345,11 +342,6 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const MontoPersonalizadoScreen(),
     ),
     GoRoute(
-      path: '/metodo-pago',
-      name: 'metodo-pago',
-      builder: (context, state) => const MetodoPagoScreen(),
-    ),
-    GoRoute(
       path: '/confirmacion-donacion',
       name: 'confirmacion-donacion',
       builder: (context, state) => const ConfirmacionDonacionScreen(),
@@ -358,6 +350,37 @@ final GoRouter router = GoRouter(
       path: '/donacion-error',
       name: 'donacion-error',
       builder: (context, state) => const DonacionErrorScreen(),
+    ),
+    GoRoute(
+      path: '/seleccion-tarjeta',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return SeleccionTarjetaScreen(
+          monto: extra['monto'] as double,
+          organizacionId: extra['organizacionId'] as int,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/agregar-tarjeta',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return AgregarTarjetaScreen(
+          monto: extra?['monto'] as double?,
+          organizacionId: extra?['organizacionId'] as int?,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/editar-tarjeta',
+      builder: (context, state) {
+        final tarjeta = state.extra as Tarjeta;
+        return AgregarTarjetaScreen(tarjeta: tarjeta);
+      },
+    ),
+    GoRoute(
+      path: '/mis-tarjetas',
+      builder: (context, state) => const MisTarjetasScreen(),
     ),
   ],
 );

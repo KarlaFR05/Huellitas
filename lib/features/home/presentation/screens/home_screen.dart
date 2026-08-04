@@ -178,8 +178,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
+        bottom: false,
         child: Stack(
           children: [
             Column(
@@ -206,7 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Positioned(
               left: 20,
               right: 20,
-              bottom: 20,
+              bottom: BottomBarWidget.contentClearance(context),
               child: ElevatedButton(
                 onPressed: () {
                   context.push('/report-form');

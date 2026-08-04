@@ -6,6 +6,7 @@ import '../../../../styles/constantes/app_color.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/errors/mensaje_error.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -167,11 +168,9 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
       _mostrarExito();
     } on DioException catch (e) {
       if (!mounted) return;
-      final mensaje =
-          e.response?.data?['detail'] ?? 'Error al actualizar el perfil';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(mensaje.toString()),
+          content: Text(mensajeDeError(e)),
           backgroundColor: Colors.red,
         ),
       );

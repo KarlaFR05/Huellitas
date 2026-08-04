@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../home/presentation/widgets/bottom_bar.dart';
 
-class ForoScreen extends StatelessWidget {
-  const ForoScreen({super.key});
+class DonacionesScreen extends StatelessWidget {
+  const DonacionesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -10,8 +10,9 @@ class ForoScreen extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      extendBody: true,
       appBar: AppBar(
-        title: const Text('Foro'),
+        title: const Text('Donaciones'),
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -28,14 +29,14 @@ class ForoScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  Icons.forum_outlined,
+                  Icons.volunteer_activism_outlined,
                   size: 50,
                   color: colorScheme.primary,
                 ),
               ),
               const SizedBox(height: 24),
               Text(
-                'Foro',
+                'Donaciones',
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -50,7 +51,7 @@ class ForoScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Espacio para compartir información y apoyar a la comunidad.',
+                'Podrás apoyar a animales, rescatistas y asociaciones desde Huellitas.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
@@ -60,9 +61,7 @@ class ForoScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomBarWidget(
-        currentIndex: 1,
-      ),
+      bottomNavigationBar: const BottomBarWidget(currentIndex: 2),
     );
   }
 }

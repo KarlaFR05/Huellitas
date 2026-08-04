@@ -22,7 +22,7 @@ class OrganizacionCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -32,8 +32,8 @@ class OrganizacionCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 60,
-              height: 60,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
                 color: AppColors.secondary.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
@@ -42,21 +42,28 @@ class OrganizacionCard extends StatelessWidget {
                   ? ClipOval(
                       child: Image.network(
                         organizacion.logoUrl,
+                        width: 80,
+                        height: 80,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.pets,
-                            size: 30,
-                            color: AppColors.primary,
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) return child;
+                          return const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
                           );
                         },
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
+                              Icons.pets,
+                              size: 40,
+                              color: AppColors.primary,
+                            ),
                       ),
                     )
-                  : Icon(
-                      Icons.pets,
-                      size: 30,
-                      color: AppColors.primary,
-                    ),
+                  : const Icon(Icons.pets, size: 40, color: AppColors.primary),
             ),
             const SizedBox(height: 12),
             Padding(
@@ -65,7 +72,7 @@ class OrganizacionCard extends StatelessWidget {
                 organizacion.nombre,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 13.5,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),
