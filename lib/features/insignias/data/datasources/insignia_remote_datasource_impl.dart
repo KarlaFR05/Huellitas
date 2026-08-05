@@ -13,16 +13,24 @@ class InsigniaRemoteDataSourceImpl implements InsigniaRemoteDataSource {
   @override
   Future<List<InsigniaModel>> obtenerInsignias(int usuarioId) async {
     try {
+      print('Solicitando insignias para usuario $usuarioId...');
+      
       final response = await dio.get('/insignias/usuario/$usuarioId');
+      
+      print('Response status: ${response.statusCode}');
+      print('Response data: ${response.data}');
       
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
+        print('Insignias recibidas: ${data.length}');
         return data.map((json) => InsigniaModel.fromJson(json)).toList();
       } else {
+        print('Error al obtener insignias: ${response.statusCode}');
         throw Exception('Error al obtener insignias');
       }
     } catch (e) {
-      throw Exception('Error de conexión: ${e.toString()}');
+      print('Error en obtenerInsignias: $e');
+      throw Exception('Error de conexion: ${e.toString()}');
     }
   }
 }

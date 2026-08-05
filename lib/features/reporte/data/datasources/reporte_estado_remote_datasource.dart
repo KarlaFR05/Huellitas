@@ -13,4 +13,8 @@ abstract class ReporteEstadoRemoteDataSource {
     required File evidencia,
     String? comentarios,
   });
+
 }
+
+
+

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/errors/mensaje_error.dart';
 import '../../domain/repositories/completar_perfil_repository.dart';
 import 'completar_perfil_event.dart';
 import 'completar_perfil_state.dart';
@@ -56,7 +57,7 @@ class CompletarPerfilBloc
         );
         emit(CompletarPerfilSuccess());
       } catch (e) {
-        emit(CompletarPerfilError(e.toString()));
+        emit(CompletarPerfilError(mensajeDeError(e)));
       }
     });
   }
