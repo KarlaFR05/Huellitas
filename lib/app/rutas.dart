@@ -88,6 +88,7 @@ import 'package:huellitas/features/donaciones/presentation/screens/seleccion_tar
 import 'package:huellitas/features/donaciones/presentation/screens/agregar_tarjeta_screen.dart';
 import 'package:huellitas/features/donaciones/domain/entities/tarjeta.dart';
 import 'package:huellitas/features/perfil/presentation/screens/mis_tarjetas.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/historial_screen.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -390,6 +391,10 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/mis-tarjetas',
       builder: (context, state) => const MisTarjetasScreen(),
+    ),
+    GoRoute(
+      path: '/historial',
+      builder: (context, state) => const HistorialScreen(),
     ),
   ],
 );

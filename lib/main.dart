@@ -35,6 +35,11 @@ import 'features/foro/data/datasources/foro_remote_datasource_impl.dart';
 import 'features/foro/data/repositories/foro_repository_impl.dart';
 import 'features/foro/domain/repositories/foro_repository.dart';
 
+import 'features/donaciones/data/datasources/historial_remote_datasource.dart';
+import 'features/donaciones/data/repositories/historial_repository_impl.dart';
+import 'features/donaciones/domain/usecases/obtener_historial_donaciones_usecase.dart';
+import 'features/donaciones/presentation/bloc/historial_bloc.dart';
+
 void main() {
   final dio = Dio(
     BaseOptions(baseUrl: 'https://huellitas-backend-xekn.onrender.com'),
@@ -70,6 +75,13 @@ void main() {
   final foroDataSource = ForoRemoteDataSourceImpl(dio);
   final foroRepository = ForoRepositoryImpl(foroDataSource);
 
+  final historialDataSource = HistorialRemoteDataSourceImpl(dio);
+  // para prueba del front de historial
+  //final historialDataSource = HistorialRemoteDataSourceMock();
+  final historialRepository = HistorialRepositoryImpl(historialDataSource);
+  final obtenerHistorialDonacionesUseCase = ObtenerHistorialDonacionesUseCase(historialRepository);
+ 
+  
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -134,7 +146,12 @@ void main() {
               establecerPredeterminada: establecerPredeterminadaUseCase,
             ),
           ),
-
+          BlocProvider(
+            create: (context) => HistorialBloc(
+              obtenerDonaciones: obtenerHistorialDonacionesUseCase,
+              obtenerOrganizaciones: obtenerOrganizacionesUseCase, // ← ya existe en tu main
+            ),
+          ),
         ],
         child: const HuellitasApp(),
       ),
