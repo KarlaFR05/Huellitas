@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/errors/mensaje_error.dart';
 import '../../../../core/widgets/avatar_helper.dart';
 import '../../domain/entities/grupo.dart';
 import '../../domain/entities/membresia_grupo.dart';
@@ -39,6 +40,16 @@ class _AdministrarGrupoView extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Administrar grupo'),
+          actions: [
+            IconButton(
+              tooltip: 'Eliminar grupo',
+              onPressed: () => _confirmarEliminarGrupo(context),
+              icon: Icon(
+                Icons.delete_outline_rounded,
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ],
           bottom: requiereSolicitudes
               ? const TabBar(
                   tabs: [
@@ -89,6 +100,53 @@ class _AdministrarGrupoView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmarEliminarGrupo(BuildContext context) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminar grupo'),
+        content: Text(
+          '¿Seguro que quieres eliminar ${grupo.nombre}? Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true || !context.mounted) return;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    );
+    try {
+      await context.read<ForoRepository>().eliminarGrupo(grupo.id);
+      if (!context.mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      Navigator.pop(context, true);
+    } catch (error) {
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(mensajeDeError(error))));
+      }
+    }
   }
 }
 

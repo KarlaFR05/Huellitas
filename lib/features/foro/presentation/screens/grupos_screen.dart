@@ -57,11 +57,15 @@ class _GruposView extends StatelessWidget {
   }
 
   void _abrirGrupo(BuildContext context, Grupo grupo) {
-    Navigator.push<void>(
+    Navigator.push<Grupo>(
       context,
       MaterialPageRoute(builder: (_) => GrupoDetalleScreen(grupo: grupo)),
-    ).then((_) {
+    ).then((resultado) {
       if (!context.mounted) return;
+      if (resultado?.estado == EstadoGrupo.eliminado) {
+        context.read<GruposBloc>().add(GrupoEliminadoLocalmente(grupo.id));
+        return;
+      }
       context.read<GruposBloc>()
         ..add(const GruposSolicitados())
         ..add(const MisGruposSolicitados());
@@ -184,6 +188,8 @@ class _GruposView extends StatelessWidget {
                 for (var index = 0; index < descubrir.length; index++)
                   GrupoCard(
                     grupo: descubrir[index],
+                    actualizando:
+                        state.actualizandoGrupoId == descubrir[index].id,
                     onAbrir: () => _abrirGrupo(context, descubrir[index]),
                     onCambiarMembresia: () =>
                         _membresia(context, descubrir[index]),

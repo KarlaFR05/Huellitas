@@ -65,11 +65,13 @@ class _ComentariosViewState extends State<_ComentariosView> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final authState = context.watch<AuthBloc>().state;
     final usuarioId = authState is AuthSuccess && authState.data is Usuario
         ? (authState.data as Usuario).usuarioIdPk
         : null;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(title: const Text('Comentarios')),
       body: BlocBuilder<ComentariosBloc, ComentariosState>(
         builder: (context, state) {
@@ -158,37 +160,62 @@ class _ComentariosViewState extends State<_ComentariosView> {
           );
         },
       ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  minLines: 1,
-                  maxLines: 4,
-                  decoration: const InputDecoration(
-                    hintText: 'Escribe un comentario...',
+      bottomNavigationBar: AnimatedPadding(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: SafeArea(
+          top: false,
+          child: Material(
+            color: colors.surface,
+            elevation: 8,
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      minLines: 1,
+                      maxLines: 4,
+                      style: TextStyle(color: colors.onSurface),
+                      cursorColor: colors.primary,
+                      decoration: InputDecoration(
+                        hintText: 'Escribe un comentario...',
+                        hintStyle: TextStyle(color: colors.onSurfaceVariant),
+                        filled: true,
+                        fillColor: colors.surfaceContainerHighest,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: colors.outlineVariant),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: colors.primary,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  BlocBuilder<ComentariosBloc, ComentariosState>(
+                    buildWhen: (anterior, actual) =>
+                        anterior.enviando != actual.enviando,
+                    builder: (context, state) => IconButton.filled(
+                      onPressed: state.enviando ? null : _enviar,
+                      icon: state.enviando
+                          ? const SizedBox.square(
+                              dimension: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.send_rounded),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              BlocBuilder<ComentariosBloc, ComentariosState>(
-                buildWhen: (anterior, actual) =>
-                    anterior.enviando != actual.enviando,
-                builder: (context, state) => IconButton.filled(
-                  onPressed: state.enviando ? null : _enviar,
-                  icon: state.enviando
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.send_rounded),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -196,17 +223,18 @@ class _ComentariosViewState extends State<_ComentariosView> {
   }
 
   Future<void> _editarComentario(Comentario comentario) async {
-    final controller = TextEditingController(text: comentario.contenido);
+    var contenidoEditado = comentario.contenido;
     final contenido = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Editar comentario'),
-        content: TextField(
-          controller: controller,
+        content: TextFormField(
+          initialValue: comentario.contenido,
           autofocus: true,
           minLines: 2,
           maxLines: 5,
           maxLength: 500,
+          onChanged: (valor) => contenidoEditado = valor,
           decoration: const InputDecoration(labelText: 'Comentario'),
         ),
         actions: [
@@ -216,7 +244,7 @@ class _ComentariosViewState extends State<_ComentariosView> {
           ),
           FilledButton(
             onPressed: () {
-              final texto = controller.text.trim();
+              final texto = contenidoEditado.trim();
               if (texto.isNotEmpty) Navigator.pop(dialogContext, texto);
             },
             child: const Text('Guardar'),
@@ -224,7 +252,6 @@ class _ComentariosViewState extends State<_ComentariosView> {
         ],
       ),
     );
-    controller.dispose();
     if (contenido == null || !mounted) return;
     context.read<ComentariosBloc>().add(
       ComentarioEditado(comentarioId: comentario.id, contenido: contenido),
@@ -267,27 +294,43 @@ class _ComentarioItem extends StatelessWidget {
               color: colors.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
               children: [
-                Text(
-                  comentario.nombreUsuario,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+                Padding(
+                  padding: EdgeInsets.only(right: onEditar == null ? 0 : 36),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        comentario.nombreUsuario,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(comentario.contenido),
+                      const SizedBox(height: 6),
+                      Text(
+                        _fecha(),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
                 ),
                 if (onEditar != null)
-                  Align(
-                    alignment: Alignment.centerRight,
+                  Positioned(
+                    top: 0,
+                    right: 0,
                     child: IconButton(
                       tooltip: 'Editar comentario',
                       visualDensity: VisualDensity.compact,
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
+                      padding: EdgeInsets.zero,
                       onPressed: onEditar,
                       icon: const Icon(Icons.edit_outlined, size: 19),
                     ),
                   ),
-                const SizedBox(height: 4),
-                Text(comentario.contenido),
-                const SizedBox(height: 6),
-                Text(_fecha(), style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),

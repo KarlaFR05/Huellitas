@@ -19,10 +19,19 @@ String mensajeDeError(
     case DioExceptionType.badCertificate:
       return 'No se pudo establecer una conexión segura.';
     case DioExceptionType.badResponse:
-      return _mensajePorEstado(error.response?.statusCode);
+      return _mensajeRespuesta(error) ??
+          _mensajePorEstado(error.response?.statusCode);
     case DioExceptionType.unknown:
       return 'No se pudo completar la operación. Revisa tu conexión.';
   }
+}
+
+String? _mensajeRespuesta(DioException error) {
+  final data = error.response?.data;
+  if (data is! Map) return null;
+  final detalle = data['detail'] ?? data['mensaje'] ?? data['message'];
+  if (detalle is String && detalle.trim().isNotEmpty) return detalle.trim();
+  return null;
 }
 
 String _mensajePorEstado(int? estado) {
