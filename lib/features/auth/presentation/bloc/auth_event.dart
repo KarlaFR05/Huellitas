@@ -37,3 +37,14 @@ class ActualizarUsuarioEvent extends AuthEvent {
   final Usuario usuario;
   ActualizarUsuarioEvent(this.usuario);
 }
+
+class EnviarCodigoEvent extends AuthEvent {
+  final String correo;
+  EnviarCodigoEvent({required this.correo});
+}
+
+class ConfirmarCodigoEvent extends AuthEvent {
+  final String correo;
+  final String codigo;
+  ConfirmarCodigoEvent({required this.correo, required this.codigo});
+}

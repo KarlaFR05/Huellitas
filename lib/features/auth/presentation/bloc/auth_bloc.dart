@@ -9,20 +9,28 @@ import '../../data/models/usuario_model.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 import '../../../../core/storage/token_storage_service.dart';
+import '../../domain/usecases/confirmar_codigo_usecase.dart';
+import '../../domain/usecases/enviar_codigo_usecase.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final RegisterUseCase registerUseCase;
   final LoginUseCase loginUseCase;
+  final EnviarCodigoUseCase enviarCodigoUseCase;
+  final ConfirmarCodigoUseCase confirmarCodigoUseCase;
   final TokenStorageService tokenStorage;
 
   AuthBloc({
     required this.registerUseCase,
     required this.loginUseCase,
+    required this.enviarCodigoUseCase,
+    required this.confirmarCodigoUseCase,
     required this.tokenStorage,
   }) : super(AuthInitial()) {
     on<RegisterEvent>(_onRegister);
     on<LoginEvent>(_onLogin);
     on<VerificarSesionEvent>(_onVerificarSesion);
+    on<EnviarCodigoEvent>(_onEnviarCodigo);
+    on<ConfirmarCodigoEvent>(_onConfirmarCodigo);
     on<ActualizarUsuarioEvent>((event, emit) {
       emit(AuthSuccess(message: 'Perfil actualizado', data: event.usuario));
     });
@@ -30,6 +38,32 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await tokenStorage.borrarToken();
       emit(AuthInitial());
     });
+  }
+
+  Future<void> _onEnviarCodigo(
+    EnviarCodigoEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      await enviarCodigoUseCase.call(event.correo);
+      emit(AuthSuccess(message: 'Código enviado'));
+    } catch (e) {
+      emit(AuthError(message: mensajeDeError(e)));
+    }
+  }
+
+  Future<void> _onConfirmarCodigo(
+    ConfirmarCodigoEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      await confirmarCodigoUseCase.call(event.correo, event.codigo);
+      emit(AuthSuccess(message: 'Código confirmado'));
+    } catch (e) {
+      emit(AuthError(message: mensajeDeError(e)));
+    }
   }
 
   Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {

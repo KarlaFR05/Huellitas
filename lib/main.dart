@@ -7,6 +7,8 @@ import 'features/auth/data/datasources/auth_remote_datasource_impl.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/usecases/registro_usecase.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
+import 'features/auth/domain/usecases/enviar_codigo_usecase.dart';
+import 'features/auth/domain/usecases/confirmar_codigo_usecase.dart';
 import 'core/storage/token_storage_service.dart';
 import 'features/completar_registro/data/datasources/completar_perfil_remote_datasource.dart';
 import 'features/completar_registro/data/repositories/completar_perfil_repository_impl.dart';
@@ -107,6 +109,12 @@ void main() {
                 context.read<AuthRepositoryImpl>(),
               ),
               loginUseCase: LoginUseCase(context.read<AuthRepositoryImpl>()),
+              enviarCodigoUseCase: EnviarCodigoUseCase(
+                context.read<AuthRepositoryImpl>(),
+              ),
+              confirmarCodigoUseCase: ConfirmarCodigoUseCase(
+                context.read<AuthRepositoryImpl>(),
+              ),
               tokenStorage: tokenStorage,
             ),
           ),

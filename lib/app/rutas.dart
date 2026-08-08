@@ -27,7 +27,6 @@ import 'package:huellitas/features/completar_registro/presentation/screens/perfi
 
 import 'package:huellitas/features/perfil/presentation/screens/cambiar_contrasenia_screen.dart';
 
-
 import 'package:huellitas/features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/create_reporte_usecase.dart';
@@ -43,13 +42,14 @@ import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.da
 
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
 
-
 //registro e incio de sesion
 import 'package:huellitas/features/auth/data/datasources/auth_remote_datasource_impl.dart';
 import 'package:huellitas/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:huellitas/features/auth/domain/usecases/registro_usecase.dart';
 import 'package:huellitas/features/auth/domain/usecases/login_usecase.dart';
 import 'package:huellitas/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:huellitas/features/auth/presentation/screens/verificacion_screen.dart';
+
 // NUEVOS IMPORTS para seguimiento de reportes
 import 'package:huellitas/features/reporte/data/datasources/reporte_estado_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_estado_repository_impl.dart';
@@ -75,7 +75,6 @@ import 'package:huellitas/features/insignias/presentation/screens/insignia_detal
 
 import 'package:huellitas/features/reporte/domain/usecases/tomar_reporte_usecase.dart';
 import 'package:huellitas/features/foro/presentation/screens/foro_screen.dart';
-
 
 import 'package:huellitas/features/donaciones/presentation/screens/donaciones_screen.dart';
 import 'package:huellitas/features/donaciones/presentation/screens/seleccion_cantidad_screen.dart';
@@ -128,6 +127,11 @@ final GoRouter router = GoRouter(
     ),
 
     GoRoute(path: '/perfil', builder: (context, state) => const PerfilScreen()),
+
+    GoRoute(
+      path: '/verificar-correo',
+      builder: (context, state) => const VerificacionScreen(),
+    ),
 
     GoRoute(
       path: '/editar-perfil',
@@ -334,7 +338,6 @@ final GoRouter router = GoRouter(
 
     GoRoute(path: '/foro', builder: (context, state) => const ForoScreen()),
 
-    
     GoRoute(
       path: '/donaciones',
       name: 'donaciones',

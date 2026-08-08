@@ -12,32 +12,24 @@ class RegistroForm extends StatefulWidget {
 class _RegistroFormState extends State<RegistroForm> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController nombreController =
-      TextEditingController();
+  final TextEditingController nombreController = TextEditingController();
 
-  final TextEditingController apellidosController =
-      TextEditingController();
+  final TextEditingController apellidosController = TextEditingController();
 
-  final TextEditingController nombreUsuarioController =
-    TextEditingController();
+  final TextEditingController nombreUsuarioController = TextEditingController();
 
-  final TextEditingController telefonoController =
-      TextEditingController();
+  final TextEditingController telefonoController = TextEditingController();
 
-  final TextEditingController correoController =
-      TextEditingController();
+  final TextEditingController correoController = TextEditingController();
 
-  final TextEditingController fechaController =
-      TextEditingController();
+  final TextEditingController fechaController = TextEditingController();
 
   DateTime? fechaNacimiento;
 
   Future<void> seleccionarFecha() async {
     final fecha = await showDatePicker(
       context: context,
-      initialDate: DateTime(
-        DateTime.now().year - 18,
-      ),
+      initialDate: DateTime(DateTime.now().year - 18),
       firstDate: DateTime(1900),
       lastDate: DateTime(
         DateTime.now().year - 18,
@@ -49,8 +41,7 @@ class _RegistroFormState extends State<RegistroForm> {
     if (fecha != null) {
       setState(() {
         fechaNacimiento = fecha;
-        fechaController.text =
-            "${fecha.day}/${fecha.month}/${fecha.year}";
+        fechaController.text = "${fecha.day}/${fecha.month}/${fecha.year}";
       });
     }
   }
@@ -76,10 +67,7 @@ class _RegistroFormState extends State<RegistroForm> {
             alignment: Alignment.centerLeft,
             child: Text(
               'Nueva Cuenta',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
           ),
 
@@ -165,9 +153,7 @@ class _RegistroFormState extends State<RegistroForm> {
             controller: nombreUsuarioController,
             textCapitalization: TextCapitalization.words,
             inputFormatters: [
-              FilteringTextInputFormatter.allow(
-                RegExp(r'[a-zA-Z0-9._]'),
-              ),
+              FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9._]')),
               LengthLimitingTextInputFormatter(20),
             ],
             validator: (value) {
@@ -270,7 +256,7 @@ class _RegistroFormState extends State<RegistroForm> {
                 }
 
                 context.go(
-                  '/password',
+                  '/verificar-correo',
                   extra: {
                     'nombre': nombreController.text.trim(),
                     'apellidos': apellidosController.text.trim(),
@@ -282,9 +268,7 @@ class _RegistroFormState extends State<RegistroForm> {
                   },
                 );
               },
-              child: const Text(
-                'Continuar',
-              ),
+              child: const Text('Continuar'),
             ),
           ),
         ],
