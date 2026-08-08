@@ -43,14 +43,12 @@ import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.da
 
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
 
-
-//registro e incio de sesion
 import 'package:huellitas/features/auth/data/datasources/auth_remote_datasource_impl.dart';
 import 'package:huellitas/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:huellitas/features/auth/domain/usecases/registro_usecase.dart';
 import 'package:huellitas/features/auth/domain/usecases/login_usecase.dart';
 import 'package:huellitas/features/auth/presentation/bloc/auth_bloc.dart';
-// NUEVOS IMPORTS para seguimiento de reportes
+
 import 'package:huellitas/features/reporte/data/datasources/reporte_estado_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_estado_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/get_reporte_estado_usecase.dart';
@@ -89,6 +87,11 @@ import 'package:huellitas/features/donaciones/presentation/screens/agregar_tarje
 import 'package:huellitas/features/donaciones/domain/entities/tarjeta.dart';
 import 'package:huellitas/features/perfil/presentation/screens/mis_tarjetas.dart';
 import 'package:huellitas/features/donaciones/presentation/screens/historial_screen.dart';
+
+import 'package:huellitas/features/notificaciones/presentation/screens/notificaciones_screen.dart';
+
+import 'package:huellitas/features/foro/presentation/screens/publicacion_detalle_screen.dart';
+import 'package:huellitas/features/foro/presentation/screens/administrar_grupo_por_id_screen.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -395,6 +398,24 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/historial',
       builder: (context, state) => const HistorialScreen(),
+    ),
+    GoRoute(
+      path: '/notificaciones',
+      builder: (context, state) => const NotificacionesScreen(),
+    ),
+    GoRoute(
+      path: '/publicacion/:id',
+      builder: (context, state) {
+        final publicacionId = int.parse(state.pathParameters['id']!);
+        return PublicacionDetalleScreen(publicacionId: publicacionId);
+      },
+    ),
+    GoRoute(
+      path: '/administrar-grupo/:id',
+      builder: (context, state) {
+        final grupoId = int.parse(state.pathParameters['id']!);
+        return AdministrarGrupoPorIdScreen(grupoId: grupoId);
+      },
     ),
   ],
 );

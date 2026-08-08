@@ -20,6 +20,16 @@ class _HistorialScreenState extends State<HistorialScreen> {
     context.read<HistorialBloc>().add(CargarHistorial(TipoHistorial.donaciones));
   }
 
+  void _regresar(BuildContext context) {
+    final router = GoRouter.of(context);
+
+    if (router.canPop()) {
+      router.pop();
+    } else {
+      router.go('/');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -31,7 +41,7 @@ class _HistorialScreenState extends State<HistorialScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: colorScheme.primary),
-          onPressed: () => context.pop(),
+          onPressed: () => _regresar(context),
         ),
         title: Text(
           'Historial de Donaciones',
