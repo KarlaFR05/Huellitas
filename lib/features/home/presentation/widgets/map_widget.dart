@@ -280,108 +280,71 @@ class _MapWidgetState extends State<MapWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _StatusDot(color: report.urgency.color),
-                      const SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: report.fotoUrl != null
+                            ? () =>
+                                  _showFullImage(sheetContext, report.fotoUrl!)
+                            : null,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: report.fotoUrl != null
+                              ? Image.network(
+                                  report.fotoUrl!,
+                                  width: 150,
+                                  height: 190,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) => _FotoPlaceholder(
+                                    color: report.urgency.color,
+                                  ),
+                                )
+                              : _FotoPlaceholder(color: report.urgency.color),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
                       Expanded(
-                        child: Text(
-                          report.tipoReporte,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: report.urgency.color.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            report.animal.shortLabel,
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  if (report.fotoUrl != null) ...[
-                    GestureDetector(
-                      onTap: () =>
-                          _showFullImage(sheetContext, report.fotoUrl!),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Stack(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Image.network(
-                              report.fotoUrl!,
-                              height: 150,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) =>
-                                  const SizedBox.shrink(),
+                            _UrgencyBadge(
+                              label: report.tipoReporte,
+                              emoji: report.animal.shortLabel,
+                              color: report.urgency.color,
                             ),
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black54,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.visibility,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      'Ver',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            const SizedBox(height: 10),
+                            _InfoRowCompact(
+                              label: 'Urgencia',
+                              value: report.urgency.label,
+                            ),
+                            _InfoRowCompact(
+                              label: 'Animal',
+                              value: report.animal.label,
+                            ),
+                            _InfoRowCompact(
+                              label: 'Tamaño',
+                              value: report.tamano,
+                            ),
+                            _InfoRowCompact(
+                              label: 'Ubicación',
+                              value: report.ubicacion,
+                            ),
+                            _InfoRowCompact(
+                              label: 'Radio',
+                              value: '${report.radiusMeters.round()} m',
                             ),
                           ],
                         ),
                       ),
+                    ],
+                  ),
+                  if (report.description.isNotEmpty) ...[
+                    const SizedBox(height: 14),
+                    Text(
+                      report.description,
+                      style: const TextStyle(fontSize: 15, height: 1.35),
                     ),
-                    const SizedBox(height: 12),
                   ],
-                  _InfoRow(label: 'Tipo', value: report.tipoReporte),
-                  _InfoRow(label: 'Urgencia', value: report.urgency.label),
-                  _InfoRow(label: 'Animal', value: report.animal.label),
-                  _InfoRow(label: 'Tamaño', value: report.tamano),
-                  _InfoRow(label: 'Ubicación', value: report.ubicacion),
-                  _InfoRow(
-                    label: 'Radio',
-                    value: '${report.radiusMeters.round()} m',
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    report.description,
-                    style: const TextStyle(fontSize: 15, height: 1.35),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Ubicación aproximada.',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
@@ -518,6 +481,101 @@ class _InfoRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _UrgencyBadge extends StatelessWidget {
+  final String label;
+  final String emoji;
+  final Color color;
+
+  const _UrgencyBadge({
+    required this.label,
+    required this.emoji,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 16)),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoRowCompact extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _InfoRowCompact({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 68,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FotoPlaceholder extends StatelessWidget {
+  final Color color;
+
+  const _FotoPlaceholder({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 150,
+      height: 190,
+      color: color.withValues(alpha: 0.1),
+      child: Icon(Icons.pets, color: color.withValues(alpha: 0.5), size: 36),
     );
   }
 }
