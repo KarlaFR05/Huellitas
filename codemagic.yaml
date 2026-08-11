@@ -1,0 +1,59 @@
+workflows:
+  ios-testflight:
+    name: iOS TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: codemagic_api_key # nombre que le des a tu API key dentro de Codemagic
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.andry.huellitas # <-- reemplaza con tu Bundle ID real
+      vars:
+        APP_STORE_APPLE_ID: 0000000000 # <-- Apple ID numérico de tu app en App Store Connect
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    scripts:
+      - name: Instalar dependencias de Flutter
+        script: |
+          flutter packages pub get
+
+      - name: Instalar CocoaPods
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+
+      - name: Configurar firma de código en el proyecto Xcode
+        script: |
+          xcode-project use-profiles
+
+      - name: Incrementar número de build
+        script: |
+          #!/bin/sh
+          cd $CM_BUILD_DIR
+          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID")
+          cd ios
+          agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
+
+      - name: Compilar el .ipa
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        beta_groups:
+          - "Testers Internos" # <-- crea este grupo en App Store Connect > TestFlight

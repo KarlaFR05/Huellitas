@@ -37,6 +37,16 @@ import 'features/foro/data/datasources/foro_remote_datasource_impl.dart';
 import 'features/foro/data/repositories/foro_repository_impl.dart';
 import 'features/foro/domain/repositories/foro_repository.dart';
 
+import 'features/donaciones/data/datasources/historial_remote_datasource.dart';
+import 'features/donaciones/data/repositories/historial_repository_impl.dart';
+import 'features/donaciones/domain/usecases/obtener_historial_donaciones_usecase.dart';
+import 'features/donaciones/presentation/bloc/historial_bloc.dart';
+
+import 'features/notificaciones/data/datasources/notificacion_remote_datasource.dart';
+import 'features/notificaciones/data/repositories/notificacion_repository_impl.dart';
+import 'features/notificaciones/presentation/bloc/notificacion_bloc.dart';
+import 'features/notificaciones/presentation/bloc/notificacion_event.dart';
+
 void main() {
   final dio = Dio(
     BaseOptions(baseUrl: 'https://huellitas-backend-xekn.onrender.com'),
@@ -55,6 +65,7 @@ void main() {
 
   final donacionDataSource = DonacionRemoteDataSourceImpl(dio);
   final donacionRepository = DonacionRepositoryImpl(donacionDataSource);
+
   final obtenerOrganizacionesUseCase = ObtenerOrganizacionesUseCase(
     donacionRepository,
   );
@@ -72,6 +83,21 @@ void main() {
   );
   final foroDataSource = ForoRemoteDataSourceImpl(dio);
   final foroRepository = ForoRepositoryImpl(foroDataSource);
+
+  final historialDataSource = HistorialRemoteDataSourceImpl(dio);
+  // para prueba del front de historial
+  //final historialDataSource = HistorialRemoteDataSourceMock();
+  final historialRepository = HistorialRepositoryImpl(historialDataSource);
+  final obtenerHistorialDonacionesUseCase = ObtenerHistorialDonacionesUseCase(
+    historialRepository,
+  );
+
+  // final notificacionDataSource = NotificacionRemoteDataSourceImpl(dio);
+  // pruebas
+  final notificacionDataSource = NotificacionRemoteDataSourceMock();
+  final notificacionRepository = NotificacionRepositoryImpl(
+    notificacionDataSource,
+  );
 
   dio.interceptors.add(
     InterceptorsWrapper(
@@ -143,19 +169,16 @@ void main() {
             ),
           ),
           BlocProvider(
-            create: (context) => DonacionBloc(
-              obtenerOrganizaciones: obtenerOrganizacionesUseCase,
-              crearDonacion: crearDonacionUseCase,
+            create: (context) => HistorialBloc(
+              obtenerDonaciones: obtenerHistorialDonacionesUseCase,
+              obtenerOrganizaciones:
+                  obtenerOrganizacionesUseCase, // ← ya existe en tu main
             ),
           ),
           BlocProvider(
-            create: (context) => TarjetaBloc(
-              obtenerTarjetas: obtenerTarjetasUseCase,
-              guardarTarjeta: guardarTarjetaUseCase,
-              eliminarTarjeta: eliminarTarjetaUseCase,
-              actualizarTarjeta: actualizarTarjetaUseCase,
-              establecerPredeterminada: establecerPredeterminadaUseCase,
-            ),
+            create: (context) =>
+                NotificacionBloc(repository: notificacionRepository)
+                  ..add(CargarNotificaciones()),
           ),
         ],
         child: const HuellitasApp(),
