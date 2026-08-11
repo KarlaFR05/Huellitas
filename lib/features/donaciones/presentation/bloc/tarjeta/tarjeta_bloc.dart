@@ -36,11 +36,15 @@ class TarjetaBloc extends Bloc<TarjetaEvent, TarjetaState> {
     emit(TarjetaLoading());
     try {
       final tarjetas = await obtenerTarjetas();
-      final predeterminada = tarjetas.where((t) => t.esPredeterminada).firstOrNull;
-      emit(TarjetaLoaded(
-        tarjetas: tarjetas,
-        tarjetaPredeterminada: predeterminada,
-      ));
+      final predeterminada = tarjetas
+          .where((t) => t.esPredeterminada)
+          .firstOrNull;
+      emit(
+        TarjetaLoaded(
+          tarjetas: tarjetas,
+          tarjetaPredeterminada: predeterminada,
+        ),
+      );
     } catch (e) {
       emit(TarjetaError(mensajeDeError(e)));
     }

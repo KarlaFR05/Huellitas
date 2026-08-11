@@ -146,12 +146,14 @@ class _SeleccionTarjetaScreenState extends State<SeleccionTarjetaScreen> {
       return;
     }
 
-    context.read<DonacionBloc>().add(ProcesarPago(
-      usuarioId: authState.data.usuarioIdPk,
-      organizacionId: widget.organizacionId,
-      monto: widget.monto,
-      tarjetaId: tarjeta.id,
-    ));
+    context.read<DonacionBloc>().add(
+      ProcesarPago(
+        usuarioId: authState.data.usuarioIdPk,
+        organizacionId: widget.organizacionId,
+        monto: widget.monto,
+        tarjetaId: tarjeta.id,
+      ),
+    );
   }
 
   @override
@@ -263,10 +265,13 @@ class _SeleccionTarjetaScreenState extends State<SeleccionTarjetaScreen> {
                         ),
                         BlocBuilder<DonacionBloc, DonacionState>(
                           builder: (context, donacionState) {
-                            final procesando = donacionState is DonacionProcesando;
+                            final procesando =
+                                donacionState is DonacionProcesando;
                             return Expanded(
                               child: ListView.builder(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
                                 itemCount: state.tarjetas.length,
                                 itemBuilder: (context, index) {
                                   final tarjeta = state.tarjetas[index];
@@ -276,7 +281,9 @@ class _SeleccionTarjetaScreenState extends State<SeleccionTarjetaScreen> {
                                       tarjeta: tarjeta,
                                       onTap: procesando
                                           ? () {}
-                                          : () => _mostrarConfirmacionPago(tarjeta),
+                                          : () => _mostrarConfirmacionPago(
+                                              tarjeta,
+                                            ),
                                     ),
                                   );
                                 },
@@ -313,17 +320,22 @@ class _SeleccionTarjetaScreenState extends State<SeleccionTarjetaScreen> {
                         padding: const EdgeInsets.all(16),
                         child: BlocBuilder<DonacionBloc, DonacionState>(
                           builder: (context, donacionState) {
-                            final procesando = donacionState is DonacionProcesando;
+                            final procesando =
+                                donacionState is DonacionProcesando;
                             return SizedBox(
                               width: double.infinity,
                               height: 56,
                               child: ElevatedButton.icon(
                                 onPressed: procesando
                                     ? null
-                                    : () => context.push('/agregar-tarjeta', extra: {
+                                    : () => context.push(
+                                        '/agregar-tarjeta',
+                                        extra: {
                                           'monto': widget.monto,
-                                          'organizacionId': widget.organizacionId,
-                                        }),
+                                          'organizacionId':
+                                              widget.organizacionId,
+                                        },
+                                      ),
                                 icon: const Icon(Icons.add, size: 24),
                                 label: const Text(
                                   'Agregar nueva tarjeta',
@@ -346,7 +358,11 @@ class _SeleccionTarjetaScreenState extends State<SeleccionTarjetaScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: colorScheme.error,
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           state.message,

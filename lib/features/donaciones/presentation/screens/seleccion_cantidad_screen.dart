@@ -15,7 +15,8 @@ class SeleccionCantidadScreen extends StatefulWidget {
   const SeleccionCantidadScreen({super.key});
 
   @override
-  State<SeleccionCantidadScreen> createState() => _SeleccionCantidadScreenState();
+  State<SeleccionCantidadScreen> createState() =>
+      _SeleccionCantidadScreenState();
 }
 
 class _SeleccionCantidadScreenState extends State<SeleccionCantidadScreen> {
@@ -64,7 +65,8 @@ class _SeleccionCantidadScreenState extends State<SeleccionCantidadScreen> {
             ),
             body: BlocBuilder<DonacionBloc, DonacionState>(
               builder: (context, state) {
-                if (state is! DonacionLoaded || state.organizacionSeleccionada == null) {
+                if (state is! DonacionLoaded ||
+                    state.organizacionSeleccionada == null) {
                   return Center(
                     child: Text(
                       'No hay organización seleccionada',
@@ -84,7 +86,9 @@ class _SeleccionCantidadScreenState extends State<SeleccionCantidadScreen> {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: colorScheme.primary.withValues(alpha: 0.1),
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.1,
+                                ),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -142,15 +146,18 @@ class _SeleccionCantidadScreenState extends State<SeleccionCantidadScreen> {
                         children: [
                           _MontoCard(
                             monto: 5,
-                            onTap: () => _verificarTarjetasYContinuar(context, 5),
+                            onTap: () =>
+                                _verificarTarjetasYContinuar(context, 5),
                           ),
                           _MontoCard(
                             monto: 15,
-                            onTap: () => _verificarTarjetasYContinuar(context, 15),
+                            onTap: () =>
+                                _verificarTarjetasYContinuar(context, 15),
                           ),
                           _MontoCard(
                             monto: 20,
-                            onTap: () => _verificarTarjetasYContinuar(context, 20),
+                            onTap: () =>
+                                _verificarTarjetasYContinuar(context, 20),
                           ),
                           _MontoPersonalizadoCard(
                             onTap: () => context.push('/monto-personalizado'),
@@ -244,14 +251,18 @@ class _SeleccionCantidadScreenState extends State<SeleccionCantidadScreen> {
   ) async {
     final donacionState = context.read<DonacionBloc>().state;
     int? organizacionId;
-    if (donacionState is DonacionLoaded && donacionState.organizacionSeleccionada != null) {
+    if (donacionState is DonacionLoaded &&
+        donacionState.organizacionSeleccionada != null) {
       organizacionId = donacionState.organizacionSeleccionada!.id;
     }
 
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthSuccess) {
       context.read<DonacionBloc>().add(SeleccionarMonto(monto));
-      context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+      context.push(
+        '/agregar-tarjeta',
+        extra: {'monto': monto, 'organizacionId': organizacionId},
+      );
       return;
     }
 
@@ -270,15 +281,26 @@ class _SeleccionCantidadScreenState extends State<SeleccionCantidadScreen> {
 
       if (tarjetas.isEmpty) {
         context.read<DonacionBloc>().add(SeleccionarMonto(monto));
-        context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+        context.push(
+          '/agregar-tarjeta',
+          extra: {'monto': monto, 'organizacionId': organizacionId},
+        );
       } else if (predeterminada != null) {
-        _mostrarDialogoPagoRapido(context, monto, organizacionId, predeterminada);
+        _mostrarDialogoPagoRapido(
+          context,
+          monto,
+          organizacionId,
+          predeterminada,
+        );
       } else {
         _mostrarDialogoElegirTarjeta(context, monto, organizacionId);
       }
     } else {
       context.read<DonacionBloc>().add(SeleccionarMonto(monto));
-      context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+      context.push(
+        '/agregar-tarjeta',
+        extra: {'monto': monto, 'organizacionId': organizacionId},
+      );
     }
   }
 
@@ -293,12 +315,14 @@ class _SeleccionCantidadScreenState extends State<SeleccionCantidadScreen> {
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthSuccess) return;
 
-    context.read<DonacionBloc>().add(ProcesarPago(
-      usuarioId: authState.data.usuarioIdPk,
-      organizacionId: organizacionId ?? 0,
-      monto: monto,
-      tarjetaId: tarjeta.id,
-    ));
+    context.read<DonacionBloc>().add(
+      ProcesarPago(
+        usuarioId: authState.data.usuarioIdPk,
+        organizacionId: organizacionId ?? 0,
+        monto: monto,
+        tarjetaId: tarjeta.id,
+      ),
+    );
   }
 
   void _mostrarDialogoPagoRapido(
@@ -340,7 +364,9 @@ class _SeleccionCantidadScreenState extends State<SeleccionCantidadScreen> {
               decoration: BoxDecoration(
                 color: colorScheme.secondary.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,13 +415,21 @@ class _SeleccionCantidadScreenState extends State<SeleccionCantidadScreen> {
         ),
         actions: [
           ElevatedButton(
-            onPressed: () => _procesarPagoDirecto(context, monto, organizacionId, predeterminada),
+            onPressed: () => _procesarPagoDirecto(
+              context,
+              monto,
+              organizacionId,
+              predeterminada,
+            ),
             child: const Text('Donar'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              context.push('/seleccion-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+              context.push(
+                '/seleccion-tarjeta',
+                extra: {'monto': monto, 'organizacionId': organizacionId},
+              );
             },
             child: const Text('Cambiar'),
           ),
@@ -430,10 +464,10 @@ class _SeleccionCantidadScreenState extends State<SeleccionCantidadScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              context.push('/seleccion-tarjeta', extra: {
-                'monto': monto,
-                'organizacionId': organizacionId,
-              });
+              context.push(
+                '/seleccion-tarjeta',
+                extra: {'monto': monto, 'organizacionId': organizacionId},
+              );
             },
             child: const Text('Elegir guardada'),
           ),
@@ -441,10 +475,10 @@ class _SeleccionCantidadScreenState extends State<SeleccionCantidadScreen> {
             onPressed: () {
               Navigator.pop(dialogContext);
               context.read<DonacionBloc>().add(SeleccionarMonto(monto));
-              context.push('/agregar-tarjeta', extra: {
-                'monto': monto,
-                'organizacionId': organizacionId,
-              });
+              context.push(
+                '/agregar-tarjeta',
+                extra: {'monto': monto, 'organizacionId': organizacionId},
+              );
             },
             child: const Text('Agregar nueva'),
           ),

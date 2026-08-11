@@ -3,7 +3,9 @@ import '../entities/donacion.dart';
 import '../entities/categoria_organizacion.dart';
 
 abstract class DonacionRepository {
-  Future<List<Organizacion>> obtenerOrganizaciones(CategoriaOrganizacion categoria);
+  Future<List<Organizacion>> obtenerOrganizaciones(
+    CategoriaOrganizacion categoria,
+  );
   Future<Donacion> crearDonacion({
     required int usuarioId,
     required int organizacionId,
@@ -12,7 +14,7 @@ abstract class DonacionRepository {
     required String titularTarjeta,
     required String cvv,
     required String fechaVencimiento,*/
-    required int tarjetaId, 
+    required int tarjetaId,
     String metodoPago,
   });
 }

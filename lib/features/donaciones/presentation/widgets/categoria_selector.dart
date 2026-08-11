@@ -41,7 +41,9 @@ class CategoriaSelector extends StatelessWidget {
                     color: isSelected
                         ? colorScheme.onPrimary
                         : colorScheme.onSurfaceVariant,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                     fontSize: 12,
                   ),
                 ),

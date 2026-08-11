@@ -74,13 +74,13 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
 
     if (_esModoEdicion) {
       context.read<TarjetaBloc>().add(
-            ActualizarTarjeta(
-              tarjetaId: widget.tarjeta!.id,
-              titular: _titularController.text,
-              fechaVencimiento: _vencimientoController.text,
-              esPredeterminada: _esPredeterminada,
-            ),
-          );
+        ActualizarTarjeta(
+          tarjetaId: widget.tarjeta!.id,
+          titular: _titularController.text,
+          fechaVencimiento: _vencimientoController.text,
+          esPredeterminada: _esPredeterminada,
+        ),
+      );
       return;
     }
 
@@ -90,15 +90,15 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
     }
 
     context.read<TarjetaBloc>().add(
-          GuardarNuevaTarjeta(
-            usuarioId: usuarioId,
-            numeroTarjeta: _numeroController.text.replaceAll(' ', ''),
-            titular: _titularController.text,
-            fechaVencimiento: _vencimientoController.text,
-            cvv: _cvvController.text,
-            esPredeterminada: esTemporal ? false : _esPredeterminada,
-          ),
-        );
+      GuardarNuevaTarjeta(
+        usuarioId: usuarioId,
+        numeroTarjeta: _numeroController.text.replaceAll(' ', ''),
+        titular: _titularController.text,
+        fechaVencimiento: _vencimientoController.text,
+        cvv: _cvvController.text,
+        esPredeterminada: esTemporal ? false : _esPredeterminada,
+      ),
+    );
   }
 
   void _limpiarTarjetaTemporal() {
@@ -127,17 +127,19 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                 final authState = context.read<AuthBloc>().state;
                 if (authState is AuthSuccess) {
                   context.read<DonacionBloc>().add(
-                        ProcesarPago(
-                          usuarioId: authState.data.usuarioIdPk,
-                          organizacionId: widget.organizacionId!,
-                          monto: widget.monto!,
-                          tarjetaId: tarjetaGuardada.id,
-                        ),
-                      );
+                    ProcesarPago(
+                      usuarioId: authState.data.usuarioIdPk,
+                      organizacionId: widget.organizacionId!,
+                      monto: widget.monto!,
+                      tarjetaId: tarjetaGuardada.id,
+                    ),
+                  );
                 }
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Tarjeta guardada exitosamente')),
+                  const SnackBar(
+                    content: Text('Tarjeta guardada exitosamente'),
+                  ),
                 );
                 context.pop();
               }
@@ -151,7 +153,11 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, color: colorScheme.primary, size: 48),
+                      Icon(
+                        Icons.check_circle,
+                        color: colorScheme.primary,
+                        size: 48,
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         '¡Actualizado!',
@@ -297,10 +303,11 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
                               LengthLimitingTextInputFormatter(16),
-                              TextInputFormatter.withFunction(
-                                  (oldValue, newValue) {
-                                final text =
-                                    newValue.text.replaceAll(' ', '');
+                              TextInputFormatter.withFunction((
+                                oldValue,
+                                newValue,
+                              ) {
+                                final text = newValue.text.replaceAll(' ', '');
                                 final buffer = StringBuffer();
                                 for (int i = 0; i < text.length; i++) {
                                   if (i > 0 && i % 4 == 0) buffer.write(' ');
@@ -320,8 +327,10 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               filled: true,
-                              suffixIcon: Icon(Icons.credit_card,
-                                  color: colorScheme.primary),
+                              suffixIcon: Icon(
+                                Icons.credit_card,
+                                color: colorScheme.primary,
+                              ),
                             ),
                             validator: (value) {
                               final limpio = value?.replaceAll(' ', '') ?? '';
@@ -360,9 +369,11 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               filled: true,
-                              suffixIcon: Icon(Icons.lock,
-                                  size: 16,
-                                  color: colorScheme.onSurfaceVariant),
+                              suffixIcon: Icon(
+                                Icons.lock,
+                                size: 16,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -392,7 +403,8 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                           textCapitalization: TextCapitalization.characters,
                           inputFormatters: [
                             FilteringTextInputFormatter.allow(
-                                RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ ]')),
+                              RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ ]'),
+                            ),
                           ],
                           decoration: InputDecoration(
                             hintText: 'Como aparece en la tarjeta',
@@ -426,8 +438,10 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,
                             LengthLimitingTextInputFormatter(4),
-                            TextInputFormatter.withFunction(
-                                (oldValue, newValue) {
+                            TextInputFormatter.withFunction((
+                              oldValue,
+                              newValue,
+                            ) {
                               final text = newValue.text;
                               if (text.isEmpty) return newValue;
                               final cleanText = text.replaceAll('/', '');
@@ -435,16 +449,20 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                                 return TextEditingValue(
                                   text: cleanText,
                                   selection: TextSelection.collapsed(
-                                      offset: cleanText.length),
+                                    offset: cleanText.length,
+                                  ),
                                 );
                               }
                               final month = cleanText.substring(0, 2);
                               final year = cleanText.substring(
-                                  2, cleanText.length > 4 ? 4 : cleanText.length);
+                                2,
+                                cleanText.length > 4 ? 4 : cleanText.length,
+                              );
                               return TextEditingValue(
                                 text: '$month/$year',
                                 selection: TextSelection.collapsed(
-                                    offset: '$month/$year'.length),
+                                  offset: '$month/$year'.length,
+                                ),
                               );
                             }),
                           ],
@@ -472,10 +490,14 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: colorScheme.secondary.withValues(alpha: 0.2),
+                              color: colorScheme.secondary.withValues(
+                                alpha: 0.2,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: colorScheme.primary.withValues(alpha: 0.3),
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.3,
+                                ),
                               ),
                             ),
                             child: Column(
@@ -483,8 +505,11 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                               children: [
                                 Row(
                                   children: [
-                                    Icon(Icons.save,
-                                        color: colorScheme.primary, size: 20),
+                                    Icon(
+                                      Icons.save,
+                                      color: colorScheme.primary,
+                                      size: 20,
+                                    ),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
@@ -518,8 +543,11 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                                   const SizedBox(height: 8),
                                   Row(
                                     children: [
-                                      Icon(Icons.star,
-                                          color: colorScheme.primary, size: 20),
+                                      Icon(
+                                        Icons.star,
+                                        color: colorScheme.primary,
+                                        size: 20,
+                                      ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
@@ -535,8 +563,10 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                                         onChanged: procesando
                                             ? null
                                             : (value) {
-                                                setState(() =>
-                                                    _esPredeterminada = value);
+                                                setState(
+                                                  () =>
+                                                      _esPredeterminada = value,
+                                                );
                                               },
                                         activeColor: colorScheme.primary,
                                       ),
@@ -552,16 +582,23 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: colorScheme.secondary.withValues(alpha: 0.2),
+                              color: colorScheme.secondary.withValues(
+                                alpha: 0.2,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: colorScheme.primary.withValues(alpha: 0.3),
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.3,
+                                ),
                               ),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.star,
-                                    color: colorScheme.primary, size: 20),
+                                Icon(
+                                  Icons.star,
+                                  color: colorScheme.primary,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -578,7 +615,8 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                                       ? null
                                       : (value) {
                                           setState(
-                                              () => _esPredeterminada = value);
+                                            () => _esPredeterminada = value,
+                                          );
                                         },
                                   activeColor: colorScheme.primary,
                                 ),
@@ -591,16 +629,23 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: colorScheme.secondary.withValues(alpha: 0.2),
+                              color: colorScheme.secondary.withValues(
+                                alpha: 0.2,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: colorScheme.primary.withValues(alpha: 0.3),
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.3,
+                                ),
                               ),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.star,
-                                    color: colorScheme.primary, size: 20),
+                                Icon(
+                                  Icons.star,
+                                  color: colorScheme.primary,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -617,7 +662,8 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                                       ? null
                                       : (value) {
                                           setState(
-                                              () => _esPredeterminada = value);
+                                            () => _esPredeterminada = value,
+                                          );
                                         },
                                   activeColor: colorScheme.primary,
                                 ),
@@ -645,15 +691,16 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
+                                        Colors.white,
+                                      ),
                                     ),
                                   )
                                 : Text(
                                     _esModoEdicion
                                         ? 'Guardar cambios'
                                         : (_esFlujoDonacion
-                                            ? 'Pagar \$${widget.monto!.toStringAsFixed(2)}'
-                                            : 'Guardar tarjeta'),
+                                              ? 'Pagar \$${widget.monto!.toStringAsFixed(2)}'
+                                              : 'Guardar tarjeta'),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
@@ -669,15 +716,17 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                             Icon(
                               Icons.shield,
                               size: 16,
-                              color: colorScheme.onSurfaceVariant
-                                  .withValues(alpha: 0.6),
+                              color: colorScheme.onSurfaceVariant.withValues(
+                                alpha: 0.6,
+                              ),
                             ),
                             const SizedBox(width: 6),
                             Text(
                               'Tu información está protegida con encriptación SSL',
                               style: TextStyle(
-                                color: colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.6),
+                                color: colorScheme.onSurfaceVariant.withValues(
+                                  alpha: 0.6,
+                                ),
                                 fontSize: 12,
                               ),
                             ),

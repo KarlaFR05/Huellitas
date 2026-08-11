@@ -17,12 +17,13 @@ class SeleccionarMonto extends DonacionEvent {
   final double monto;
   SeleccionarMonto(this.monto);
 }
+
 class ProcesarPago extends DonacionEvent {
   final int usuarioId;
   final int organizacionId;
   final double monto;
-  final int tarjetaId;            
-  final String metodoPago;      
+  final int tarjetaId;
+  final String metodoPago;
 
   ProcesarPago({
     required this.usuarioId,

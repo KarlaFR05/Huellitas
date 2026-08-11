@@ -10,7 +10,9 @@ class DonacionRepositoryImpl implements DonacionRepository {
   DonacionRepositoryImpl(this.dataSource);
 
   @override
-  Future<List<Organizacion>> obtenerOrganizaciones(CategoriaOrganizacion categoria) async {
+  Future<List<Organizacion>> obtenerOrganizaciones(
+    CategoriaOrganizacion categoria,
+  ) async {
     return await dataSource.obtenerOrganizaciones(categoria);
   }
 

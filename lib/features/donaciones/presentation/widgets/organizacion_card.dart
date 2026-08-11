@@ -19,11 +19,11 @@ class OrganizacionCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: colorScheme.surface, 
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.onSurface.withValues(alpha: 0.08), 
+              color: colorScheme.onSurface.withValues(alpha: 0.08),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -36,7 +36,7 @@ class OrganizacionCard extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: colorScheme.secondary.withValues(alpha: 0.2), 
+                color: colorScheme.secondary.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: organizacion.logoUrl.isNotEmpty
@@ -54,7 +54,7 @@ class OrganizacionCard extends StatelessWidget {
                               height: 24,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: colorScheme.primary, 
+                                color: colorScheme.primary,
                               ),
                             ),
                           );
@@ -62,15 +62,11 @@ class OrganizacionCard extends StatelessWidget {
                         errorBuilder: (context, error, stackTrace) => Icon(
                           Icons.pets,
                           size: 40,
-                          color: colorScheme.primary, 
+                          color: colorScheme.primary,
                         ),
                       ),
                     )
-                  : Icon(
-                      Icons.pets,
-                      size: 40,
-                      color: colorScheme.primary, 
-                    ),
+                  : Icon(Icons.pets, size: 40, color: colorScheme.primary),
             ),
             const SizedBox(height: 12),
             Padding(
@@ -81,7 +77,7 @@ class OrganizacionCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface, 
+                  color: colorScheme.onSurface,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,

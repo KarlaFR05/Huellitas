@@ -141,9 +141,7 @@ class _ConfirmacionDonacionScreenState
           ),
         ),
       ),
-      bottomNavigationBar: const BottomBarWidget(
-        currentIndex: 2,
-      ),
+      bottomNavigationBar: const BottomBarWidget(currentIndex: 2),
     );
   }
 }

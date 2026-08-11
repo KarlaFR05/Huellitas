@@ -32,11 +32,7 @@ class MontoOpcionCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (esPersonalizado) ...[
-              Icon(
-                Icons.edit_outlined,
-                size: 32,
-                color: colorScheme.primary,
-              ),
+              Icon(Icons.edit_outlined, size: 32, color: colorScheme.primary),
               const SizedBox(height: 8),
               Text(
                 'Otra Cantidad',

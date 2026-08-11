@@ -3,7 +3,7 @@ import '../../domain/entities/tarjeta.dart';
 
 abstract class TarjetaRemoteDataSource {
   Future<List<Tarjeta>> obtenerTarjetasUsuario();
-  
+
   Future<Tarjeta> guardarTarjeta({
     required String numeroTarjeta,
     required String titular,
@@ -11,16 +11,16 @@ abstract class TarjetaRemoteDataSource {
     required String cvv,
     bool esPredeterminada = false,
   });
-  
+
   Future<void> eliminarTarjeta(int tarjetaId);
-  
+
   Future<void> actualizarTarjeta({
     required int tarjetaId,
     String? titular,
     String? fechaVencimiento,
     bool? esPredeterminada,
   });
-  
+
   Future<void> establecerPredeterminada(int tarjetaId);
 }
 
@@ -60,7 +60,9 @@ class TarjetaRemoteDataSourceImpl implements TarjetaRemoteDataSource {
         'titular': titular.toUpperCase(),
         'fechaVencimiento': fechaVencimiento,
         'cvv': cvv,
-        'tipo': Tarjeta.detectarTipo(numeroTarjeta), // Usamos tu función del domain
+        'tipo': Tarjeta.detectarTipo(
+          numeroTarjeta,
+        ), // Usamos tu función del domain
         'esPredeterminada': esPredeterminada,
       };
 
@@ -107,8 +109,10 @@ class TarjetaRemoteDataSourceImpl implements TarjetaRemoteDataSource {
     try {
       final payload = <String, dynamic>{};
       if (titular != null) payload['titular'] = titular.toUpperCase();
-      if (fechaVencimiento != null) payload['fechaVencimiento'] = fechaVencimiento;
-      if (esPredeterminada != null) payload['esPredeterminada'] = esPredeterminada;
+      if (fechaVencimiento != null)
+        payload['fechaVencimiento'] = fechaVencimiento;
+      if (esPredeterminada != null)
+        payload['esPredeterminada'] = esPredeterminada;
 
       final response = await dio.put('/tarjetas/$tarjetaId', data: payload);
 
@@ -147,20 +151,24 @@ class TarjetaRemoteDataSourceImpl implements TarjetaRemoteDataSource {
     return Tarjeta(
       id: json['tarjetaId'] ?? json['tarjeta_id'] ?? 0,
       usuarioId: json['usuarioId'] ?? json['usuario_id'] ?? 0,
-      numeroEnmascarado: json['numeroEnmascarado'] ?? json['numero_enmascarado'] ?? '',
-      numeroCompleto: json['numeroCompleto'] ?? json['numero_completo'] ?? '', 
+      numeroEnmascarado:
+          json['numeroEnmascarado'] ?? json['numero_enmascarado'] ?? '',
+      numeroCompleto: json['numeroCompleto'] ?? json['numero_completo'] ?? '',
       titular: json['titular'] ?? '',
-      fechaVencimiento: json['fechaVencimiento'] ?? json['fecha_vencimiento'] ?? '',
+      fechaVencimiento:
+          json['fechaVencimiento'] ?? json['fecha_vencimiento'] ?? '',
       tipo: json['tipo'] ?? 'otro',
-      esPredeterminada: json['esPredeterminada'] ?? json['es_predeterminada'] ?? false,
+      esPredeterminada:
+          json['esPredeterminada'] ?? json['es_predeterminada'] ?? false,
       fechaCreacion: json['fechaCreacion'] != null
           ? DateTime.parse(json['fechaCreacion'])
           : (json['fecha_creacion'] != null
-              ? DateTime.parse(json['fecha_creacion'])
-              : DateTime.now()),
+                ? DateTime.parse(json['fecha_creacion'])
+                : DateTime.now()),
     );
   }
 }
+
 /*import '../../domain/entities/tarjeta.dart';
 
 abstract class TarjetaRemoteDataSource {

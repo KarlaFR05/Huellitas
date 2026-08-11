@@ -45,12 +45,10 @@ void main() {
   final authDataSource = AuthRemoteDataSourceImpl(dio);
   final authRepository = AuthRepositoryImpl(authDataSource);
   final tokenStorage = TokenStorageService();
-
   final completarPerfilDataSource = CompletarPerfilRemoteDataSourceImpl(dio);
   final completarPerfilRepository = CompletarPerfilRepositoryImpl(
     completarPerfilDataSource,
   );
-
   final insigniaDataSource = InsigniaRemoteDataSourceImpl(dio);
   final insigniaRepository = InsigniaRepositoryImpl(insigniaDataSource);
   final getInsigniasUsuario = GetInsigniasUsuarioUseCase(insigniaRepository);
@@ -129,6 +127,21 @@ void main() {
                 InsigniaBloc(getInsignias: getInsigniasUsuario),
           ),
           BlocProvider(create: (_) => ThemeBloc()),
+          BlocProvider(
+            create: (context) => DonacionBloc(
+              obtenerOrganizaciones: obtenerOrganizacionesUseCase,
+              crearDonacion: crearDonacionUseCase,
+            ),
+          ),
+          BlocProvider(
+            create: (context) => TarjetaBloc(
+              obtenerTarjetas: obtenerTarjetasUseCase,
+              guardarTarjeta: guardarTarjetaUseCase,
+              eliminarTarjeta: eliminarTarjetaUseCase,
+              actualizarTarjeta: actualizarTarjetaUseCase,
+              establecerPredeterminada: establecerPredeterminadaUseCase,
+            ),
+          ),
           BlocProvider(
             create: (context) => DonacionBloc(
               obtenerOrganizaciones: obtenerOrganizacionesUseCase,

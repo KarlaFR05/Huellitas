@@ -195,10 +195,6 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
     on<GruposSolicitados>(_cargarGrupos);
     on<MisGruposSolicitados>(_cargarMisGrupos);
     on<GrupoCreado>(_crearGrupo);
-    on<MembresiaGrupoCambiada>(_cambiarMembresia);
-    on<SolicitudIngresoEnviada>(_solicitarIngreso);
-    on<SolicitudIngresoCancelada>(_cancelarSolicitud);
-    on<SolicitudesIngresoSolicitadas>(_cargarSolicitudes);
     on<MiembrosGrupoSolicitados>(_cargarMiembros);
     on<SolicitudIngresoRespondida>(_responderSolicitud);
     on<MiembroGrupoEliminado>(_eliminarMiembro);

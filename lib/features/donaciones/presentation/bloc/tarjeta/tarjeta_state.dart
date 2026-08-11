@@ -18,7 +18,8 @@ class TarjetaLoaded extends TarjetaState {
   }) {
     return TarjetaLoaded(
       tarjetas: tarjetas ?? this.tarjetas,
-      tarjetaPredeterminada: tarjetaPredeterminada ?? this.tarjetaPredeterminada,
+      tarjetaPredeterminada:
+          tarjetaPredeterminada ?? this.tarjetaPredeterminada,
     );
   }
 }

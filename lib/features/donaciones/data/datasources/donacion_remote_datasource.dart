@@ -4,8 +4,10 @@ import '../../domain/entities/donacion.dart';
 import '../../domain/entities/categoria_organizacion.dart';
 
 abstract class DonacionRemoteDataSource {
-  Future<List<Organizacion>> obtenerOrganizaciones(CategoriaOrganizacion categoria);
-  
+  Future<List<Organizacion>> obtenerOrganizaciones(
+    CategoriaOrganizacion categoria,
+  );
+
   Future<Donacion> crearDonacion({
     required int usuarioId,
     required int organizacionId,
@@ -15,7 +17,7 @@ abstract class DonacionRemoteDataSource {
     required String cvv,
     required String fechaVencimiento,*/
     required int tarjetaId,
-    String metodoPago, 
+    String metodoPago,
   });
 }
 
@@ -25,7 +27,9 @@ class DonacionRemoteDataSourceImpl implements DonacionRemoteDataSource {
   DonacionRemoteDataSourceImpl(this.dio);
 
   @override
-  Future<List<Organizacion>> obtenerOrganizaciones(CategoriaOrganizacion categoria) async {
+  Future<List<Organizacion>> obtenerOrganizaciones(
+    CategoriaOrganizacion categoria,
+  ) async {
     try {
       final response = await dio.get(
         '/donaciones/organizaciones/categoria',
@@ -36,7 +40,9 @@ class DonacionRemoteDataSourceImpl implements DonacionRemoteDataSource {
         final List<dynamic> data = response.data;
         return data.map((json) => _organizacionFromJson(json)).toList();
       } else {
-        throw Exception('Error al obtener organizaciones: ${response.statusCode}');
+        throw Exception(
+          'Error al obtener organizaciones: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception('Error de conexion: ${e.toString()}');
@@ -81,7 +87,7 @@ class DonacionRemoteDataSourceImpl implements DonacionRemoteDataSource {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         print('Donacion creada exitosamente');
-        
+
         final data = response.data;
         if (data is List && data.isNotEmpty) {
           return _donacionFromJson(data[0]);
@@ -134,11 +140,11 @@ class DonacionRemoteDataSourceImpl implements DonacionRemoteDataSource {
       fechaVencimiento: json['fecha_vencimiento'] ?? json['fechaVencimiento'] ?? '',*/
       tarjetaId: json['tarjeta_id'] ?? json['tarjetaId'] ?? 0,
       metodoPago: json['metodo_pago'] ?? json['metodoPago'] ?? 'tarjeta',
-      fechaDonacion: json['fecha_donacion'] != null 
-          ? DateTime.parse(json['fecha_donacion']) 
-          : (json['fechaDonacion'] != null 
-              ? DateTime.parse(json['fechaDonacion']) 
-              : DateTime.now()),
+      fechaDonacion: json['fecha_donacion'] != null
+          ? DateTime.parse(json['fecha_donacion'])
+          : (json['fechaDonacion'] != null
+                ? DateTime.parse(json['fechaDonacion'])
+                : DateTime.now()),
       estado: json['estado'] ?? 'pendiente',
     );
   }

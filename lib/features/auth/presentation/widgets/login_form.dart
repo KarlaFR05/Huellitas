@@ -139,6 +139,7 @@ class _LoginFormState extends State<LoginForm> {
                     onPressed: isLoading
                         ? null
                         : () {
+                            FocusManager.instance.primaryFocus?.unfocus();
                             if (!_formKey.currentState!.validate()) {
                               return;
                             }

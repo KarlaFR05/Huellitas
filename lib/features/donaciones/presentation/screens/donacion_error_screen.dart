@@ -67,11 +67,7 @@ class _DonacionErrorScreenState extends State<DonacionErrorScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.cancel,
-                size: 120,
-                color: colorScheme.error,
-              ),
+              Icon(Icons.cancel, size: 120, color: colorScheme.error),
               const SizedBox(height: 32),
 
               Text(
@@ -153,10 +149,7 @@ class _DonacionErrorScreenState extends State<DonacionErrorScreen> {
                   ),
                   child: const Text(
                     'Intentar de nuevo',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
               ),
@@ -164,9 +157,7 @@ class _DonacionErrorScreenState extends State<DonacionErrorScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomBarWidget(
-        currentIndex: 2,
-      ),
+      bottomNavigationBar: const BottomBarWidget(currentIndex: 2),
     );
   }
 }

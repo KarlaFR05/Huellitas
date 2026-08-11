@@ -38,11 +38,13 @@ class DonacionBloc extends Bloc<DonacionEvent, DonacionState> {
   ) async {
     if (state is DonacionLoaded) {
       final currentState = state as DonacionLoaded;
-      emit(DonacionLoaded(
-        organizaciones: currentState.organizaciones,
-        organizacionSeleccionada: event.organizacion,
-        montoSeleccionado: currentState.montoSeleccionado,
-      ));
+      emit(
+        DonacionLoaded(
+          organizaciones: currentState.organizaciones,
+          organizacionSeleccionada: event.organizacion,
+          montoSeleccionado: currentState.montoSeleccionado,
+        ),
+      );
     }
   }
 
@@ -52,11 +54,13 @@ class DonacionBloc extends Bloc<DonacionEvent, DonacionState> {
   ) async {
     if (state is DonacionLoaded) {
       final currentState = state as DonacionLoaded;
-      emit(DonacionLoaded(
-        organizaciones: currentState.organizaciones,
-        organizacionSeleccionada: currentState.organizacionSeleccionada,
-        montoSeleccionado: event.monto,
-      ));
+      emit(
+        DonacionLoaded(
+          organizaciones: currentState.organizaciones,
+          organizacionSeleccionada: currentState.organizacionSeleccionada,
+          montoSeleccionado: event.monto,
+        ),
+      );
     }
   }
 
@@ -70,7 +74,7 @@ class DonacionBloc extends Bloc<DonacionEvent, DonacionState> {
         usuarioId: event.usuarioId,
         organizacionId: event.organizacionId,
         monto: event.monto,
-        tarjetaId: event.tarjetaId,         
+        tarjetaId: event.tarjetaId,
         metodoPago: event.metodoPago,
       );
       emit(DonacionCompletada(donacion));

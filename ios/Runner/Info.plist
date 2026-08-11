@@ -26,6 +26,12 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Huellitas necesita usar la cámara para tomar fotos de reportes, publicaciones y documentos de verificación.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Huellitas usa tu ubicación mientras utilizas la app para registrar con precisión dónde se encuentra un animal.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Huellitas necesita acceder a tus fotos para adjuntarlas a reportes, publicaciones y tu perfil.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

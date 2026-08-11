@@ -16,7 +16,8 @@ class MontoPersonalizadoScreen extends StatefulWidget {
   const MontoPersonalizadoScreen({super.key});
 
   @override
-  State<MontoPersonalizadoScreen> createState() => _MontoPersonalizadoScreenState();
+  State<MontoPersonalizadoScreen> createState() =>
+      _MontoPersonalizadoScreenState();
 }
 
 class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
@@ -51,33 +52,40 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
   Future<void> _verificarTarjetasYContinuar(double monto) async {
     final donacionState = context.read<DonacionBloc>().state;
     int? organizacionId;
-    if (donacionState is DonacionLoaded && donacionState.organizacionSeleccionada != null) {
+    if (donacionState is DonacionLoaded &&
+        donacionState.organizacionSeleccionada != null) {
       organizacionId = donacionState.organizacionSeleccionada!.id;
     }
 
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthSuccess) {
       context.read<DonacionBloc>().add(SeleccionarMonto(monto));
-      context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+      context.push(
+        '/agregar-tarjeta',
+        extra: {'monto': monto, 'organizacionId': organizacionId},
+      );
       return;
     }
 
     final tarjetaState = context.read<TarjetaBloc>().state;
-    
+
     if (tarjetaState is! TarjetaLoaded) {
       context.read<TarjetaBloc>().add(CargarTarjetas());
       await Future.delayed(const Duration(milliseconds: 800));
     }
 
     final estadoTarjetas = context.read<TarjetaBloc>().state;
-    
+
     if (estadoTarjetas is TarjetaLoaded) {
       final tarjetas = estadoTarjetas.tarjetas;
       final predeterminada = estadoTarjetas.tarjetaPredeterminada;
 
       if (tarjetas.isEmpty) {
         context.read<DonacionBloc>().add(SeleccionarMonto(monto));
-        context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+        context.push(
+          '/agregar-tarjeta',
+          extra: {'monto': monto, 'organizacionId': organizacionId},
+        );
       } else if (predeterminada != null) {
         _mostrarDialogoPagoRapido(monto, organizacionId, predeterminada);
       } else {
@@ -85,25 +93,38 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
       }
     } else {
       context.read<DonacionBloc>().add(SeleccionarMonto(monto));
-      context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+      context.push(
+        '/agregar-tarjeta',
+        extra: {'monto': monto, 'organizacionId': organizacionId},
+      );
     }
   }
 
-  void _procesarPagoDirecto(double monto, int? organizacionId, Tarjeta tarjeta) {
+  void _procesarPagoDirecto(
+    double monto,
+    int? organizacionId,
+    Tarjeta tarjeta,
+  ) {
     Navigator.pop(context);
 
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthSuccess) return;
 
-    context.read<DonacionBloc>().add(ProcesarPago(
-      usuarioId: authState.data.usuarioIdPk,
-      organizacionId: organizacionId ?? 0,
-      monto: monto,
-      tarjetaId: tarjeta.id,
-    ));
+    context.read<DonacionBloc>().add(
+      ProcesarPago(
+        usuarioId: authState.data.usuarioIdPk,
+        organizacionId: organizacionId ?? 0,
+        monto: monto,
+        tarjetaId: tarjeta.id,
+      ),
+    );
   }
 
-  void _mostrarDialogoPagoRapido(double monto, int? organizacionId, Tarjeta predeterminada) {
+  void _mostrarDialogoPagoRapido(
+    double monto,
+    int? organizacionId,
+    Tarjeta predeterminada,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     showDialog(
@@ -137,7 +158,9 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
               decoration: BoxDecoration(
                 color: colorScheme.secondary.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,16 +209,20 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
         ),
         actions: [
           ElevatedButton(
-            onPressed: () => _procesarPagoDirecto(monto, organizacionId, predeterminada),
+            onPressed: () =>
+                _procesarPagoDirecto(monto, organizacionId, predeterminada),
             child: const Text('Donar'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              context.push('/seleccion-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+              context.push(
+                '/seleccion-tarjeta',
+                extra: {'monto': monto, 'organizacionId': organizacionId},
+              );
             },
             child: const Text('Cambiar'),
-          ),          
+          ),
         ],
       ),
     );
@@ -223,7 +250,10 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              context.push('/seleccion-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+              context.push(
+                '/seleccion-tarjeta',
+                extra: {'monto': monto, 'organizacionId': organizacionId},
+              );
             },
             child: const Text('Elegir guardada'),
           ),
@@ -231,7 +261,10 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
             onPressed: () {
               Navigator.pop(dialogContext);
               context.read<DonacionBloc>().add(SeleccionarMonto(monto));
-              context.push('/agregar-tarjeta', extra: {'monto': monto, 'organizacionId': organizacionId});
+              context.push(
+                '/agregar-tarjeta',
+                extra: {'monto': monto, 'organizacionId': organizacionId},
+              );
             },
             child: const Text('Agregar nueva'),
           ),
@@ -333,7 +366,9 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: colorScheme.onSurface.withValues(alpha: 0.08),
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.08,
+                                ),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -346,7 +381,9 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
                             keyboardType: TextInputType.number,
                             textAlign: TextAlign.center,
                             inputFormatters: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d*\.?\d{0,2}'),
+                              ),
                             ],
                             style: TextStyle(
                               fontSize: 48,
@@ -424,7 +461,9 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
                         Text(
                           'Pago seguro',
                           style: TextStyle(
-                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                            color: colorScheme.onSurfaceVariant.withValues(
+                              alpha: 0.6,
+                            ),
                             fontSize: 12,
                           ),
                         ),
@@ -435,7 +474,7 @@ class _MontoPersonalizadoScreenState extends State<MontoPersonalizadoScreen> {
               ),
             ),
           ),
-          
+
           BlocBuilder<DonacionBloc, DonacionState>(
             builder: (context, state) {
               if (state is! DonacionProcesando) {

@@ -26,15 +26,13 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
   void _cargarTarjetas() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthSuccess) {
-      context.read<TarjetaBloc>().add(
-        CargarTarjetas(),
-      );
+      context.read<TarjetaBloc>().add(CargarTarjetas());
     }
   }
 
   void _confirmarEliminarTarjeta(BuildContext context, Tarjeta tarjeta) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -113,7 +111,9 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                       Icon(
                         Icons.credit_card,
                         size: 80,
-                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.5,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -309,7 +309,9 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                             const SizedBox(height: 8),
                             Text(
                               'Tarjeta establecida como predeterminada',
-                              style: TextStyle(color: colorScheme.onSurfaceVariant),
+                              style: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ],
