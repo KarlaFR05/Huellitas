@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'dart:io';
 import '../models/reporte_model.dart';
 import 'reporte_remote_datasource.dart';
+import '../models/respuesta_crear_reporte_model.dart';
 
 class ReporteRemoteDataSourceImpl implements ReporteRemoteDataSource {
   final Dio dio;
@@ -9,10 +10,18 @@ class ReporteRemoteDataSourceImpl implements ReporteRemoteDataSource {
   ReporteRemoteDataSourceImpl(this.dio);
 
   @override
-  Future<void> crearReporte(ReporteModel reporte) async {
+  Future<RespuestaCrearReporteModel> crearReporte(
+    ReporteModel reporte, {
+    bool forzarCreacion = false,
+  }) async {
     try {
       print('JSON A ENVIAR: ${reporte.toJson()}');
-      await dio.post('/reportes', data: reporte.toJson());
+      final response = await dio.post(
+        '/reportes',
+        data: reporte.toJson(),
+        queryParameters: {'forzar_creacion': forzarCreacion},
+      );
+      return RespuestaCrearReporteModel.fromJson(response.data);
     } on DioException catch (e) {
       print('STATUS: ${e.response?.statusCode}');
       print('ERROR DETAIL: ${e.response?.data}');

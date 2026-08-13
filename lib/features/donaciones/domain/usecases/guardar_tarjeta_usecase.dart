@@ -7,7 +7,7 @@ class GuardarTarjetaUseCase {
   GuardarTarjetaUseCase(this.repository);
 
   Future<Tarjeta> call({
-    required int usuarioId,
+    /*required int usuarioId,*/
     required String numeroTarjeta,
     required String titular,
     required String fechaVencimiento,
@@ -15,7 +15,7 @@ class GuardarTarjetaUseCase {
     bool esPredeterminada = false,
   }) async {
     return await repository.guardarTarjeta(
-      usuarioId: usuarioId,
+      /*usuarioId: usuarioId,*/
       numeroTarjeta: numeroTarjeta,
       titular: titular,
       fechaVencimiento: fechaVencimiento,

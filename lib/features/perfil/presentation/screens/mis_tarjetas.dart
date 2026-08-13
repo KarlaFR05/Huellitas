@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../styles/constantes/app_color.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../donaciones/presentation/bloc/tarjeta/tarjeta_bloc.dart';
@@ -27,19 +26,23 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
   void _cargarTarjetas() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthSuccess) {
-      context.read<TarjetaBloc>().add(
-        CargarTarjetas(authState.data.usuarioIdPk),
-      );
+      context.read<TarjetaBloc>().add(CargarTarjetas());
     }
   }
 
   void _confirmarEliminarTarjeta(BuildContext context, Tarjeta tarjeta) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Eliminar tarjeta'),
+        title: Text(
+          'Eliminar tarjeta',
+          style: TextStyle(color: colorScheme.onSurface),
+        ),
         content: Text(
           '¿Estás seguro de eliminar la tarjeta ${tarjeta.numeroEnmascarado}?',
+          style: TextStyle(color: colorScheme.onSurfaceVariant),
         ),
         actions: [
           ElevatedButton(
@@ -50,11 +53,11 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                 const SnackBar(content: Text('Tarjeta eliminada')),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text(
-              'Eliminar',
-              style: TextStyle(color: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.error,
+              foregroundColor: colorScheme.onError,
             ),
+            child: const Text('Eliminar'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -67,6 +70,8 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return BlocListener<TarjetaBloc, TarjetaState>(
       listener: (context, state) {
         if (state is TarjetaEliminada) {
@@ -74,18 +79,18 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: AppColors.background,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+            icon: Icon(Icons.arrow_back, color: colorScheme.primary),
             onPressed: () => context.pop(),
           ),
-          title: const Text(
+          title: Text(
             'Mis tarjetas',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: colorScheme.onSurface,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -106,22 +111,24 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                       Icon(
                         Icons.credit_card,
                         size: 80,
-                        color: AppColors.textSecondary.withValues(alpha: 0.5),
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.5,
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+                      Text(
                         'No tienes tarjetas guardadas',
                         style: TextStyle(
                           fontSize: 18,
-                          color: AppColors.textSecondary,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Agrega una tarjeta para hacer donaciones más rápido',
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -131,8 +138,6 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                         icon: const Icon(Icons.add),
                         label: const Text('Agregar tarjeta'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
                           minimumSize: const Size(0, 44),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -157,9 +162,9 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                       children: [
                         Text(
                           '${state.tarjetas.length} tarjeta(s) guardada(s)',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
-                            color: AppColors.textSecondary,
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                         TextButton.icon(
@@ -167,7 +172,7 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                           icon: const Icon(Icons.add, size: 18),
                           label: const Text('Agregar'),
                           style: TextButton.styleFrom(
-                            foregroundColor: AppColors.primary,
+                            foregroundColor: colorScheme.primary,
                           ),
                         ),
                       ],
@@ -207,13 +212,16 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.error_outline,
                       size: 64,
-                      color: Colors.red,
+                      color: colorScheme.error,
                     ),
                     const SizedBox(height: 16),
-                    Text(state.message),
+                    Text(
+                      state.message,
+                      style: TextStyle(color: colorScheme.onSurface),
+                    ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _cargarTarjetas,
@@ -236,6 +244,8 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
   }
 
   void _mostrarOpcionesTarjeta(BuildContext context, Tarjeta tarjeta) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -245,15 +255,25 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
           children: [
             Text(
               tarjeta.numeroEnmascarado,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
             ),
             const SizedBox(height: 8),
-            Text(tarjeta.titular),
+            Text(
+              tarjeta.titular,
+              style: TextStyle(color: colorScheme.onSurfaceVariant),
+            ),
             const SizedBox(height: 20),
             if (!tarjeta.esPredeterminada)
               ListTile(
-                leading: const Icon(Icons.star),
-                title: const Text('Establecer como predeterminada'),
+                leading: Icon(Icons.star, color: colorScheme.primary),
+                title: Text(
+                  'Establecer como predeterminada',
+                  style: TextStyle(color: colorScheme.onSurface),
+                ),
                 onTap: () async {
                   Navigator.pop(context);
                   context.read<TarjetaBloc>().add(
@@ -271,23 +291,27 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.check_circle,
-                              color: Colors.green,
+                              color: colorScheme.primary,
                               size: 48,
                             ),
                             const SizedBox(height: 16),
-                            const Text(
+                            Text(
                               '¡Listo!',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface,
                               ),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 8),
-                            const Text(
+                            Text(
                               'Tarjeta establecida como predeterminada',
+                              style: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -304,18 +328,21 @@ class _MisTarjetasScreenState extends State<MisTarjetasScreen> {
                 },
               ),
             ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Editar tarjeta'),
+              leading: Icon(Icons.edit, color: colorScheme.primary),
+              title: Text(
+                'Editar tarjeta',
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 context.push('/editar-tarjeta', extra: tarjeta);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text(
+              leading: Icon(Icons.delete, color: colorScheme.error),
+              title: Text(
                 'Eliminar tarjeta',
-                style: TextStyle(color: Colors.red),
+                style: TextStyle(color: colorScheme.error),
               ),
               onTap: () {
                 Navigator.pop(context);

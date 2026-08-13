@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
-import '../../../../styles/constantes/app_color.dart';
 import '../../../home/presentation/widgets/bottom_bar.dart';
 
 class ConfirmacionDonacionScreen extends StatefulWidget {
@@ -44,19 +43,21 @@ class _ConfirmacionDonacionScreenState
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          icon: Icon(Icons.arrow_back, color: colorScheme.primary),
           onPressed: () => context.go('/home'),
         ),
-        title: const Text(
+        title: Text(
           'Donación',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -68,73 +69,69 @@ class _ConfirmacionDonacionScreenState
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Icono de éxito grande
               Icon(
                 Icons.check_circle_outline,
                 size: 120,
-                color: AppColors.primary,
+                color: colorScheme.primary,
               ),
               const SizedBox(height: 32),
-              
-              // Títulos de donación
-              const Text(
+
+              Text(
                 '¡Gracias por tu donación!',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: colorScheme.onSurface,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Tu aportación nos ayuda mucho a seguir rescatando vidas.',
                 style: TextStyle(
                   fontSize: 16,
-                  color: AppColors.textSecondary,
+                  color: colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
-              
-              // Contador regresivo
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     'Redirigiendo al inicio en ',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                   Text(
                     '$_secondsRemaining',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                      color: colorScheme.primary,
                     ),
                   ),
-                  const Text(
+                  Text(
                     ' segundos...',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              
-              // Barra de progreso
+
               SizedBox(
                 width: 200,
                 child: LinearProgressIndicator(
                   value: (5 - _secondsRemaining) / 5,
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    AppColors.primary,
+                  backgroundColor: colorScheme.surfaceContainerHighest,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    colorScheme.primary,
                   ),
                   minHeight: 6,
                   borderRadius: BorderRadius.circular(10),
@@ -144,9 +141,7 @@ class _ConfirmacionDonacionScreenState
           ),
         ),
       ),
-      bottomNavigationBar: const BottomBarWidget(
-        currentIndex: 2,
-      ),
+      bottomNavigationBar: const BottomBarWidget(currentIndex: 2),
     );
   }
 }

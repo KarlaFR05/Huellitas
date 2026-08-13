@@ -4,6 +4,7 @@ import '../../domain/entities/reporte.dart';
 import '../../domain/repositories/reporte_repository.dart';
 import '../datasources/reporte_remote_datasource.dart';
 import '../models/reporte_model.dart';
+import '../../domain/entities/respuesta_crear_reporte.dart';
 
 class ReporteRepositoryImpl implements ReporteRepository {
   final ReporteRemoteDataSource remote;
@@ -11,9 +12,12 @@ class ReporteRepositoryImpl implements ReporteRepository {
   ReporteRepositoryImpl(this.remote);
 
   @override
-  Future<void> crearReporte(Reporte reporte) {
+  Future<RespuestaCrearReporte> crearReporte(
+    Reporte reporte, {
+    bool forzarCreacion = false,
+  }) {
     final model = ReporteModel.fromEntity(reporte);
-    return remote.crearReporte(model);
+    return remote.crearReporte(model, forzarCreacion: forzarCreacion);
   }
 
   @override

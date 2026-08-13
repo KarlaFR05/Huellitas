@@ -20,12 +20,15 @@ import '../widgets/bottom_bar.dart';
 import '../../../../core/verificacion/verificacion_cubit.dart';
 import '../../../../core/widgets/verificado_badge.dart';
 import '../../../../core/widgets/avatar_helper.dart';
+import '../../../notificaciones/presentation/widgets/campana_badge.dart';
 
 const int _faseConcluido = 3;
 const Duration _tiempoVisibleTrasConcluir = Duration(seconds: 35);
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final int? reporteIdInicial;
+
+  const HomeScreen({super.key, this.reporteIdInicial});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -37,24 +40,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final ahora = DateTime.now();
 
     return _markers.where((m) {
-      // Filtro de verificación existente
       if (!estaVerificado && m.tipoReporte == 'Maltrato animal') {
         return false;
       }
 
-      // Si está concluido, solo se muestra durante el periodo de gracia
       if (m.faseActualId == _faseConcluido) {
         if (m.fechaActualizacion == null) return true;
         final tiempoTranscurrido = ahora.difference(m.fechaActualizacion!);
-        return tiempoTranscurrido < _tiempoVisibleTrasConcluir;
-      }
-
-      if (m.faseActualId == _faseConcluido) {
-        if (m.fechaActualizacion == null) return true;
-        final tiempoTranscurrido = ahora.difference(m.fechaActualizacion!);
-        print(
-          'fecha: ${m.fechaActualizacion}, ahora: $ahora, transcurrido: $tiempoTranscurrido',
-        );
         return tiempoTranscurrido < _tiempoVisibleTrasConcluir;
       }
 
@@ -140,16 +132,14 @@ class _HomeScreenState extends State<HomeScreen> {
             )
             .toList();
 
-        // TEMPORAL: Asignar IDs secuenciales si no tienen ID
         _markers = reportesValidos.asMap().entries.map((entry) {
           final index = entry.key;
           final reporte = entry.value;
 
-          // Si el reporte ya tiene ID, usarlo. Si no, asignar uno temporal
           final reporteConId = reporte.id != null
               ? reporte
               : Reporte(
-                  id: index + 1, // IDs: 1, 2, 3, 4...
+                  id: index + 1,
                   tipoAnimalId: reporte.tipoAnimalId,
                   tamano: reporte.tamano,
                   tipoReporteId: reporte.tipoReporteId,
@@ -199,6 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               markers: _markersVisibles(estaVerificado),
                               userLocation: _userLocation,
                               mapController: _mapController,
+                              reporteIdInicial: widget.reporteIdInicial,
                             );
                           },
                         ),
@@ -308,25 +299,7 @@ class _Header extends StatelessWidget {
               },
             ),
           ),
-
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(50),
-              border: Border.all(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onPrimary.withValues(alpha: 0.18),
-              ),
-            ),
-            child: IconButton(
-              onPressed: () {},
-              icon: Icon(
-                Icons.notifications_none,
-                color: Theme.of(context).colorScheme.onPrimary,
-              ),
-            ),
-          ),
+          const CampanaBadge(),
         ],
       ),
     );

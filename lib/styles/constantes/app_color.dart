@@ -18,6 +18,7 @@ class AppColors {
   static const warning = Color(0xFFF4C95D);
   static const critical = Color(0xFFD9534F);
 
+  // Variantes equivalentes con contraste adecuado para modo oscuro.
   static const darkBackground = Color(0xFF111815);
   static const darkSurface = Color(0xFF19231F);
   static const darkField = Color(0xFF202D28);
@@ -27,5 +28,6 @@ class AppColors {
   static const darkTextSecondary = Color(0xFFA9B9B3);
   static const darkBorder = Color(0xFF33443D);
 
+  // Alias usados por componentes existentes.
   static const secondary = forum;
 }

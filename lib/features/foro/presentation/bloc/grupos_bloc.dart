@@ -36,15 +36,6 @@ class GrupoCreado extends GruposEvent {
   List<Object?> get props => [solicitud];
 }
 
-class GrupoEliminadoLocalmente extends GruposEvent {
-  final int grupoId;
-
-  const GrupoEliminadoLocalmente(this.grupoId);
-
-  @override
-  List<Object?> get props => [grupoId];
-}
-
 class MembresiaGrupoCambiada extends GruposEvent {
   final int grupoId;
   final bool unirse;
@@ -199,17 +190,11 @@ class GruposState extends Equatable {
 
 class GruposBloc extends Bloc<GruposEvent, GruposState> {
   final ForoRepository repository;
-  final Set<int> _membresiasEnProceso = <int>{};
 
   GruposBloc({required this.repository}) : super(const GruposState()) {
     on<GruposSolicitados>(_cargarGrupos);
     on<MisGruposSolicitados>(_cargarMisGrupos);
     on<GrupoCreado>(_crearGrupo);
-    on<GrupoEliminadoLocalmente>(_eliminarGrupoLocalmente);
-    on<MembresiaGrupoCambiada>(_cambiarMembresia);
-    on<SolicitudIngresoEnviada>(_solicitarIngreso);
-    on<SolicitudIngresoCancelada>(_cancelarSolicitud);
-    on<SolicitudesIngresoSolicitadas>(_cargarSolicitudes);
     on<MiembrosGrupoSolicitados>(_cargarMiembros);
     on<SolicitudIngresoRespondida>(_responderSolicitud);
     on<MiembroGrupoEliminado>(_eliminarMiembro);
@@ -228,15 +213,9 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
     );
     try {
       final pagina = await repository.obtenerGrupos(busqueda: event.busqueda);
-      final idsMisGrupos = state.misGrupos.map((grupo) => grupo.id).toSet();
-      final grupos = [
-        for (final grupo in pagina.elementos)
-          if (idsMisGrupos.contains(grupo.id))
-            grupo.copyWith(esMiembro: true)
-          else
-            grupo,
-      ];
-      emit(state.copyWith(status: GruposStatus.exito, grupos: grupos));
+      emit(
+        state.copyWith(status: GruposStatus.exito, grupos: pagina.elementos),
+      );
     } catch (error) {
       emit(
         state.copyWith(
@@ -253,19 +232,7 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
   ) async {
     try {
       final grupos = await repository.obtenerMisGrupos();
-      final idsMisGrupos = grupos.map((grupo) => grupo.id).toSet();
-      emit(
-        state.copyWith(
-          misGrupos: [
-            for (final grupo in grupos) grupo.copyWith(esMiembro: true),
-          ],
-          grupos: [
-            for (final grupo in state.grupos)
-              grupo.copyWith(esMiembro: idsMisGrupos.contains(grupo.id)),
-          ],
-          limpiarError: true,
-        ),
-      );
+      emit(state.copyWith(misGrupos: grupos, limpiarError: true));
     } catch (error) {
       emit(state.copyWith(mensajeError: mensajeDeError(error)));
     }
@@ -275,18 +242,13 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
     MembresiaGrupoCambiada event,
     Emitter<GruposState> emit,
   ) async {
-    if (!_membresiasEnProceso.add(event.grupoId)) return;
     emit(
       state.copyWith(actualizandoGrupoId: event.grupoId, limpiarError: true),
     );
     try {
-      final respuesta = event.unirse
+      final actualizado = event.unirse
           ? await repository.unirseAGrupo(event.grupoId)
           : await repository.salirDeGrupo(event.grupoId);
-      final actualizado = respuesta.copyWith(
-        esMiembro: event.unirse,
-        solicitudPendiente: false,
-      );
       final grupos = [
         for (final grupo in state.grupos)
           if (grupo.id == actualizado.id) actualizado else grupo,
@@ -310,8 +272,6 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
           mensajeError: mensajeDeError(error),
         ),
       );
-    } finally {
-      _membresiasEnProceso.remove(event.grupoId);
     }
   }
 
@@ -336,27 +296,10 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
     }
   }
 
-  void _eliminarGrupoLocalmente(
-    GrupoEliminadoLocalmente event,
-    Emitter<GruposState> emit,
-  ) {
-    emit(
-      state.copyWith(
-        grupos: state.grupos
-            .where((grupo) => grupo.id != event.grupoId)
-            .toList(),
-        misGrupos: state.misGrupos
-            .where((grupo) => grupo.id != event.grupoId)
-            .toList(),
-      ),
-    );
-  }
-
   Future<void> _solicitarIngreso(
     SolicitudIngresoEnviada event,
     Emitter<GruposState> emit,
   ) async {
-    if (!_membresiasEnProceso.add(event.grupoId)) return;
     emit(
       state.copyWith(actualizandoGrupoId: event.grupoId, limpiarError: true),
     );
@@ -376,8 +319,6 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
           mensajeError: mensajeDeError(error),
         ),
       );
-    } finally {
-      _membresiasEnProceso.remove(event.grupoId);
     }
   }
 
@@ -385,7 +326,6 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
     SolicitudIngresoCancelada event,
     Emitter<GruposState> emit,
   ) async {
-    if (!_membresiasEnProceso.add(event.grupoId)) return;
     emit(
       state.copyWith(actualizandoGrupoId: event.grupoId, limpiarError: true),
     );
@@ -410,8 +350,6 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
           mensajeError: mensajeDeError(error),
         ),
       );
-    } finally {
-      _membresiasEnProceso.remove(event.grupoId);
     }
   }
 

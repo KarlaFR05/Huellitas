@@ -1,4 +1,174 @@
+import 'package:dio/dio.dart';
 import '../../domain/entities/tarjeta.dart';
+
+abstract class TarjetaRemoteDataSource {
+  Future<List<Tarjeta>> obtenerTarjetasUsuario();
+
+  Future<Tarjeta> guardarTarjeta({
+    required String numeroTarjeta,
+    required String titular,
+    required String fechaVencimiento,
+    required String cvv,
+    bool esPredeterminada = false,
+  });
+
+  Future<void> eliminarTarjeta(int tarjetaId);
+
+  Future<void> actualizarTarjeta({
+    required int tarjetaId,
+    String? titular,
+    String? fechaVencimiento,
+    bool? esPredeterminada,
+  });
+
+  Future<void> establecerPredeterminada(int tarjetaId);
+}
+
+class TarjetaRemoteDataSourceImpl implements TarjetaRemoteDataSource {
+  final Dio dio;
+
+  TarjetaRemoteDataSourceImpl(this.dio);
+
+  @override
+  Future<List<Tarjeta>> obtenerTarjetasUsuario() async {
+    try {
+      // El backend extrae el usuario del token, no necesita el ID en la URL
+      final response = await dio.get('/tarjetas/usuario/mis-tarjetas');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((json) => _tarjetaFromJson(json)).toList();
+      } else {
+        throw Exception('Error al obtener tarjetas: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexion: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<Tarjeta> guardarTarjeta({
+    required String numeroTarjeta,
+    required String titular,
+    required String fechaVencimiento,
+    required String cvv,
+    bool esPredeterminada = false,
+  }) async {
+    try {
+      final payload = {
+        'numeroTarjeta': numeroTarjeta,
+        'titular': titular.toUpperCase(),
+        'fechaVencimiento': fechaVencimiento,
+        'cvv': cvv,
+        'tipo': Tarjeta.detectarTipo(
+          numeroTarjeta,
+        ), // Usamos tu función del domain
+        'esPredeterminada': esPredeterminada,
+      };
+
+      final response = await dio.post('/tarjetas/', data: payload);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return _tarjetaFromJson(response.data);
+      } else {
+        final errorMessage = response.data['detail'] ?? 'Error desconocido';
+        throw Exception('Error al guardar tarjeta: $errorMessage');
+      }
+    } catch (e) {
+      if (e is DioException && e.response != null) {
+        final errorMessage = e.response?.data['detail'] ?? e.message;
+        throw Exception('Error del servidor: $errorMessage');
+      }
+      throw Exception('Error de conexion: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> eliminarTarjeta(int tarjetaId) async {
+    try {
+      final response = await dio.delete('/tarjetas/$tarjetaId');
+      if (response.statusCode != 204 && response.statusCode != 200) {
+        throw Exception('Error al eliminar tarjeta');
+      }
+    } catch (e) {
+      if (e is DioException && e.response != null) {
+        final errorMessage = e.response?.data['detail'] ?? e.message;
+        throw Exception('Error del servidor: $errorMessage');
+      }
+      throw Exception('Error de conexion: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> actualizarTarjeta({
+    required int tarjetaId,
+    String? titular,
+    String? fechaVencimiento,
+    bool? esPredeterminada,
+  }) async {
+    try {
+      final payload = <String, dynamic>{};
+      if (titular != null) payload['titular'] = titular.toUpperCase();
+      if (fechaVencimiento != null)
+        payload['fechaVencimiento'] = fechaVencimiento;
+      if (esPredeterminada != null)
+        payload['esPredeterminada'] = esPredeterminada;
+
+      final response = await dio.put('/tarjetas/$tarjetaId', data: payload);
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al actualizar tarjeta');
+      }
+    } catch (e) {
+      if (e is DioException && e.response != null) {
+        final errorMessage = e.response?.data['detail'] ?? e.message;
+        throw Exception('Error del servidor: $errorMessage');
+      }
+      throw Exception('Error de conexion: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> establecerPredeterminada(int tarjetaId) async {
+    try {
+      final response = await dio.post('/tarjetas/$tarjetaId/predeterminada');
+      if (response.statusCode != 200) {
+        throw Exception('Error al establecer tarjeta predeterminada');
+      }
+    } catch (e) {
+      if (e is DioException && e.response != null) {
+        final errorMessage = e.response?.data['detail'] ?? e.message;
+        throw Exception('Error del servidor: $errorMessage');
+      }
+      throw Exception('Error de conexion: ${e.toString()}');
+    }
+  }
+
+  // ==========================================
+  // 3. MAPEO DE DATOS
+  // ==========================================
+  Tarjeta _tarjetaFromJson(Map<String, dynamic> json) {
+    return Tarjeta(
+      id: json['tarjetaId'] ?? json['tarjeta_id'] ?? 0,
+      usuarioId: json['usuarioId'] ?? json['usuario_id'] ?? 0,
+      numeroEnmascarado:
+          json['numeroEnmascarado'] ?? json['numero_enmascarado'] ?? '',
+      numeroCompleto: json['numeroCompleto'] ?? json['numero_completo'] ?? '',
+      titular: json['titular'] ?? '',
+      fechaVencimiento:
+          json['fechaVencimiento'] ?? json['fecha_vencimiento'] ?? '',
+      tipo: json['tipo'] ?? 'otro',
+      esPredeterminada:
+          json['esPredeterminada'] ?? json['es_predeterminada'] ?? false,
+      fechaCreacion: json['fechaCreacion'] != null
+          ? DateTime.parse(json['fechaCreacion'])
+          : (json['fecha_creacion'] != null
+                ? DateTime.parse(json['fecha_creacion'])
+                : DateTime.now()),
+    );
+  }
+}
+/*import '../../domain/entities/tarjeta.dart';
 
 abstract class TarjetaRemoteDataSource {
   Future<List<Tarjeta>> obtenerTarjetas(int usuarioId);
@@ -134,4 +304,4 @@ class TarjetaRemoteDataSourceMock implements TarjetaRemoteDataSource {
       fechaCreacion: tarjetaActual.fechaCreacion,
     );
   }
-}
+}*/

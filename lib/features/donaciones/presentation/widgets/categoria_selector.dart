@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../styles/constantes/app_color.dart';
 import '../../domain/entities/categoria_organizacion.dart';
 
 class CategoriaSelector extends StatelessWidget {
@@ -14,11 +13,13 @@ class CategoriaSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.secondary.withValues(alpha: 0.3),
+        color: colorScheme.secondary.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(25),
       ),
       child: Row(
@@ -30,15 +31,19 @@ class CategoriaSelector extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : Colors.transparent,
+                  color: isSelected ? colorScheme.primary : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   _getCategoriaLabel(categoria),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.textSecondary,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected
+                        ? colorScheme.onPrimary
+                        : colorScheme.onSurfaceVariant,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                     fontSize: 12,
                   ),
                 ),

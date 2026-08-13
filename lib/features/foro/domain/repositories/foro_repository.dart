@@ -60,5 +60,4 @@ abstract class ForoRepository {
     String? fotoPerfilLocalPath,
     String? fotoPortadaLocalPath,
   });
-  Future<void> eliminarGrupo(int grupoId);
 }

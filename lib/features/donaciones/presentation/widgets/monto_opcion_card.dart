@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../styles/constantes/app_color.dart';
 
 class MontoOpcionCard extends StatelessWidget {
   final double monto;
@@ -15,15 +14,17 @@ class MontoOpcionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 120,
         decoration: BoxDecoration(
-          color: AppColors.secondary.withValues(alpha: 0.3),
+          color: colorScheme.secondary.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.5),
+            color: colorScheme.primary.withValues(alpha: 0.5),
             width: 2,
           ),
         ),
@@ -31,16 +32,12 @@ class MontoOpcionCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (esPersonalizado) ...[
-              Icon(
-                Icons.edit_outlined,
-                size: 32,
-                color: AppColors.primary,
-              ),
+              Icon(Icons.edit_outlined, size: 32, color: colorScheme.primary),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Otra Cantidad',
                 style: TextStyle(
-                  color: AppColors.primary,
+                  color: colorScheme.primary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
@@ -49,7 +46,7 @@ class MontoOpcionCard extends StatelessWidget {
               Text(
                 '\$${monto.toInt()}',
                 style: TextStyle(
-                  color: AppColors.primary,
+                  color: colorScheme.primary,
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),

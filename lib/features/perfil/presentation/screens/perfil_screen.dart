@@ -33,7 +33,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   void _cargarTarjetas() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthSuccess) {
-      context.read<TarjetaBloc>().add(CargarTarjetas(authState.data.usuarioIdPk));
+      context.read<TarjetaBloc>().add(CargarTarjetas());
     }
   }
 
@@ -238,7 +238,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(

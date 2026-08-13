@@ -1,9 +1,9 @@
 import '../entities/tarjeta.dart';
 
 abstract class TarjetaRepository {
-  Future<List<Tarjeta>> obtenerTarjetasUsuario(int usuarioId);
+  Future<List<Tarjeta>> obtenerTarjetasUsuario(/*int usuarioId*/);
   Future<Tarjeta> guardarTarjeta({
-    required int usuarioId,
+    /*required int usuarioId,*/
     required String numeroTarjeta,
     required String titular,
     required String fechaVencimiento,
@@ -13,10 +13,10 @@ abstract class TarjetaRepository {
   Future<void> eliminarTarjeta(int tarjetaId);
   Future<void> actualizarTarjeta({
     required int tarjetaId,
-    String? numeroTarjeta,
+    //String? numeroTarjeta,
     String? titular,
     String? fechaVencimiento,
-    String? cvv,
+    /*String? cvv,*/
     bool? esPredeterminada,
   });
   Future<void> establecerPredeterminada(int tarjetaId);

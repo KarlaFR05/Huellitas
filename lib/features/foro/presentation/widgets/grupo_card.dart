@@ -9,7 +9,6 @@ class GrupoCard extends StatelessWidget {
     required this.grupo,
     required this.onAbrir,
     required this.onCambiarMembresia,
-    this.actualizando = false,
     this.accentColor = const Color(0xFF27A56D),
     this.icon = Icons.groups_rounded,
   });
@@ -17,7 +16,6 @@ class GrupoCard extends StatelessWidget {
   final Grupo grupo;
   final VoidCallback onAbrir;
   final VoidCallback onCambiarMembresia;
-  final bool actualizando;
   final Color accentColor;
   final IconData icon;
 
@@ -102,12 +100,7 @@ class GrupoCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  actualizando
-                      ? const SizedBox.square(
-                          dimension: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : grupo.solicitudPendiente
+                  grupo.solicitudPendiente
                       ? OutlinedButton.icon(
                           onPressed: onCambiarMembresia,
                           icon: const Icon(Icons.schedule_rounded, size: 18),

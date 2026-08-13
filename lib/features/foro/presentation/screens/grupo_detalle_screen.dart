@@ -31,7 +31,6 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
   final List<Publicacion> _publicaciones = [];
   bool _inicializado = false;
   bool _cargando = true;
-  bool _actualizandoMembresia = false;
   String? _error;
 
   @override
@@ -60,13 +59,8 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
         FiltroPublicaciones(grupoId: _grupo.id),
       );
       if (!mounted) return;
-      final grupoReconciliado = grupo.copyWith(
-        esMiembro: grupo.esMiembro || _grupo.esMiembro,
-        esAdministradorActual:
-            grupo.esAdministradorActual || _grupo.esAdministradorActual,
-      );
       setState(() {
-        _grupo = grupoReconciliado;
+        _grupo = grupo;
         _publicaciones
           ..clear()
           ..addAll(pagina.elementos);
@@ -82,20 +76,17 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
   }
 
   Future<void> _cambiarMembresia() async {
-    if (_grupo.solicitudPendiente || _actualizandoMembresia) return;
-    setState(() => _actualizandoMembresia = true);
+    if (_grupo.solicitudPendiente) return;
     try {
       final repository = context.read<ForoRepository>();
       late Grupo actualizado;
       if (!_grupo.esMiembro && _grupo.privacidad == PrivacidadGrupo.privado) {
         actualizado = await repository.solicitarIngresoGrupo(_grupo.id);
         actualizado = actualizado.copyWith(solicitudPendiente: true);
+      } else if (_grupo.esMiembro) {
+        actualizado = await repository.salirDeGrupo(_grupo.id);
       } else {
         actualizado = await repository.unirseAGrupo(_grupo.id);
-        actualizado = actualizado.copyWith(
-          esMiembro: true,
-          solicitudPendiente: false,
-        );
       }
       if (mounted) setState(() => _grupo = actualizado);
     } catch (error) {
@@ -104,71 +95,6 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(mensajeDeError(error))));
       }
-    } finally {
-      if (mounted) setState(() => _actualizandoMembresia = false);
-    }
-  }
-
-  Future<void> _confirmarSalida() async {
-    final authState = context.read<AuthBloc>().state;
-    final usuarioId = authState is AuthSuccess && authState.data is Usuario
-        ? (authState.data as Usuario).usuarioIdPk
-        : null;
-    final administra =
-        _grupo.esAdministradorActual || _grupo.creadorUsuarioId == usuarioId;
-    if (!_grupo.esMiembro || administra || _actualizandoMembresia) return;
-    final confirmar = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Salir del grupo'),
-        content: Text(
-          '¿Seguro que quieres abandonar ${_grupo.nombre}? Podrás volver a unirte después.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Salir del grupo'),
-          ),
-        ],
-      ),
-    );
-    if (confirmar != true || !mounted) return;
-    setState(() => _actualizandoMembresia = true);
-    try {
-      final actualizado = await context.read<ForoRepository>().salirDeGrupo(
-        _grupo.id,
-      );
-      if (!mounted) return;
-      setState(
-        () => _grupo = actualizado.copyWith(
-          esMiembro: false,
-          solicitudPendiente: false,
-        ),
-      );
-      Navigator.pop(context, _grupo);
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(mensajeDeError(error))));
-      }
-    } finally {
-      if (mounted) setState(() => _actualizandoMembresia = false);
-    }
-  }
-
-  Future<void> _administrarGrupo() async {
-    final eliminado = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(builder: (_) => AdministrarGrupoScreen(grupo: _grupo)),
-    );
-    if (eliminado == true && mounted) {
-      _grupo = _grupo.copyWith(estado: EstadoGrupo.eliminado);
-      Navigator.pop(context, _grupo);
     }
   }
 
@@ -311,8 +237,6 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
     final usuarioId = authState is AuthSuccess && authState.data is Usuario
         ? (authState.data as Usuario).usuarioIdPk
         : null;
-    final administra =
-        _grupo.esAdministradorActual || _grupo.creadorUsuarioId == usuarioId;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -322,22 +246,21 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
         appBar: AppBar(
           title: const Text('Comunidad'),
           actions: [
-            if (_grupo.esMiembro && !administra)
-              IconButton(
-                tooltip: 'Salir del grupo',
-                onPressed: _actualizandoMembresia ? null : _confirmarSalida,
-                icon: const Icon(Icons.logout_rounded),
-              ),
-            if (administra)
+            if (_grupo.esAdministradorActual)
               IconButton(
                 tooltip: 'Editar grupo',
                 onPressed: _editarGrupo,
                 icon: const Icon(Icons.edit_outlined),
               ),
-            if (administra)
+            if (_grupo.esAdministradorActual)
               IconButton(
                 tooltip: 'Administrar miembros',
-                onPressed: _administrarGrupo,
+                onPressed: () => Navigator.push<void>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AdministrarGrupoScreen(grupo: _grupo),
+                  ),
+                ),
                 icon: const Icon(Icons.manage_accounts_outlined),
               ),
           ],
@@ -465,27 +388,14 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
                             )
                           : _grupo.esMiembro
                           ? OutlinedButton.icon(
-                              onPressed: null,
+                              onPressed: _cambiarMembresia,
                               icon: const Icon(Icons.check_rounded),
-                              label: const Text('Eres miembro'),
+                              label: const Text('Ya eres miembro'),
                             )
                           : FilledButton.icon(
-                              onPressed: _actualizandoMembresia
-                                  ? null
-                                  : _cambiarMembresia,
-                              icon: _actualizandoMembresia
-                                  ? const SizedBox.square(
-                                      dimension: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Icons.add_rounded),
-                              label: Text(
-                                _actualizandoMembresia
-                                    ? 'Uniéndote...'
-                                    : 'Unirme al grupo',
-                              ),
+                              onPressed: _cambiarMembresia,
+                              icon: const Icon(Icons.add_rounded),
+                              label: const Text('Unirme al grupo'),
                             ),
                     ),
                     const SizedBox(height: 24),

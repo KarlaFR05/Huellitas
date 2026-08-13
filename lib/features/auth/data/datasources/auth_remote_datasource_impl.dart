@@ -64,4 +64,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       rethrow;
     }
   }
+
+  @override
+  Future<void> enviarCodigo(String correo) async {
+    try {
+      await dio.post('/usuarios/enviar-codigo', data: {'correo': correo});
+    } on DioException catch (e) {
+      print('STATUS: ${e.response?.statusCode}');
+      print('ERROR DETAIL: ${e.response?.data}');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> confirmarCodigo(String correo, String codigo) async {
+    try {
+      await dio.post(
+        '/usuarios/confirmar-codigo',
+        data: {'correo': correo, 'codigo': codigo},
+      );
+    } on DioException catch (e) {
+      print('STATUS: ${e.response?.statusCode}');
+      print('ERROR DETAIL: ${e.response?.data}');
+      rethrow;
+    }
+  }
 }

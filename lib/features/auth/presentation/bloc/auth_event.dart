@@ -2,17 +2,14 @@ import '../../domain/entities/usuario.dart';
 
 abstract class AuthEvent {}
 
+class VerificarSesionEvent extends AuthEvent {}
+
 class LoginEvent extends AuthEvent {
   final String identificador;
   final String password;
 
-
-  LoginEvent({
-    required this.identificador,
-    required this.password,
-  });
+  LoginEvent({required this.identificador, required this.password});
 }
-
 
 class RegisterEvent extends AuthEvent {
   final String correo;
@@ -39,4 +36,15 @@ class LogoutEvent extends AuthEvent {}
 class ActualizarUsuarioEvent extends AuthEvent {
   final Usuario usuario;
   ActualizarUsuarioEvent(this.usuario);
+}
+
+class EnviarCodigoEvent extends AuthEvent {
+  final String correo;
+  EnviarCodigoEvent({required this.correo});
+}
+
+class ConfirmarCodigoEvent extends AuthEvent {
+  final String correo;
+  final String codigo;
+  ConfirmarCodigoEvent({required this.correo, required this.codigo});
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/tarjeta.dart';
-import '../../../../styles/constantes/app_color.dart';
 
 class TarjetaCard extends StatelessWidget {
   final Tarjeta tarjeta;
@@ -18,13 +17,15 @@ class TarjetaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: tarjeta.esPredeterminada
-            ? BorderSide(color: AppColors.primary, width: 2)
+            ? BorderSide(color: colorScheme.primary, width: 2)
             : BorderSide.none,
       ),
       child: InkWell(
@@ -41,10 +42,10 @@ class TarjetaCard extends StatelessWidget {
                 children: [
                   Text(
                     tarjeta.iconoTipo,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   if (tarjeta.esPredeterminada)
@@ -54,7 +55,7 @@ class TarjetaCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
+                        color: colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -63,14 +64,14 @@ class TarjetaCard extends StatelessWidget {
                           Icon(
                             Icons.star,
                             size: 14,
-                            color: AppColors.primary,
+                            color: colorScheme.primary,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             'Predeterminada',
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.primary,
+                              color: colorScheme.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -83,10 +84,10 @@ class TarjetaCard extends StatelessWidget {
               // Número enmascarado
               Text(
                 tarjeta.numeroEnmascarado,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: colorScheme.onSurface,
                   letterSpacing: 2,
                 ),
               ),
@@ -98,19 +99,19 @@ class TarjetaCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'TITULAR',
                         style: TextStyle(
                           fontSize: 10,
-                          color: AppColors.textSecondary,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         tarjeta.titular,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textPrimary,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -118,19 +119,19 @@ class TarjetaCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'VENCE',
                         style: TextStyle(
                           fontSize: 10,
-                          color: AppColors.textSecondary,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         tarjeta.fechaVencimiento,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textPrimary,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -151,7 +152,7 @@ class TarjetaCard extends StatelessWidget {
                         icon: const Icon(Icons.edit, size: 16),
                         label: const Text('Editar'),
                         style: TextButton.styleFrom(
-                          foregroundColor: AppColors.primary,
+                          foregroundColor: colorScheme.primary,
                         ),
                       ),
                     if (onDelete != null)
@@ -160,7 +161,7 @@ class TarjetaCard extends StatelessWidget {
                         icon: const Icon(Icons.delete, size: 16),
                         label: const Text('Eliminar'),
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
+                          foregroundColor: colorScheme.error,
                         ),
                       ),
                   ],

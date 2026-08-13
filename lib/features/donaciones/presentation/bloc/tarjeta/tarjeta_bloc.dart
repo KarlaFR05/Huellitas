@@ -12,21 +12,21 @@ class TarjetaBloc extends Bloc<TarjetaEvent, TarjetaState> {
   final ObtenerTarjetasUseCase obtenerTarjetas;
   final GuardarTarjetaUseCase guardarTarjeta;
   final EliminarTarjetaUseCase eliminarTarjeta;
-  final ActualizarTarjetaUseCase actualizarTarjeta; 
-  final EstablecerPredeterminadaUseCase establecerPredeterminada; 
+  final ActualizarTarjetaUseCase actualizarTarjeta;
+  final EstablecerPredeterminadaUseCase establecerPredeterminada;
 
   TarjetaBloc({
     required this.obtenerTarjetas,
     required this.guardarTarjeta,
     required this.eliminarTarjeta,
-    required this.actualizarTarjeta, 
-    required this.establecerPredeterminada, 
+    required this.actualizarTarjeta,
+    required this.establecerPredeterminada,
   }) : super(TarjetaInitial()) {
     on<CargarTarjetas>(_onCargarTarjetas);
     on<GuardarNuevaTarjeta>(_onGuardarNuevaTarjeta);
     on<EliminarTarjeta>(_onEliminarTarjeta);
-    on<ActualizarTarjeta>(_onActualizarTarjeta); 
-    on<EstablecerPredeterminada>(_onEstablecerPredeterminada); 
+    on<ActualizarTarjeta>(_onActualizarTarjeta);
+    on<EstablecerPredeterminada>(_onEstablecerPredeterminada);
   }
 
   Future<void> _onCargarTarjetas(
@@ -35,12 +35,16 @@ class TarjetaBloc extends Bloc<TarjetaEvent, TarjetaState> {
   ) async {
     emit(TarjetaLoading());
     try {
-      final tarjetas = await obtenerTarjetas(event.usuarioId);
-      final predeterminada = tarjetas.where((t) => t.esPredeterminada).firstOrNull;
-      emit(TarjetaLoaded(
-        tarjetas: tarjetas,
-        tarjetaPredeterminada: predeterminada,
-      ));
+      final tarjetas = await obtenerTarjetas();
+      final predeterminada = tarjetas
+          .where((t) => t.esPredeterminada)
+          .firstOrNull;
+      emit(
+        TarjetaLoaded(
+          tarjetas: tarjetas,
+          tarjetaPredeterminada: predeterminada,
+        ),
+      );
     } catch (e) {
       emit(TarjetaError(mensajeDeError(e)));
     }
@@ -53,7 +57,6 @@ class TarjetaBloc extends Bloc<TarjetaEvent, TarjetaState> {
     emit(TarjetaLoading());
     try {
       final tarjeta = await guardarTarjeta(
-        usuarioId: event.usuarioId,
         numeroTarjeta: event.numeroTarjeta,
         titular: event.titular,
         fechaVencimiento: event.fechaVencimiento,
@@ -61,7 +64,7 @@ class TarjetaBloc extends Bloc<TarjetaEvent, TarjetaState> {
         esPredeterminada: event.esPredeterminada,
       );
       emit(TarjetaGuardada(tarjeta));
-      add(CargarTarjetas(event.usuarioId));
+      add(CargarTarjetas());
     } catch (e) {
       emit(TarjetaError(mensajeDeError(e)));
     }
@@ -80,7 +83,6 @@ class TarjetaBloc extends Bloc<TarjetaEvent, TarjetaState> {
     }
   }
 
-  // Para editar tarjeta
   Future<void> _onActualizarTarjeta(
     ActualizarTarjeta event,
     Emitter<TarjetaState> emit,
@@ -93,13 +95,12 @@ class TarjetaBloc extends Bloc<TarjetaEvent, TarjetaState> {
         fechaVencimiento: event.fechaVencimiento,
         esPredeterminada: event.esPredeterminada,
       );
-      emit(TarjetaEliminada()); 
+      emit(TarjetaActualizada());
     } catch (e) {
       emit(TarjetaError(mensajeDeError(e)));
     }
   }
 
-  // Establecer como predeterminada
   Future<void> _onEstablecerPredeterminada(
     EstablecerPredeterminada event,
     Emitter<TarjetaState> emit,
@@ -107,7 +108,6 @@ class TarjetaBloc extends Bloc<TarjetaEvent, TarjetaState> {
     emit(TarjetaLoading());
     try {
       await establecerPredeterminada(event.tarjetaId);
-      // Emitimos TarjetaEliminada como señal de "éxito" para que el Listener recargue la lista
       emit(TarjetaEliminada());
     } catch (e) {
       emit(TarjetaError(mensajeDeError(e)));

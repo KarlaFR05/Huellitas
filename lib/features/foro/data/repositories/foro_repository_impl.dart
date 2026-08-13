@@ -180,9 +180,6 @@ class ForoRepositoryImpl implements ForoRepository {
   }
 
   @override
-  Future<void> eliminarGrupo(int grupoId) => remote.eliminarGrupo(grupoId);
-
-  @override
   Future<Grupo> solicitarIngresoGrupo(int grupoId) async {
     final model = await remote.solicitarIngreso(grupoId);
     return model.toEntity();

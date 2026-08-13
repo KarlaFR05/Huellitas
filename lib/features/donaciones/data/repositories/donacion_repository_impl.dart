@@ -10,7 +10,9 @@ class DonacionRepositoryImpl implements DonacionRepository {
   DonacionRepositoryImpl(this.dataSource);
 
   @override
-  Future<List<Organizacion>> obtenerOrganizaciones(CategoriaOrganizacion categoria) async {
+  Future<List<Organizacion>> obtenerOrganizaciones(
+    CategoriaOrganizacion categoria,
+  ) async {
     return await dataSource.obtenerOrganizaciones(categoria);
   }
 
@@ -19,19 +21,23 @@ class DonacionRepositoryImpl implements DonacionRepository {
     required int usuarioId,
     required int organizacionId,
     required double monto,
-    required String numeroTarjeta,
+    /*required String numeroTarjeta,
     required String titularTarjeta,
     required String cvv,
-    required String fechaVencimiento,
+    required String fechaVencimiento,*/
+    required int tarjetaId,
+    String metodoPago = 'tarjeta',
   }) async {
     return await dataSource.crearDonacion(
       usuarioId: usuarioId,
       organizacionId: organizacionId,
       monto: monto,
-      numeroTarjeta: numeroTarjeta,
+      /*numeroTarjeta: numeroTarjeta,
       titularTarjeta: titularTarjeta,
       cvv: cvv,
-      fechaVencimiento: fechaVencimiento,
+      fechaVencimiento: fechaVencimiento,*/
+      tarjetaId: tarjetaId,
+      metodoPago: metodoPago,
     );
   }
 }

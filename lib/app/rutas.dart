@@ -24,11 +24,13 @@ import 'package:huellitas/features/completar_registro/presentation/screens/verif
 import 'package:huellitas/features/completar_registro/presentation/screens/verificar_reverso_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/selfie_screen.dart';
 import 'package:huellitas/features/completar_registro/presentation/screens/perfil_completo_screen.dart';
+
 import 'package:huellitas/features/perfil/presentation/screens/cambiar_contrasenia_screen.dart';
 
 import 'package:huellitas/features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/create_reporte_usecase.dart';
+
 import 'package:huellitas/features/reporte/presentation/report_success_screen.dart';
 import 'package:huellitas/features/reporte/presentation/report_form_screen.dart';
 
@@ -40,11 +42,27 @@ import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.da
 
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
 
+<<<<<<< HEAD
+//registro e incio de sesion
+=======
+>>>>>>> origin/Karla
+import 'package:huellitas/features/auth/data/datasources/auth_remote_datasource_impl.dart';
+import 'package:huellitas/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:huellitas/features/auth/domain/usecases/registro_usecase.dart';
+import 'package:huellitas/features/auth/domain/usecases/login_usecase.dart';
+import 'package:huellitas/features/auth/presentation/bloc/auth_bloc.dart';
+<<<<<<< HEAD
+import 'package:huellitas/features/auth/presentation/screens/verificacion_screen.dart';
+
 // NUEVOS IMPORTS para seguimiento de reportes
+=======
+
+>>>>>>> origin/Karla
 import 'package:huellitas/features/reporte/data/datasources/reporte_estado_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_estado_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/get_reporte_estado_usecase.dart';
 import 'package:huellitas/features/reporte/domain/usecases/actualizar_estado_reporte_usecase.dart';
+
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_estado_bloc.dart';
 import 'package:huellitas/features/reporte/presentation/reporte_estado_screen.dart';
 import 'package:huellitas/features/reporte/presentation/reporte_detalle_screen.dart';
@@ -65,7 +83,6 @@ import 'package:huellitas/features/insignias/presentation/screens/insignia_detal
 import 'package:huellitas/features/reporte/domain/usecases/tomar_reporte_usecase.dart';
 import 'package:huellitas/features/foro/presentation/screens/foro_screen.dart';
 
-
 import 'package:huellitas/features/donaciones/presentation/screens/donaciones_screen.dart';
 import 'package:huellitas/features/donaciones/presentation/screens/seleccion_cantidad_screen.dart';
 import 'package:huellitas/features/donaciones/presentation/screens/monto_personalizado_screen.dart';
@@ -77,6 +94,12 @@ import 'package:huellitas/features/donaciones/presentation/screens/seleccion_tar
 import 'package:huellitas/features/donaciones/presentation/screens/agregar_tarjeta_screen.dart';
 import 'package:huellitas/features/donaciones/domain/entities/tarjeta.dart';
 import 'package:huellitas/features/perfil/presentation/screens/mis_tarjetas.dart';
+import 'package:huellitas/features/donaciones/presentation/screens/historial_screen.dart';
+
+import 'package:huellitas/features/notificaciones/presentation/screens/notificaciones_screen.dart';
+
+import 'package:huellitas/features/foro/presentation/screens/publicacion_detalle_screen.dart';
+import 'package:huellitas/features/foro/presentation/screens/administrar_grupo_por_id_screen.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -93,7 +116,16 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const PasswordScreen(),
     ),
 
-    GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+    GoRoute(
+      path: '/home',
+      builder: (context, state) {
+        final reporteIdParam = state.uri.queryParameters['reporteId'];
+        final reporteIdInicial = reporteIdParam != null
+            ? int.tryParse(reporteIdParam)
+            : null;
+        return HomeScreen(reporteIdInicial: reporteIdInicial);
+      },
+    ),
 
     GoRoute(
       path: '/report-success',
@@ -108,6 +140,11 @@ final GoRouter router = GoRouter(
     ),
 
     GoRoute(path: '/perfil', builder: (context, state) => const PerfilScreen()),
+
+    GoRoute(
+      path: '/verificar-correo',
+      builder: (context, state) => const VerificacionScreen(),
+    ),
 
     GoRoute(
       path: '/editar-perfil',
@@ -314,7 +351,6 @@ final GoRouter router = GoRouter(
 
     GoRoute(path: '/foro', builder: (context, state) => const ForoScreen()),
 
-    
     GoRoute(
       path: '/donaciones',
       name: 'donaciones',
@@ -370,6 +406,28 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/mis-tarjetas',
       builder: (context, state) => const MisTarjetasScreen(),
+    ),
+    GoRoute(
+      path: '/historial',
+      builder: (context, state) => const HistorialScreen(),
+    ),
+    GoRoute(
+      path: '/notificaciones',
+      builder: (context, state) => const NotificacionesScreen(),
+    ),
+    GoRoute(
+      path: '/publicacion/:id',
+      builder: (context, state) {
+        final publicacionId = int.parse(state.pathParameters['id']!);
+        return PublicacionDetalleScreen(publicacionId: publicacionId);
+      },
+    ),
+    GoRoute(
+      path: '/administrar-grupo/:id',
+      builder: (context, state) {
+        final grupoId = int.parse(state.pathParameters['id']!);
+        return AdministrarGrupoPorIdScreen(grupoId: grupoId);
+      },
     ),
   ],
 );
