@@ -66,5 +66,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Huellitas necesita acceder a tu ubicación para mostrar reportes de mascotas cerca de ti.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Huellitas necesita acceder a tu ubicación para mostrar reportes de mascotas cerca de ti.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Huellitas necesita acceder a tu cámara para tomar fotos de mascotas y documentos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Huellitas necesita acceder a tu galería para seleccionar fotos de mascotas y documentos.</string>
 </dict>
 </plist>
