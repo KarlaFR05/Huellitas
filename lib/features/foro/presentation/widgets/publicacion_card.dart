@@ -357,7 +357,7 @@ class _InsigniaAutorState extends State<_InsigniaAutor> {
           .where((item) => item.obtenida)
           .toList()
         ..sort((a, b) => b.nivel.compareTo(a.nivel));
-      return obtenidas.firstOrNull;
+      return obtenidas.isEmpty ? null : obtenidas.first;
     } catch (_) {
       return null;
     }

@@ -103,7 +103,8 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
       if (!mounted) return;
       final pagina = resultados[0];
       final reportes = resultados[1] as List<Reporte>;
-      final insigniasPorCategoria = resultados[2] as Map;
+      final insigniasPorCategoria = resultados[2]
+          as Map<CategoriaInsignia, List<Insignia>>;
       setState(() {
         // El filtro local evita mostrar contenido ajeno si una versión antigua
         // del backend ignora temporalmente el parámetro usuario_id.
@@ -114,7 +115,7 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
           ..sort((a, b) => (b.fechaActualizacion ?? DateTime(0))
               .compareTo(a.fechaActualizacion ?? DateTime(0)));
         _insignias = insigniasPorCategoria.values
-            .expand((lista) => lista as List<Insignia>)
+            .expand((lista) => lista)
             .where((insignia) => insignia.obtenida)
             .toList()
           ..sort((a, b) => b.nivel.compareTo(a.nivel));

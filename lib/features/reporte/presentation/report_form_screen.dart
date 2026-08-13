@@ -1489,9 +1489,13 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
   Widget _buildUrgencySelector() {
     final colors = Theme.of(context).colorScheme;
-    final seleccionada = _nivelesUrgencia
-        .where((nivel) => nivel['value'] == _urgencia)
-        .firstOrNull;
+    Map<String, dynamic>? seleccionada;
+    for (final nivel in _nivelesUrgencia) {
+      if (nivel['value'] == _urgencia) {
+        seleccionada = nivel;
+        break;
+      }
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

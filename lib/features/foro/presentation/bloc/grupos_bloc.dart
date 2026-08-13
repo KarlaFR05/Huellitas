@@ -107,6 +107,15 @@ class MiembroGrupoEliminado extends GruposEvent {
   List<Object?> get props => [grupoId, usuarioId];
 }
 
+class GrupoEliminadoLocalmente extends GruposEvent {
+  final int grupoId;
+
+  const GrupoEliminadoLocalmente(this.grupoId);
+
+  @override
+  List<Object?> get props => [grupoId];
+}
+
 enum GruposStatus { inicial, cargando, exito, error }
 
 class GruposState extends Equatable {
@@ -195,9 +204,14 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
     on<GruposSolicitados>(_cargarGrupos);
     on<MisGruposSolicitados>(_cargarMisGrupos);
     on<GrupoCreado>(_crearGrupo);
+    on<MembresiaGrupoCambiada>(_cambiarMembresia);
+    on<SolicitudIngresoEnviada>(_solicitarIngreso);
+    on<SolicitudIngresoCancelada>(_cancelarSolicitud);
+    on<SolicitudesIngresoSolicitadas>(_cargarSolicitudes);
     on<MiembrosGrupoSolicitados>(_cargarMiembros);
     on<SolicitudIngresoRespondida>(_responderSolicitud);
     on<MiembroGrupoEliminado>(_eliminarMiembro);
+    on<GrupoEliminadoLocalmente>(_eliminarGrupoLocalmente);
   }
 
   Future<void> _cargarGrupos(
@@ -411,9 +425,13 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
         usuarioId: event.usuarioId,
         aceptar: event.aceptar,
       );
-      final solicitud = state.solicitudesIngreso
-          .where((item) => item.usuarioId == event.usuarioId)
-          .firstOrNull;
+      MembresiaGrupo? solicitud;
+      for (final item in state.solicitudesIngreso) {
+        if (item.usuarioId == event.usuarioId) {
+          solicitud = item;
+          break;
+        }
+      }
       emit(
         state.copyWith(
           solicitudesIngreso: state.solicitudesIngreso
@@ -463,6 +481,22 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
         ),
       );
     }
+  }
+
+  void _eliminarGrupoLocalmente(
+    GrupoEliminadoLocalmente event,
+    Emitter<GruposState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        grupos: state.grupos
+            .where((grupo) => grupo.id != event.grupoId)
+            .toList(),
+        misGrupos: state.misGrupos
+            .where((grupo) => grupo.id != event.grupoId)
+            .toList(),
+      ),
+    );
   }
 
   List<Grupo> _reemplazarGrupo(List<Grupo> grupos, Grupo actualizado) {
