@@ -1,8 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/widgets/avatar_helper.dart';
+import '../../../auth/domain/entities/usuario.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/publicacion.dart';
 
 class CrearPublicacionScreen extends StatefulWidget {
@@ -19,6 +24,7 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
   final _contenidoController = TextEditingController();
   final _imagePicker = ImagePicker();
   File? _imagen;
+  String? _imagenExistenteUrl;
   bool _publicando = false;
   CategoriaPublicacion _categoria = CategoriaPublicacion.adopcion;
 
@@ -32,6 +38,7 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
       _tituloController.text = publicacion.titulo;
       _contenidoController.text = publicacion.contenido;
       _categoria = publicacion.categoria;
+      _imagenExistenteUrl = publicacion.imagenUrl;
     }
   }
 
@@ -59,26 +66,54 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
   Future<void> _seleccionarImagen() async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt_outlined),
-                title: const Text('Tomar fotografía'),
-                onTap: () => Navigator.pop(context, ImageSource.camera),
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        final colors = Theme.of(sheetContext).colorScheme;
+        return SafeArea(
+          top: false,
+          minimum: const EdgeInsets.only(bottom: 8),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
               ),
-              ListTile(
-                leading: const Icon(Icons.photo_library_outlined),
-                title: const Text('Seleccionar de galería'),
-                onTap: () => Navigator.pop(context, ImageSource.gallery),
-              ),
-            ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Seleccionar imagen',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: colors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ListTile(
+                  leading: Icon(Icons.camera_alt, color: colors.primary),
+                  title: const Text('Tomar fotografía'),
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    ImageSource.camera,
+                  ),
+                ),
+                ListTile(
+                  leading: Icon(Icons.photo_library, color: colors.primary),
+                  title: const Text('Seleccionar de galería'),
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    ImageSource.gallery,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
     if (source == null) return;
     try {
@@ -89,7 +124,9 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
         imageQuality: 85,
       );
       if (seleccionada != null && mounted) {
-        setState(() => _imagen = File(seleccionada.path));
+        setState(() {
+          _imagen = File(seleccionada.path);
+        });
       }
     } catch (_) {
       if (mounted) {
@@ -123,6 +160,10 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final authState = context.watch<AuthBloc>().state;
+    final usuario = authState is AuthSuccess && authState.data is Usuario
+        ? authState.data as Usuario
+        : null;
     return Scaffold(
       appBar: AppBar(
         title: Text(_editando ? 'Editar publicación' : 'Crear publicación'),
@@ -178,10 +219,12 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CircleAvatar(
-                  backgroundImage: AssetImage(
-                    'assets/images/avatares/avatar_01.png',
-                  ),
+                CircleAvatar(
+                  backgroundColor: colors.primaryContainer,
+                  backgroundImage: avatarProvider(usuario?.fotoPerfil),
+                  child: usuario?.fotoPerfil == null
+                      ? Icon(Icons.person_rounded, color: colors.primary)
+                      : null,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -199,47 +242,100 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
                 ),
               ],
             ),
-            if (_imagen != null) ...[
+            if (_imagen != null || _imagenExistenteUrl != null) ...[
               const SizedBox(height: 12),
               Stack(
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(18),
-                    child: Image.file(
-                      _imagen!,
-                      width: double.infinity,
-                      height: 250,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: IconButton.filled(
-                      onPressed: _publicando
-                          ? null
-                          : () => setState(() => _imagen = null),
-                      icon: const Icon(Icons.close_rounded),
-                    ),
+                    child: _imagen != null
+                        ? Image.file(
+                            _imagen!,
+                            width: double.infinity,
+                            height: 250,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.network(
+                            _imagenExistenteUrl!,
+                            width: double.infinity,
+                            height: 250,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => Container(
+                              height: 250,
+                              color: colors.surfaceContainerHighest,
+                              child: const Center(
+                                child: Icon(Icons.broken_image_outlined),
+                              ),
+                            ),
+                          ),
                   ),
                 ],
               ),
             ],
             const SizedBox(height: 16),
+            Text(
+              _imagen == null && _imagenExistenteUrl == null
+                  ? 'Adjuntar fotografía'
+                  : 'Cambiar fotografía',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 12),
             Material(
-              color: colors.primary.withValues(alpha: .08),
-              borderRadius: BorderRadius.circular(16),
-              child: ListTile(
-                leading: Icon(
-                  Icons.add_photo_alternate_outlined,
-                  color: colors.primary,
-                ),
-                title: Text(
-                  _imagen == null ? 'Agregar fotografía' : 'Cambiar fotografía',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                trailing: const Icon(Icons.chevron_right_rounded),
+              color: colors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
                 onTap: _publicando ? null : _seleccionarImagen,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: double.infinity,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: colors.outlineVariant,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: colors.primary.withValues(alpha: .1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _imagen == null && _imagenExistenteUrl == null
+                              ? Icons.add_a_photo_outlined
+                              : Icons.change_circle_outlined,
+                          size: 34,
+                          color: colors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        _imagen == null && _imagenExistenteUrl == null
+                            ? 'Toca para agregar una foto'
+                            : 'Toca para elegir otra foto',
+                        style: TextStyle(
+                          color: colors.primary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Cámara o galería · Máximo 1 imagen',
+                        style: TextStyle(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
             if (_publicando) ...[

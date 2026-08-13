@@ -13,15 +13,26 @@ class UsuarioPublicoModel extends UsuarioPublico {
   });
 
   factory UsuarioPublicoModel.fromJson(Map<String, dynamic> json) {
+    final data = json['usuario'] is Map
+        ? Map<String, dynamic>.from(json['usuario'] as Map)
+        : json['data'] is Map
+        ? Map<String, dynamic>.from(json['data'] as Map)
+        : json;
     return UsuarioPublicoModel(
-      usuarioIdPk: json['usuario_id_pk'],
-      nombre: json['nombre'] ?? '',
-      apellidos: json['apellidos'] ?? '',
-      nombreUsuario: json['nombre_usuario'] ?? '',
-      correo: json['correo'] ?? '',
-      numTelefono: json['num_telefono'] ?? '',
-      fotoPerfil: json['foto_perfil'],
-      verificado: json['verificado'] ?? false,
+      usuarioIdPk: _entero(data['usuario_id_pk'] ?? data['usuario_id'] ?? data['id']),
+      nombre: (data['nombre'] ?? '').toString(),
+      apellidos: (data['apellidos'] ?? '').toString(),
+      nombreUsuario: (data['nombre_usuario'] ?? data['nombreUsuario'] ?? '').toString(),
+      correo: (data['correo'] ?? '').toString(),
+      numTelefono: (data['num_telefono'] ?? data['telefono'] ?? '').toString(),
+      fotoPerfil: data['foto_perfil']?.toString(),
+      verificado: data['verificado'] == true || data['verificado'] == 1,
     );
   }
+
+  static int _entero(Object? valor) {
+    if (valor is int) return valor;
+    return int.tryParse(valor?.toString() ?? '') ?? 0;
+  }
+
 }

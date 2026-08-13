@@ -81,7 +81,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         children: [
                           SizedBox(
                             width: double.infinity,
-                            height: 48,
+                            height: 56,
                             child: ElevatedButton(
                               onPressed: deshabilitado
                                   ? null
@@ -123,7 +123,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
+                                  height: 1.25,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
                             ),
                           ),

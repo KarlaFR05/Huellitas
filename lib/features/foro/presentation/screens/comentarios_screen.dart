@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -93,6 +94,14 @@ class _ComentariosViewState extends State<_ComentariosView> {
                       avatarUrl: widget.publicacion.fotoUsuarioUrl,
                       onMeGusta: () {},
                       onComentarios: () {},
+                      onPerfil: widget.publicacion.usuarioId == null
+                          ? null
+                          : () => context.push(
+                              '/mi-perfil',
+                              extra: widget.publicacion.usuarioId == usuarioId
+                                  ? null
+                                  : widget.publicacion.usuarioId,
+                            ),
                     ),
                   ),
                 ),

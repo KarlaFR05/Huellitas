@@ -9,6 +9,7 @@ abstract class ForoRemoteDataSource {
   Future<PaginaModel<PublicacionModel>> obtenerFeed({
     String? categoria,
     int? grupoId,
+    int? usuarioId,
     String? cursor,
     int limite,
   });

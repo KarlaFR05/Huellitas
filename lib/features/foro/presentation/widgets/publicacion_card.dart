@@ -1,8 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/widgets/avatar_helper.dart';
+import '../../../insignias/data/repositories/insignia_repository_impl.dart';
+import '../../../insignias/domain/entities/insignia.dart';
 import '../../domain/entities/publicacion.dart';
 
 class PublicacionCard extends StatelessWidget {
@@ -14,6 +17,8 @@ class PublicacionCard extends StatelessWidget {
     this.avatarAsset,
     this.avatarUrl,
     this.onEditar,
+    this.onEliminar,
+    this.onPerfil,
   });
 
   final Publicacion publicacion;
@@ -22,6 +27,8 @@ class PublicacionCard extends StatelessWidget {
   final String? avatarAsset;
   final String? avatarUrl;
   final VoidCallback? onEditar;
+  final VoidCallback? onEliminar;
+  final VoidCallback? onPerfil;
 
   String _formatearFecha(DateTime fecha) {
     final diferencia = DateTime.now().difference(fecha);
@@ -90,42 +97,63 @@ class PublicacionCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 14, 8, 8),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 23,
-                  backgroundColor: colors.primaryContainer,
-                  backgroundImage: avatarUrl != null
-                      ? avatarProvider(avatarUrl)
-                      : avatarAsset == null
-                      ? null
-                      : AssetImage(avatarAsset!),
-                  child: avatarAsset == null && avatarUrl == null
-                      ? Icon(Icons.person_rounded, color: colors.primary)
-                      : null,
+                InkWell(
+                  onTap: onPerfil,
+                  customBorder: const CircleBorder(),
+                  child: CircleAvatar(
+                    radius: 23,
+                    backgroundColor: colors.primaryContainer,
+                    backgroundImage: avatarUrl != null
+                        ? avatarProvider(avatarUrl)
+                        : avatarAsset == null
+                        ? null
+                        : AssetImage(avatarAsset!),
+                    child: avatarAsset == null && avatarUrl == null
+                        ? Icon(Icons.person_rounded, color: colors.primary)
+                        : null,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        publicacion.nombreUsuario,
-                        style: const TextStyle(fontWeight: FontWeight.w800),
+                  child: InkWell(
+                    onTap: onPerfil,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  publicacion.nombreUsuario,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              if (publicacion.usuarioId != null) ...[
+                                const SizedBox(width: 6),
+                                _InsigniaAutor(
+                                  usuarioId: publicacion.usuarioId!,
+                                ),
+                              ],
+                            ],
+                          ),
+                          Text(
+                            _formatearFecha(publicacion.fecha),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        _formatearFecha(publicacion.fecha),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colors.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-                if (onEditar != null)
-                  IconButton(
-                    tooltip: 'Editar publicación',
-                    onPressed: onEditar,
-                    icon: const Icon(Icons.edit_outlined),
-                  ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -144,6 +172,47 @@ class PublicacionCard extends StatelessWidget {
                     ],
                   ],
                 ),
+                if (onEditar != null || onEliminar != null)
+                  PopupMenuButton<_AccionPublicacion>(
+                    tooltip: 'Opciones de publicación',
+                    icon: const Icon(Icons.more_vert_rounded),
+                    onSelected: (accion) {
+                      switch (accion) {
+                        case _AccionPublicacion.editar:
+                          onEditar?.call();
+                          return;
+                        case _AccionPublicacion.eliminar:
+                          onEliminar?.call();
+                          return;
+                      }
+                    },
+                    itemBuilder: (_) => [
+                      if (onEditar != null)
+                        const PopupMenuItem(
+                          value: _AccionPublicacion.editar,
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(Icons.edit_outlined),
+                            title: Text('Editar publicación'),
+                          ),
+                        ),
+                      if (onEliminar != null)
+                        PopupMenuItem(
+                          value: _AccionPublicacion.eliminar,
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(
+                              Icons.delete_outline_rounded,
+                              color: colors.error,
+                            ),
+                            title: Text(
+                              'Eliminar publicación',
+                              style: TextStyle(color: colors.error),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -164,24 +233,36 @@ class PublicacionCard extends StatelessWidget {
             ),
           ),
           if (publicacion.imagenUrl != null)
-            Image.network(
-              publicacion.imagenUrl!,
-              width: double.infinity,
-              height: 220,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
-                height: 150,
-                color: colors.surfaceContainerHighest,
-                child: const Center(child: Icon(Icons.broken_image_outlined)),
+            GestureDetector(
+              onTap: () => _mostrarImagenCompleta(
+                context,
+                Image.network(publicacion.imagenUrl!, fit: BoxFit.contain),
+              ),
+              child: Image.network(
+                publicacion.imagenUrl!,
+                width: double.infinity,
+                height: 220,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => Container(
+                  height: 150,
+                  color: colors.surfaceContainerHighest,
+                  child: const Center(child: Icon(Icons.broken_image_outlined)),
+                ),
               ),
             ),
           if (publicacion.imagenPath != null)
-            Image.file(
-              File(publicacion.imagenPath!),
-              width: double.infinity,
-              height: 220,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => const SizedBox.shrink(),
+            GestureDetector(
+              onTap: () => _mostrarImagenCompleta(
+                context,
+                Image.file(File(publicacion.imagenPath!), fit: BoxFit.contain),
+              ),
+              child: Image.file(
+                File(publicacion.imagenPath!),
+                width: double.infinity,
+                height: 220,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              ),
             ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
@@ -209,6 +290,110 @@ class PublicacionCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _mostrarImagenCompleta(BuildContext context, Widget imagen) {
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (dialogContext) => Dialog.fullscreen(
+        backgroundColor: Colors.black,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: InteractiveViewer(
+                minScale: .8,
+                maxScale: 4,
+                child: Center(child: imagen),
+              ),
+            ),
+            Positioned(
+              top: MediaQuery.paddingOf(dialogContext).top + 8,
+              right: 12,
+              child: IconButton.filled(
+                onPressed: () => Navigator.pop(dialogContext),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.black54,
+                  foregroundColor: Colors.white,
+                ),
+                icon: const Icon(Icons.close_rounded),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+enum _AccionPublicacion { editar, eliminar }
+
+class _InsigniaAutor extends StatefulWidget {
+  const _InsigniaAutor({required this.usuarioId});
+
+  final int usuarioId;
+
+  @override
+  State<_InsigniaAutor> createState() => _InsigniaAutorState();
+}
+
+class _InsigniaAutorState extends State<_InsigniaAutor> {
+  late final Future<Insignia?> _insignia;
+
+  @override
+  void initState() {
+    super.initState();
+    _insignia = _cargar();
+  }
+
+  Future<Insignia?> _cargar() async {
+    try {
+      final porCategoria = await context
+          .read<InsigniaRepositoryImpl>()
+          .obtenerTodasLasInsignias(widget.usuarioId);
+      final obtenidas = porCategoria.values
+          .expand((lista) => lista)
+          .where((item) => item.obtenida)
+          .toList()
+        ..sort((a, b) => b.nivel.compareTo(a.nivel));
+      return obtenidas.firstOrNull;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Insignia?>(
+      future: _insignia,
+      builder: (context, snapshot) {
+        final insignia = snapshot.data;
+        if (insignia == null) return const SizedBox.shrink();
+        final color = Theme.of(context).colorScheme.primary;
+        return Tooltip(
+          message: '${insignia.nombre} · Nivel ${insignia.nivel}',
+          child: SizedBox(
+            width: 23,
+            height: 23,
+            child: insignia.imagenUrl?.isNotEmpty == true
+                ? Image.network(
+                    insignia.imagenUrl!,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) => Icon(
+                      Icons.workspace_premium_rounded,
+                      color: color,
+                      size: 20,
+                    ),
+                  )
+                : Icon(
+                    Icons.workspace_premium_rounded,
+                    color: color,
+                    size: 20,
+                  ),
+          ),
+        );
+      },
     );
   }
 }

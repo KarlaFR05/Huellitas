@@ -18,6 +18,7 @@ class ForoRepositoryImpl implements ForoRepository {
     final pagina = await remote.obtenerFeed(
       categoria: filtro.categoria?.name,
       grupoId: filtro.grupoId,
+      usuarioId: filtro.usuarioId,
       cursor: filtro.cursor,
       limite: filtro.limite,
     );

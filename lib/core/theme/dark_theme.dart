@@ -38,38 +38,69 @@ final ThemeData darkTheme = ThemeData(
     style: FilledButton.styleFrom(
       backgroundColor: AppColors.darkPrimary,
       foregroundColor: AppColors.darkBackground,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      minimumSize: const Size(0, 54),
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
     ),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: AppColors.darkPrimary,
       foregroundColor: AppColors.darkBackground,
-      minimumSize: const Size(double.infinity, 50),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      minimumSize: const Size(double.infinity, 54),
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+      elevation: 0,
+      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+    ),
+  ),
+  outlinedButtonTheme: OutlinedButtonThemeData(
+    style: OutlinedButton.styleFrom(
+      foregroundColor: AppColors.darkPrimary,
+      minimumSize: const Size(0, 52),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      side: const BorderSide(color: AppColors.darkPrimary),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
     ),
   ),
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
     fillColor: AppColors.darkField,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
+    labelStyle: const TextStyle(color: AppColors.darkTextSecondary),
+    floatingLabelStyle: const TextStyle(
+      color: AppColors.darkPrimary,
+      fontWeight: FontWeight.w700,
+    ),
+    prefixIconColor: AppColors.darkPrimary,
+    suffixIconColor: AppColors.darkTextSecondary,
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(20),
       borderSide: const BorderSide(color: AppColors.darkBorder),
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(20),
       borderSide: const BorderSide(color: AppColors.darkBorder),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(20),
       borderSide: const BorderSide(color: AppColors.darkPrimary, width: 2),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(20),
+      borderSide: const BorderSide(color: Color(0xFFFF8A86)),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(20),
+      borderSide: const BorderSide(color: Color(0xFFFF8A86), width: 2),
     ),
   ),
   cardTheme: CardThemeData(
     color: AppColors.darkSurface,
     elevation: 0,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       side: const BorderSide(color: AppColors.darkBorder),
     ),
   ),

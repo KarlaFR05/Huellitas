@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -152,8 +153,19 @@ class _PublicacionesView extends StatelessWidget {
                     ),
                     onComentarios: () =>
                         _abrirComentarios(context, publicacion),
+                    onPerfil: publicacion.usuarioId == null
+                        ? null
+                        : () => context.push(
+                            '/mi-perfil',
+                            extra: publicacion.usuarioId == usuarioId
+                                ? null
+                                : publicacion.usuarioId,
+                          ),
                     onEditar: publicacion.usuarioId == usuarioId
                         ? () => _editarPublicacion(context, publicacion)
+                        : null,
+                    onEliminar: publicacion.usuarioId == usuarioId
+                        ? () => _confirmarEliminar(context, publicacion)
                         : null,
                   ),
                 if (state.hayMas && state.status == ForoStatus.exito)
@@ -227,6 +239,38 @@ class _PublicacionesView extends StatelessWidget {
         imagenLocalPath: (resultado['imagen'] as dynamic)?.path as String?,
       ),
     );
+  }
+
+  Future<void> _confirmarEliminar(
+    BuildContext context,
+    Publicacion publicacion,
+  ) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminar publicación'),
+        content: const Text(
+          '¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar == true && context.mounted) {
+      context.read<ForoBloc>().add(ForoPublicacionEliminada(publicacion.id));
+    }
   }
 }
 

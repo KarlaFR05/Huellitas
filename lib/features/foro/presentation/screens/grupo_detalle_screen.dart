@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/mensaje_error.dart';
 import '../../../auth/domain/entities/usuario.dart';
@@ -263,6 +264,47 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
     }
   }
 
+  Future<void> _confirmarEliminarPublicacionGrupo(
+    Publicacion publicacion,
+  ) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminar publicación'),
+        content: const Text(
+          '¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true || !mounted) return;
+    try {
+      await context.read<ForoRepository>().eliminarPublicacion(publicacion.id);
+      if (!mounted) return;
+      setState(() {
+        _publicaciones.removeWhere((item) => item.id == publicacion.id);
+      });
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(mensajeDeError(error))),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
@@ -493,6 +535,14 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
                   child: PublicacionCard(
                     publicacion: _publicaciones[index],
                     avatarUrl: _publicaciones[index].fotoUsuarioUrl,
+                    onPerfil: _publicaciones[index].usuarioId == null
+                        ? null
+                        : () => context.push(
+                            '/mi-perfil',
+                            extra: _publicaciones[index].usuarioId == usuarioId
+                                ? null
+                                : _publicaciones[index].usuarioId,
+                          ),
                     onMeGusta: () async {
                       try {
                         final actualizada = await context
@@ -513,6 +563,11 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
                     ),
                     onEditar: _publicaciones[index].usuarioId == usuarioId
                         ? () => _editarPublicacionGrupo(_publicaciones[index])
+                        : null,
+                    onEliminar: _publicaciones[index].usuarioId == usuarioId
+                        ? () => _confirmarEliminarPublicacionGrupo(
+                            _publicaciones[index],
+                          )
                         : null,
                   ),
                 );

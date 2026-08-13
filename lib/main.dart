@@ -34,6 +34,9 @@ import 'features/donaciones/domain/usecases/establecer_predeterminada_usecase.da
 import 'features/foro/data/datasources/foro_remote_datasource_impl.dart';
 import 'features/foro/data/repositories/foro_repository_impl.dart';
 import 'features/foro/domain/repositories/foro_repository.dart';
+import 'features/reporte/data/datasources/reporte_remote_datasource_impl.dart';
+import 'features/reporte/data/repositories/reporte_repository_impl.dart';
+import 'features/reporte/domain/repositories/reporte_repository.dart';
 
 void main() {
   final dio = Dio(
@@ -68,6 +71,9 @@ void main() {
   final establecerPredeterminadaUseCase = EstablecerPredeterminadaUseCase(tarjetaRepository);
   final foroDataSource = ForoRemoteDataSourceImpl(dio);
   final foroRepository = ForoRepositoryImpl(foroDataSource);
+  final reporteRepository = ReporteRepositoryImpl(
+    ReporteRemoteDataSourceImpl(dio),
+  );
 
   dio.interceptors.add(
     InterceptorsWrapper(
@@ -93,6 +99,7 @@ void main() {
           value: insigniaRepository,
         ),
         RepositoryProvider<ForoRepository>.value(value: foroRepository),
+        RepositoryProvider<ReporteRepository>.value(value: reporteRepository),
       ],
       child: MultiBlocProvider(
         providers: [
