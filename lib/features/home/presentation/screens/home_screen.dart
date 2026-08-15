@@ -62,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
   StreamSubscription<Position>? _positionStream;
   Timer? _pollingTimer;
   Timer? _refrescoVisual;
+  Timer? _ubicacionThrottle;
 
   @override
   void initState() {
@@ -79,6 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _positionStream?.cancel();
     _pollingTimer?.cancel();
     _refrescoVisual?.cancel();
+    _ubicacionThrottle?.cancel();
     super.dispose();
   }
 
@@ -98,10 +100,29 @@ class _HomeScreenState extends State<HomeScreen> {
         final nuevaUbicacion = LatLng(position.latitude, position.longitude);
         setState(() => _userLocation = nuevaUbicacion);
         _mapController.move(nuevaUbicacion, _mapController.camera.zoom);
+        _actualizarUbicacionEnServidor(position);
       });
     } catch (e) {
       print('No se pudo iniciar seguimiento de ubicación: $e');
     }
+  }
+
+  void _actualizarUbicacionEnServidor(Position position) {
+    if (_ubicacionThrottle != null) return;
+
+    _ubicacionThrottle = Timer(const Duration(minutes: 5), () {
+      _ubicacionThrottle = null;
+    });
+
+    final dio = context.read<Dio>();
+    dio
+        .patch(
+          '/usuarios/ubicacion',
+          data: {'latitud': position.latitude, 'longitud': position.longitude},
+        )
+        .catchError((e) {
+          print('No se pudo actualizar ubicación en el servidor: $e');
+        });
   }
 
   Future<void> _cargarReportes({bool esCargaInicial = false}) async {
