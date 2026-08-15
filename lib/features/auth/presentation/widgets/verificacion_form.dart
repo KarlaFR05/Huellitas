@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
+import 'package:flutter/services.dart';
 
 class VerificacionForm extends StatefulWidget {
   final String correo;
@@ -128,28 +129,31 @@ class _VerificacionFormState extends State<VerificacionForm> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: List.generate(6, (index) {
                   return SizedBox(
-                    width: 45,
-                    height: 55,
+                    width: 52,
+                    height: 76,
                     child: TextField(
                       controller: controllers[index],
                       focusNode: focusNodes[index],
                       textAlign: TextAlign.center,
+                      textAlignVertical: TextAlignVertical.center,
                       keyboardType: TextInputType.number,
                       maxLength: 1,
                       style: const TextStyle(
-                        fontSize: 22,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        height: 1,
                       ),
                       decoration: const InputDecoration(
                         counterText: '',
                         border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.zero,
                       ),
                       onChanged: (value) => _onDigitChanged(index, value),
                     ),
                   );
                 }),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -193,5 +197,16 @@ class _VerificacionFormState extends State<VerificacionForm> {
         },
       ),
     );
+  }
+
+  void _onKeyEvent(int index, KeyEvent event) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.backspace &&
+        controllers[index].text.isEmpty &&
+        index > 0) {
+      controllers[index - 1].clear();
+      focusNodes[index - 1].requestFocus();
+      setState(() {});
+    }
   }
 }
