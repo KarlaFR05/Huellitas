@@ -93,7 +93,9 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
               // Mensaje secundario
               Text(
                 widget.isSuccess
-                    ? 'Tu reporte ha sido enviado con éxito'
+                    ? 'Tu reporte ha sido enviado con éxito.'
+                          "\n"
+                          "No encontramos otro reporte creado similar al que acabas de realizar"
                     : 'No se pudo enviar el reporte. Inténtalo de nuevo.',
                 style: TextStyle(
                   fontSize: 16,

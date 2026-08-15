@@ -60,7 +60,9 @@ class NotificacionRemoteDataSourceImpl implements NotificacionRemoteDataSource {
       mensaje: json['mensaje'] ?? '',
       data: data.isEmpty ? null : data,
       leida: json['leida'] ?? false,
-      creadaEn: DateTime.tryParse(json['creada_en']?.toString() ?? '') ?? DateTime.now(),
+      creadaEn:
+          DateTime.tryParse(json['creada_en']?.toString() ?? '') ??
+          DateTime.now(),
     );
   }
 }
@@ -78,18 +80,18 @@ class NotificacionRemoteDataSourceMock implements NotificacionRemoteDataSource {
       leida: false,
       creadaEn: DateTime.now().subtract(const Duration(minutes: 15)),
     ),
-    
+
     // 2. Reporte cercano  /reporte-estado/2
     Notificacion(
       id: 2,
       tipo: 'reporte_cercano',
       titulo: 'Reporte cerca de ti',
-      mensaje: 'Hay un reporte de animal extraviado a 300 metros de tu ubicación.',
+      mensaje: 'Hay un reporte de animal a 300 metros de tu ubicación.',
       data: {'latitud': 19.04, 'longitud': -98.20, 'reporte_id': 2},
       leida: false,
       creadaEn: DateTime.now().subtract(const Duration(hours: 1)),
     ),
-    
+
     // 3. Reacción /publicacion/1
     Notificacion(
       id: 3,
@@ -100,7 +102,7 @@ class NotificacionRemoteDataSourceMock implements NotificacionRemoteDataSource {
       leida: false,
       creadaEn: DateTime.now().subtract(const Duration(hours: 2)),
     ),
-    
+
     // 4. Comentario  /publicacion/1
     Notificacion(
       id: 4,
@@ -111,7 +113,7 @@ class NotificacionRemoteDataSourceMock implements NotificacionRemoteDataSource {
       leida: false,
       creadaEn: DateTime.now().subtract(const Duration(hours: 3)),
     ),
-    
+
     // 5. Donación /historial
     Notificacion(
       id: 5,
@@ -122,18 +124,19 @@ class NotificacionRemoteDataSourceMock implements NotificacionRemoteDataSource {
       leida: true,
       creadaEn: DateTime.now().subtract(const Duration(days: 1)),
     ),
-    
+
     // 6. Reporte exitoso  /home?reporteId=3
     Notificacion(
       id: 6,
       tipo: 'reporte_exitoso',
       titulo: '¡Reporte creado!',
-      mensaje: 'Tu reporte fue publicado exitosamente. Otros usuarios podrán verlo.',
+      mensaje:
+          'Tu reporte fue publicado exitosamente. Otros usuarios podrán verlo.',
       data: {'reporte_id': 3},
       leida: true,
       creadaEn: DateTime.now().subtract(const Duration(days: 2)),
     ),
-    
+
     // 7. Nuevo miembro en grupo  /administrar-grupo/1
     Notificacion(
       id: 7,
@@ -144,7 +147,7 @@ class NotificacionRemoteDataSourceMock implements NotificacionRemoteDataSource {
       leida: false,
       creadaEn: DateTime.now().subtract(const Duration(days: 3)),
     ),
-    
+
     // 8. Aprobado en grupo  /administrar-grupo/1
     Notificacion(
       id: 8,
