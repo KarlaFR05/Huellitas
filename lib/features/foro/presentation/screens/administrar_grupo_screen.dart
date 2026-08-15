@@ -8,8 +8,13 @@ import '../../domain/repositories/foro_repository.dart';
 import '../bloc/grupos_bloc.dart';
 
 class AdministrarGrupoScreen extends StatelessWidget {
-  const AdministrarGrupoScreen({super.key, required this.grupo});
+  const AdministrarGrupoScreen({
+    super.key,
+    required this.grupo,
+    this.initialTab = 0,
+  });
   final Grupo grupo;
+  final int initialTab;
 
   @override
   Widget build(BuildContext context) {
@@ -22,20 +27,22 @@ class AdministrarGrupoScreen extends StatelessWidget {
         }
         return bloc;
       },
-      child: _AdministrarGrupoView(grupo: grupo),
+      child: _AdministrarGrupoView(grupo: grupo, initialTab: initialTab),
     );
   }
 }
 
 class _AdministrarGrupoView extends StatelessWidget {
-  const _AdministrarGrupoView({required this.grupo});
+  const _AdministrarGrupoView({required this.grupo, required this.initialTab});
   final Grupo grupo;
+  final int initialTab;
 
   @override
   Widget build(BuildContext context) {
     final requiereSolicitudes = grupo.privacidad == PrivacidadGrupo.privado;
     return DefaultTabController(
       length: requiereSolicitudes ? 2 : 1,
+      initialIndex: requiereSolicitudes ? initialTab.clamp(0, 1) : 0,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Administrar grupo'),

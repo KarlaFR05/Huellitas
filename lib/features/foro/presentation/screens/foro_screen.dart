@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../home/presentation/widgets/bottom_bar.dart';
+import '../../../notificaciones/presentation/widgets/campana_badge.dart';
 import 'grupos_screen.dart';
 import 'publicaciones_screen.dart';
 
@@ -48,33 +49,7 @@ class ForoScreen extends StatelessWidget {
             ],
           ),
           actions: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                IconButton(
-                  tooltip: 'Notificaciones',
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.notifications_none_rounded,
-                    color: colors.primary,
-                    size: 29,
-                  ),
-                ),
-                Positioned(
-                  right: 9,
-                  top: 8,
-                  child: Container(
-                    width: 9,
-                    height: 9,
-                    decoration: BoxDecoration(
-                      color: colors.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: colors.surface, width: 2),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            const Center(child: CampanaBadge()),
             const SizedBox(width: 12),
           ],
           bottom: PreferredSize(

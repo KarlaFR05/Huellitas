@@ -240,6 +240,11 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
   }
 
   @override
+  Future<void> eliminarGrupo(int id) async {
+    await dio.delete('/grupos/$id');
+  }
+
+  @override
   Future<GrupoModel> solicitarIngreso(int id) async {
     final res = await dio.post('/grupos/$id/solicitar');
     return GrupoModel.fromJson(res.data);

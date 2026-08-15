@@ -73,6 +73,7 @@ class _GruposView extends StatelessWidget {
   }
 
   void _membresia(BuildContext context, Grupo grupo) {
+    if (grupo.esMiembro) return;
     final bloc = context.read<GruposBloc>();
     if (grupo.solicitudPendiente) {
       bloc.add(SolicitudIngresoCancelada(grupo.id));
@@ -80,8 +81,32 @@ class _GruposView extends StatelessWidget {
         grupo.privacidad == PrivacidadGrupo.privado) {
       bloc.add(SolicitudIngresoEnviada(grupo.id));
     } else {
-      bloc.add(
-        MembresiaGrupoCambiada(grupoId: grupo.id, unirse: !grupo.esMiembro),
+      bloc.add(MembresiaGrupoCambiada(grupoId: grupo.id, unirse: true));
+    }
+  }
+
+  Future<void> _salirDelGrupo(BuildContext context, Grupo grupo) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Salir del grupo'),
+        content: Text('¿Quieres salir de ${grupo.nombre}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            icon: const Icon(Icons.logout_rounded),
+            label: const Text('Salir'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar == true && context.mounted) {
+      context.read<GruposBloc>().add(
+        MembresiaGrupoCambiada(grupoId: grupo.id, unirse: false),
       );
     }
   }
@@ -105,9 +130,17 @@ class _GruposView extends StatelessWidget {
           if (state.status == GruposStatus.cargando && state.grupos.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
-          final descubrir = state.grupos
-              .where((grupo) => !grupo.esMiembro)
-              .toList();
+          final misGruposPorId = <int, Grupo>{
+            for (final grupo in state.misGrupos) grupo.id: grupo,
+          };
+          final idsMisGrupos = misGruposPorId.keys.toSet();
+          final descubrirPorId = <int, Grupo>{
+            for (final grupo in state.grupos)
+              if (!idsMisGrupos.contains(grupo.id) && !grupo.esMiembro)
+                grupo.id: grupo,
+          };
+          final misGrupos = misGruposPorId.values.toList();
+          final descubrir = descubrirPorId.values.toList();
           return RefreshIndicator(
             onRefresh: () async {
               context.read<GruposBloc>()
@@ -123,7 +156,7 @@ class _GruposView extends StatelessWidget {
                 BottomBarWidget.contentClearance(context) + 88,
               ),
               children: [
-                if (state.misGrupos.isNotEmpty) ...[
+                if (misGrupos.isNotEmpty) ...[
                   Text(
                     'Tus grupos',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -135,10 +168,10 @@ class _GruposView extends StatelessWidget {
                     height: 180,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
-                      itemCount: state.misGrupos.length,
+                      itemCount: misGrupos.length,
                       separatorBuilder: (_, _) => const SizedBox(width: 12),
                       itemBuilder: (context, index) {
-                        final grupo = state.misGrupos[index];
+                        final grupo = misGrupos[index];
                         return _GrupoCompacto(
                           grupo: grupo,
                           onTap: () => _abrirGrupo(context, grupo),
@@ -261,7 +294,7 @@ class _GrupoCompacto extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 2),
                     Text('${grupo.cantidadMiembros} miembros'),
                   ],
                 ),

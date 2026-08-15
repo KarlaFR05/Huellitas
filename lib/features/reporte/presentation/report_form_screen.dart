@@ -27,6 +27,33 @@ class ReportFormScreen extends StatefulWidget {
   State<ReportFormScreen> createState() => _ReportFormScreenState();
 }
 
+class _EtiquetaUrgenciaInfo extends StatelessWidget {
+  const _EtiquetaUrgenciaInfo({required this.texto, required this.color});
+
+  final String texto;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Text(
+        texto,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+          height: 1,
+        ),
+      ),
+    );
+  }
+}
+
 class _ReportFormScreenState extends State<ReportFormScreen> {
   Color get _fieldBackground =>
       Theme.of(context).inputDecorationTheme.fillColor ??
@@ -936,61 +963,61 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             text: '• ',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          TextSpan(
-                            text: 'Baja: ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: _EtiquetaUrgenciaInfo(
+                              texto: 'Baja',
                               color: Colors.yellow.shade700,
                             ),
                           ),
                           TextSpan(
                             text:
-                                'Animal consciente, camina bien, sin heridas visibles. Solo necesita alimento o refugio.\n\n',
+                                '  Animal consciente, camina bien, sin heridas visibles. Solo necesita alimento o refugio.\n\n',
                           ),
                           TextSpan(
                             text: '• ',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          TextSpan(
-                            text: 'Media: ',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                          const WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: _EtiquetaUrgenciaInfo(
+                              texto: 'Media',
                               color: Colors.orange,
                             ),
                           ),
                           TextSpan(
                             text:
-                                'Heridas leves, cojea, deshidratación o desnutrición evidente. Requiere atención en las próximas horas.\n\n',
+                                '  Heridas leves, cojea, deshidratación o desnutrición evidente. Requiere atención en las próximas horas.\n\n',
                           ),
                           TextSpan(
                             text: '• ',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          TextSpan(
-                            text: 'Alta: ',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                          const WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: _EtiquetaUrgenciaInfo(
+                              texto: 'Alta',
                               color: Colors.red,
                             ),
                           ),
                           TextSpan(
                             text:
-                                'No puede moverse, sangrado visible, heridas graves o signos de maltrato. Riesgo de empeorar pronto.\n\n',
+                                '  No puede moverse, sangrado visible, heridas graves o signos de maltrato. Riesgo de empeorar pronto.\n\n',
                           ),
                           TextSpan(
                             text: '• ',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          TextSpan(
-                            text: 'Crítica: ',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                          const WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: _EtiquetaUrgenciaInfo(
+                              texto: 'Crítica',
                               color: Color.fromARGB(255, 128, 0, 0),
                             ),
                           ),
                           TextSpan(
                             text:
-                                'Inconsciente, hemorragia severa, respiración muy difícil o convulsiones. Necesita inmediata YA!',
+                                '  Inconsciente, hemorragia severa, respiración muy difícil o convulsiones. Necesita inmediata YA!',
                           ),
                         ],
                       ),

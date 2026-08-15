@@ -199,6 +199,7 @@ class GruposState extends Equatable {
 
 class GruposBloc extends Bloc<GruposEvent, GruposState> {
   final ForoRepository repository;
+  final Set<int> _membresiasEnProceso = <int>{};
 
   GruposBloc({required this.repository}) : super(const GruposState()) {
     on<GruposSolicitados>(_cargarGrupos);
@@ -227,8 +228,13 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
     );
     try {
       final pagina = await repository.obtenerGrupos(busqueda: event.busqueda);
+      final idsMisGrupos = state.misGrupos.map((grupo) => grupo.id).toSet();
+      final grupos = [
+        for (final grupo in pagina.elementos)
+          grupo.copyWith(esMiembro: idsMisGrupos.contains(grupo.id)),
+      ];
       emit(
-        state.copyWith(status: GruposStatus.exito, grupos: pagina.elementos),
+        state.copyWith(status: GruposStatus.exito, grupos: grupos),
       );
     } catch (error) {
       emit(
@@ -246,7 +252,20 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
   ) async {
     try {
       final grupos = await repository.obtenerMisGrupos();
-      emit(state.copyWith(misGrupos: grupos, limpiarError: true));
+      final misGruposPorId = <int, Grupo>{
+        for (final grupo in grupos) grupo.id: grupo.copyWith(esMiembro: true),
+      };
+      final idsMisGrupos = misGruposPorId.keys.toSet();
+      emit(
+        state.copyWith(
+          misGrupos: misGruposPorId.values.toList(),
+          grupos: [
+            for (final grupo in state.grupos)
+              grupo.copyWith(esMiembro: idsMisGrupos.contains(grupo.id)),
+          ],
+          limpiarError: true,
+        ),
+      );
     } catch (error) {
       emit(state.copyWith(mensajeError: mensajeDeError(error)));
     }
@@ -256,13 +275,18 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
     MembresiaGrupoCambiada event,
     Emitter<GruposState> emit,
   ) async {
+    if (!_membresiasEnProceso.add(event.grupoId)) return;
     emit(
       state.copyWith(actualizandoGrupoId: event.grupoId, limpiarError: true),
     );
     try {
-      final actualizado = event.unirse
+      final respuesta = event.unirse
           ? await repository.unirseAGrupo(event.grupoId)
           : await repository.salirDeGrupo(event.grupoId);
+      final actualizado = respuesta.copyWith(
+        esMiembro: event.unirse,
+        solicitudPendiente: false,
+      );
       final grupos = [
         for (final grupo in state.grupos)
           if (grupo.id == actualizado.id) actualizado else grupo,
@@ -286,6 +310,8 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
           mensajeError: mensajeDeError(error),
         ),
       );
+    } finally {
+      _membresiasEnProceso.remove(event.grupoId);
     }
   }
 
@@ -314,6 +340,7 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
     SolicitudIngresoEnviada event,
     Emitter<GruposState> emit,
   ) async {
+    if (!_membresiasEnProceso.add(event.grupoId)) return;
     emit(
       state.copyWith(actualizandoGrupoId: event.grupoId, limpiarError: true),
     );
@@ -333,6 +360,8 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
           mensajeError: mensajeDeError(error),
         ),
       );
+    } finally {
+      _membresiasEnProceso.remove(event.grupoId);
     }
   }
 
@@ -340,6 +369,7 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
     SolicitudIngresoCancelada event,
     Emitter<GruposState> emit,
   ) async {
+    if (!_membresiasEnProceso.add(event.grupoId)) return;
     emit(
       state.copyWith(actualizandoGrupoId: event.grupoId, limpiarError: true),
     );
@@ -364,6 +394,8 @@ class GruposBloc extends Bloc<GruposEvent, GruposState> {
           mensajeError: mensajeDeError(error),
         ),
       );
+    } finally {
+      _membresiasEnProceso.remove(event.grupoId);
     }
   }
 

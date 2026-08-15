@@ -15,75 +15,82 @@ class OrganizacionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.onSurface.withValues(alpha: 0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+    return Material(
+      color: colorScheme.surfaceContainerLowest,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: .45),
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: colorScheme.secondary.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: organizacion.logoUrl.isNotEmpty
-                  ? ClipOval(
-                      child: Image.network(
-                        organizacion.logoUrl,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, progress) {
-                          if (progress == null) return child;
-                          return Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          Icons.pets,
-                          size: 40,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    )
-                  : Icon(Icons.pets, size: 40, color: colorScheme.primary),
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                organizacion.nombre,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+            child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                constraints: const BoxConstraints(
+                  maxWidth: 64,
+                  maxHeight: 64,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: organizacion.logoUrl.isNotEmpty
+                    ? ClipOval(
+                        child: Image.network(
+                          organizacion.logoUrl,
+                          width: 64,
+                          height: 64,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            Icons.pets,
+                            size: 32,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      )
+                    : Icon(Icons.pets, size: 32, color: colorScheme.primary),
               ),
-            ),
-          ],
+              const SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  organizacion.nombre,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          ),
         ),
       ),
     );

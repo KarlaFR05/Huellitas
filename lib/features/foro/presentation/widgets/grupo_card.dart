@@ -119,9 +119,9 @@ class GrupoCard extends StatelessWidget {
                     )
                   else if (grupo.esMiembro)
                     OutlinedButton.icon(
-                      onPressed: onCambiarMembresia,
+                      onPressed: null,
                       icon: const Icon(Icons.check_rounded, size: 18),
-                      label: const Text('Unido'),
+                      label: const Text('Ya eres miembro'),
                     )
                   else
                     OutlinedButton.icon(

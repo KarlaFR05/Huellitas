@@ -145,9 +145,8 @@ class PublicacionCard extends StatelessWidget {
                           ),
                           Text(
                             _formatearFecha(publicacion.fecha),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colors.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -173,45 +172,10 @@ class PublicacionCard extends StatelessWidget {
                   ],
                 ),
                 if (onEditar != null || onEliminar != null)
-                  PopupMenuButton<_AccionPublicacion>(
+                  IconButton(
                     tooltip: 'Opciones de publicación',
                     icon: const Icon(Icons.more_vert_rounded),
-                    onSelected: (accion) {
-                      switch (accion) {
-                        case _AccionPublicacion.editar:
-                          onEditar?.call();
-                          return;
-                        case _AccionPublicacion.eliminar:
-                          onEliminar?.call();
-                          return;
-                      }
-                    },
-                    itemBuilder: (_) => [
-                      if (onEditar != null)
-                        const PopupMenuItem(
-                          value: _AccionPublicacion.editar,
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: Icon(Icons.edit_outlined),
-                            title: Text('Editar publicación'),
-                          ),
-                        ),
-                      if (onEliminar != null)
-                        PopupMenuItem(
-                          value: _AccionPublicacion.eliminar,
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: Icon(
-                              Icons.delete_outline_rounded,
-                              color: colors.error,
-                            ),
-                            title: Text(
-                              'Eliminar publicación',
-                              style: TextStyle(color: colors.error),
-                            ),
-                          ),
-                        ),
-                    ],
+                    onPressed: () => _mostrarOpciones(context),
                   ),
               ],
             ),
@@ -293,6 +257,56 @@ class PublicacionCard extends StatelessWidget {
     );
   }
 
+  Future<void> _mostrarOpciones(BuildContext context) async {
+    final accion = await showModalBottomSheet<_AccionPublicacion>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final colors = Theme.of(sheetContext).colorScheme;
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Opciones de la publicación',
+                  style: Theme.of(
+                    sheetContext,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 12),
+                if (onEditar != null)
+                  _OpcionPublicacion(
+                    icono: Icons.edit_outlined,
+                    titulo: 'Editar publicación',
+                    subtitulo: 'Modifica el contenido o la imagen',
+                    color: colors.primary,
+                    onTap: () =>
+                        Navigator.pop(sheetContext, _AccionPublicacion.editar),
+                  ),
+                if (onEliminar != null)
+                  _OpcionPublicacion(
+                    icono: Icons.delete_outline_rounded,
+                    titulo: 'Eliminar publicación',
+                    subtitulo: 'Esta acción no se puede deshacer',
+                    color: colors.error,
+                    onTap: () => Navigator.pop(
+                      sheetContext,
+                      _AccionPublicacion.eliminar,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (accion == _AccionPublicacion.editar) onEditar?.call();
+    if (accion == _AccionPublicacion.eliminar) onEliminar?.call();
+  }
+
   void _mostrarImagenCompleta(BuildContext context, Widget imagen) {
     showDialog<void>(
       context: context,
@@ -329,6 +343,54 @@ class PublicacionCard extends StatelessWidget {
 
 enum _AccionPublicacion { editar, eliminar }
 
+class _OpcionPublicacion extends StatelessWidget {
+  const _OpcionPublicacion({
+    required this.icono,
+    required this.titulo,
+    required this.subtitulo,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icono;
+  final String titulo;
+  final String subtitulo;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: color.withValues(alpha: .08),
+        borderRadius: BorderRadius.circular(16),
+        child: ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          leading: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: .13),
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: Icon(icono, color: color),
+          ),
+          title: Text(
+            titulo,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          subtitle: Text(subtitulo),
+          trailing: Icon(Icons.chevron_right_rounded, color: color),
+          onTap: onTap,
+        ),
+      ),
+    );
+  }
+}
+
 class _InsigniaAutor extends StatefulWidget {
   const _InsigniaAutor({required this.usuarioId});
 
@@ -352,11 +414,12 @@ class _InsigniaAutorState extends State<_InsigniaAutor> {
       final porCategoria = await context
           .read<InsigniaRepositoryImpl>()
           .obtenerTodasLasInsignias(widget.usuarioId);
-      final obtenidas = porCategoria.values
-          .expand((lista) => lista)
-          .where((item) => item.obtenida)
-          .toList()
-        ..sort((a, b) => b.nivel.compareTo(a.nivel));
+      final obtenidas =
+          porCategoria.values
+              .expand((lista) => lista)
+              .where((item) => item.obtenida)
+              .toList()
+            ..sort((a, b) => b.nivel.compareTo(a.nivel));
       return obtenidas.isEmpty ? null : obtenidas.first;
     } catch (_) {
       return null;
@@ -386,11 +449,7 @@ class _InsigniaAutorState extends State<_InsigniaAutor> {
                       size: 20,
                     ),
                   )
-                : Icon(
-                    Icons.workspace_premium_rounded,
-                    color: color,
-                    size: 20,
-                  ),
+                : Icon(Icons.workspace_premium_rounded, color: color, size: 20),
           ),
         );
       },

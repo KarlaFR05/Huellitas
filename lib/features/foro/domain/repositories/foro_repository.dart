@@ -38,6 +38,7 @@ abstract class ForoRepository {
   Future<Grupo> crearGrupo(CrearGrupoSolicitud solicitud);
   Future<Grupo> unirseAGrupo(int grupoId);
   Future<Grupo> salirDeGrupo(int grupoId);
+  Future<void> eliminarGrupo(int grupoId);
   Future<Grupo> solicitarIngresoGrupo(int grupoId);
   Future<void> cancelarSolicitudIngreso(int grupoId);
   Future<List<MembresiaGrupo>> obtenerSolicitudesIngreso(int grupoId);

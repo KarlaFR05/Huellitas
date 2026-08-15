@@ -71,6 +71,7 @@ class _ComentariosViewState extends State<_ComentariosView> {
         ? (authState.data as Usuario).usuarioIdPk
         : null;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(title: const Text('Comentarios')),
       body: BlocBuilder<ComentariosBloc, ComentariosState>(
         builder: (context, state) {
@@ -147,10 +148,10 @@ class _ComentariosViewState extends State<_ComentariosView> {
                   )
                 else
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 30),
+                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
                     sliver: SliverList.separated(
                       itemCount: state.comentarios.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 8),
                       itemBuilder: (context, index) {
                         final comentario = state.comentarios[index];
                         return _ComentarioItem(
@@ -158,6 +159,14 @@ class _ComentariosViewState extends State<_ComentariosView> {
                           onEditar: comentario.usuarioId == usuarioId
                               ? () => _editarComentario(comentario)
                               : null,
+                          onPerfil: comentario.usuarioId == null
+                              ? null
+                              : () => context.push(
+                                  '/mi-perfil',
+                                  extra: comentario.usuarioId == usuarioId
+                                      ? null
+                                      : comentario.usuarioId,
+                                ),
                         );
                       },
                     ),
@@ -167,39 +176,11 @@ class _ComentariosViewState extends State<_ComentariosView> {
           );
         },
       ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  minLines: 1,
-                  maxLines: 4,
-                  decoration: const InputDecoration(
-                    hintText: 'Escribe un comentario...',
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              BlocBuilder<ComentariosBloc, ComentariosState>(
-                buildWhen: (anterior, actual) =>
-                    anterior.enviando != actual.enviando,
-                builder: (context, state) => IconButton.filled(
-                  onPressed: state.enviando ? null : _enviar,
-                  icon: state.enviando
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.send_rounded),
-                ),
-              ),
-            ],
-          ),
-        ),
+      bottomNavigationBar: AnimatedPadding(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: _BarraComentario(controller: _controller, onEnviar: _enviar),
       ),
     );
   }
@@ -242,9 +223,14 @@ class _ComentariosViewState extends State<_ComentariosView> {
 }
 
 class _ComentarioItem extends StatelessWidget {
-  const _ComentarioItem({required this.comentario, this.onEditar});
+  const _ComentarioItem({
+    required this.comentario,
+    this.onEditar,
+    this.onPerfil,
+  });
   final Comentario comentario;
   final VoidCallback? onEditar;
+  final VoidCallback? onPerfil;
 
   String _fecha() {
     final diferencia = DateTime.now().difference(comentario.fechaCreacion);
@@ -260,48 +246,144 @@ class _ComentarioItem extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CircleAvatar(
-          backgroundImage: comentario.fotoUsuarioUrl == null
-              ? null
-              : avatarProvider(comentario.fotoUsuarioUrl),
-          child: comentario.fotoUsuarioUrl == null
-              ? const Icon(Icons.person_outline_rounded)
-              : null,
+        Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onPerfil,
+            child: CircleAvatar(
+              radius: 20,
+              backgroundImage: comentario.fotoUsuarioUrl == null
+                  ? null
+                  : avatarProvider(comentario.fotoUsuarioUrl),
+              child: comentario.fotoUsuarioUrl == null
+                  ? const Icon(Icons.person_outline_rounded, size: 21)
+                  : null,
+            ),
+          ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 9),
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(13, 10, 13, 11),
             decoration: BoxDecoration(
               color: colors.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
               children: [
-                Text(
-                  comentario.nombreUsuario,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+                Padding(
+                  padding: EdgeInsets.only(right: onEditar == null ? 0 : 30),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        comentario.nombreUsuario,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        comentario.contenido,
+                        style: const TextStyle(fontSize: 14, height: 1.25),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        _fecha(),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 if (onEditar != null)
-                  Align(
-                    alignment: Alignment.centerRight,
+                  Positioned(
+                    top: -8,
+                    right: -8,
                     child: IconButton(
                       tooltip: 'Editar comentario',
                       visualDensity: VisualDensity.compact,
                       onPressed: onEditar,
-                      icon: const Icon(Icons.edit_outlined, size: 19),
+                      icon: const Icon(Icons.more_horiz_rounded, size: 21),
                     ),
                   ),
-                const SizedBox(height: 4),
-                Text(comentario.contenido),
-                const SizedBox(height: 6),
-                Text(_fecha(), style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _BarraComentario extends StatelessWidget {
+  const _BarraComentario({required this.controller, required this.onEnviar});
+
+  final TextEditingController controller;
+  final VoidCallback onEnviar;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: colors.surface,
+      elevation: 10,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  minLines: 1,
+                  maxLines: 4,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    hintText: 'Escribe un comentario...',
+                    filled: true,
+                    fillColor: colors.surfaceContainerHighest,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 9),
+              BlocBuilder<ComentariosBloc, ComentariosState>(
+                buildWhen: (anterior, actual) =>
+                    anterior.enviando != actual.enviando,
+                builder: (context, state) => IconButton.filled(
+                  onPressed: state.enviando ? null : onEnviar,
+                  icon: state.enviando
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.send_rounded),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

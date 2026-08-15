@@ -43,7 +43,8 @@ class NotificacionBloc extends Bloc<NotificacionEvent, NotificacionState> {
       }).toList();
       emit(NotificacionLoaded(actualizadas));
     } catch (e) {
-      emit(NotificacionError(mensajeDeError(e)));
+      // Conserva las notificaciones cargadas si solo falla esta acción.
+      emit(estado);
     }
   }
 
@@ -62,7 +63,8 @@ class NotificacionBloc extends Bloc<NotificacionEvent, NotificacionState> {
       }).toList();
       emit(NotificacionLoaded(actualizadas));
     } catch (e) {
-      emit(NotificacionError(mensajeDeError(e)));
+      // Conserva las notificaciones cargadas si solo falla esta acción.
+      emit(estado);
     }
   }
 
