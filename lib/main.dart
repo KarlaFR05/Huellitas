@@ -3,6 +3,7 @@ import 'app/app.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/bloc/auth_state.dart';
 import 'features/auth/data/datasources/auth_remote_datasource_impl.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/usecases/registro_usecase.dart';
@@ -184,11 +185,23 @@ void main() {
           ),
           BlocProvider(
             create: (context) =>
-                NotificacionBloc(repository: notificacionRepository)
-                  ..add(CargarNotificaciones()),
+                NotificacionBloc(repository: notificacionRepository),
           ),
         ],
-        child: const HuellitasApp(),
+        child: BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) async {
+            final notificaciones = context.read<NotificacionBloc>();
+            if (state is AuthSuccess) {
+              final token = await tokenStorage.obtenerToken();
+              if (token != null && context.mounted) {
+                notificaciones.add(CargarNotificaciones());
+              }
+            } else if (state is AuthInitial) {
+              notificaciones.add(LimpiarNotificaciones());
+            }
+          },
+          child: const HuellitasApp(),
+        ),
       ),
     ),
   );

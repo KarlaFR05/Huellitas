@@ -10,6 +10,7 @@ class NotificacionBloc extends Bloc<NotificacionEvent, NotificacionState> {
 
   NotificacionBloc({required this.repository}) : super(NotificacionInitial()) {
     on<CargarNotificaciones>(_onCargar);
+    on<LimpiarNotificaciones>((event, emit) => emit(NotificacionInitial()));
     on<MarcarComoLeida>(_onMarcarLeida);
     on<MarcarTodasLeidas>(_onMarcarTodas);
     on<GuardarFcmToken>(_onGuardarToken);
