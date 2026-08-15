@@ -74,7 +74,7 @@ class _LoginFormState extends State<LoginForm> {
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Inicio Sesión',
+                    'Inicio de Sesión',
                     style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -139,6 +139,7 @@ class _LoginFormState extends State<LoginForm> {
                     onPressed: isLoading
                         ? null
                         : () {
+                            FocusManager.instance.primaryFocus?.unfocus();
                             if (!_formKey.currentState!.validate()) {
                               return;
                             }

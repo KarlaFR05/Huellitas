@@ -100,7 +100,7 @@ class ReporteDetalleScreen extends StatelessWidget {
                 'Evidencia de la actualización',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
               ),

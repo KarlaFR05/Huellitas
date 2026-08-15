@@ -37,4 +37,12 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<UsuarioPublico> obtenerPerfilPublico(int usuarioId) async {
     return await remoteDataSource.obtenerPerfilPublico(usuarioId);
   }
+
+  @override
+  Future<void> enviarCodigo(String correo) =>
+      remoteDataSource.enviarCodigo(correo);
+
+  @override
+  Future<void> confirmarCodigo(String correo, String codigo) =>
+      remoteDataSource.confirmarCodigo(correo, codigo);
 }
