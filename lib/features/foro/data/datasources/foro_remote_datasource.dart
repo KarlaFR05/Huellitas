@@ -9,6 +9,7 @@ abstract class ForoRemoteDataSource {
   Future<PaginaModel<PublicacionModel>> obtenerFeed({
     String? categoria,
     int? grupoId,
+    int? usuarioId,
     String? cursor,
     int limite,
   });
@@ -69,6 +70,7 @@ abstract class ForoRemoteDataSource {
   });
   Future<GrupoModel> unirseAGrupo(int id);
   Future<GrupoModel> salirDeGrupo(int id);
+  Future<void> eliminarGrupo(int id);
   Future<GrupoModel> solicitarIngreso(int id);
   Future<void> cancelarSolicitud(int id);
   Future<List<MembresiaGrupoModel>> obtenerSolicitudes(int grupoId);

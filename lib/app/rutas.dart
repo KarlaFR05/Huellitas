@@ -42,7 +42,6 @@ import 'package:huellitas/features/reporte/domain/usecases/get_urgency_levels.da
 
 import 'package:huellitas/features/reporte/presentation/bloc/reporte_bloc.dart';
 
-//registro e incio de sesion
 import 'package:huellitas/features/auth/data/datasources/auth_remote_datasource_impl.dart';
 import 'package:huellitas/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:huellitas/features/auth/domain/usecases/registro_usecase.dart';
@@ -51,6 +50,8 @@ import 'package:huellitas/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:huellitas/features/auth/presentation/screens/verificacion_screen.dart';
 
 // NUEVOS IMPORTS para seguimiento de reportes
+
+import 'package:huellitas/features/auth/presentation/screens/verificacion_screen.dart';
 import 'package:huellitas/features/reporte/data/datasources/reporte_estado_datasource_impl.dart';
 import 'package:huellitas/features/reporte/data/repositories/reporte_estado_repository_impl.dart';
 import 'package:huellitas/features/reporte/domain/usecases/get_reporte_estado_usecase.dart';

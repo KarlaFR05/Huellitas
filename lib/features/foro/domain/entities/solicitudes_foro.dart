@@ -4,6 +4,7 @@ import 'publicacion.dart';
 class FiltroPublicaciones {
   final CategoriaPublicacion? categoria;
   final int? grupoId;
+  final int? usuarioId;
   final bool soloGruposDelUsuario;
   final String? cursor;
   final int limite;
@@ -11,6 +12,7 @@ class FiltroPublicaciones {
   const FiltroPublicaciones({
     this.categoria,
     this.grupoId,
+    this.usuarioId,
     this.soloGruposDelUsuario = false,
     this.cursor,
     this.limite = 20,

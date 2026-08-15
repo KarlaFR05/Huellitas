@@ -35,12 +35,30 @@ class NotificacionRemoteDataSourceImpl implements NotificacionRemoteDataSource {
   }
 
   Notificacion _fromMap(Map<String, dynamic> json) {
+    final dataCruda = json['data'];
+    final data = dataCruda is Map
+        ? Map<String, dynamic>.from(dataCruda)
+        : <String, dynamic>{};
+
+    // Algunas notificaciones antiguas guardaron el identificador en la raíz.
+    // Lo normalizamos para que sigan abriendo su contenido.
+    for (final key in const [
+      'reporte_id',
+      'reporteId',
+      'publicacion_id',
+      'publicacionId',
+      'grupo_id',
+      'grupoId',
+    ]) {
+      if (data[key] == null && json[key] != null) data[key] = json[key];
+    }
+
     return Notificacion(
       id: json['id'],
-      tipo: json['tipo'] ?? '',
+      tipo: json['tipo']?.toString().trim().toLowerCase() ?? '',
       titulo: json['titulo'] ?? '',
       mensaje: json['mensaje'] ?? '',
-      data: json['data'] is Map ? Map<String, dynamic>.from(json['data']) : null,
+      data: data.isEmpty ? null : data,
       leida: json['leida'] ?? false,
       creadaEn: DateTime.tryParse(json['creada_en']?.toString() ?? '') ?? DateTime.now(),
     );

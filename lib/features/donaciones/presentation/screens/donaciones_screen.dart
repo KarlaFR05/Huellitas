@@ -47,23 +47,43 @@ class _DonacionesScreenState extends State<DonacionesScreen> {
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
+          scrollable: true,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          titlePadding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
+          contentPadding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
+          actionsPadding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: Row(
-            children: [
-              Icon(Icons.info_outline, color: colorScheme.primary, size: 28),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
+          title: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFD59A),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 10,
+              runSpacing: 4,
+              children: [
+                Icon(
+                  Icons.warning_rounded,
+                  color: Color(0xFF4A3600),
+                  size: 28,
+                ),
+                Text(
                   'Aviso importante',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
+                    color: Color(0xFF4A3600),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -82,7 +102,7 @@ class _DonacionesScreenState extends State<DonacionesScreen> {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.warning_amber_rounded,
+                      Icons.priority_high_rounded,
                       color: colorScheme.primary,
                       size: 24,
                     ),
@@ -147,14 +167,17 @@ class _DonacionesScreenState extends State<DonacionesScreen> {
             ],
           ),
           actions: [
-            ElevatedButton(
-              onPressed: () async {
-                if (noVolverAMostrar) {
-                  await prefs.setBool('aviso_donaciones_simulado', true);
-                }
-                if (mounted) Navigator.pop(dialogContext);
-              },
-              child: const Text('Entendido'),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (noVolverAMostrar) {
+                    await prefs.setBool('aviso_donaciones_simulado', true);
+                  }
+                  if (mounted) Navigator.pop(dialogContext);
+                },
+                child: const Text('Entendido'),
+              ),
             ),
           ],
         ),
@@ -187,82 +210,135 @@ class _DonacionesScreenState extends State<DonacionesScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      extendBody: true,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        toolbarHeight: 86,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: colorScheme.primary),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          'Donar',
-          style: TextStyle(
-            color: colorScheme.onSurface,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: BlocBuilder<DonacionBloc, DonacionState>(
-        builder: (context, state) {
-          if (state is DonacionLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state is DonacionError) {
-            return Center(
-              child: Text(
-                state.message,
-                style: TextStyle(color: colorScheme.onSurface),
+        scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 20,
+        title: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: .12),
+                borderRadius: BorderRadius.circular(16),
               ),
-            );
-          }
-
-          if (state is DonacionLoaded) {
-            return Column(
-              children: [
-                CategoriaSelector(
-                  categoriaSeleccionada: _categoriaSeleccionada,
-                  onCategoriaSeleccionada: (categoria) {
-                    setState(() => _categoriaSeleccionada = categoria);
-                    context.read<DonacionBloc>().add(
-                      CargarOrganizaciones(categoria),
-                    );
-                  },
+              child: Icon(
+                Icons.volunteer_activism_rounded,
+                color: colorScheme.primary,
+                size: 29,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Donaciones',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w800,
                 ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: GridView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 1.2,
-                        ),
-                    itemCount: state.organizaciones.length,
-                    itemBuilder: (context, index) {
-                      final organizacion = state.organizaciones[index];
-                      return OrganizacionCard(
-                        organizacion: organizacion,
-                        onTap: () {
-                          context.read<DonacionBloc>().add(
-                            SeleccionarOrganizacion(organizacion),
-                          );
-                          context.push('/seleccion-cantidad');
-                        },
-                      );
-                    },
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withValues(alpha: .08),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.pets_rounded, color: colorScheme.primary),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Apoya a organizaciones que cuidan y rescatan animales.',
+                    style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
               ],
-            );
-          }
-
-          return const SizedBox.shrink();
-        },
+            ),
+          ),
+          CategoriaSelector(
+            categoriaSeleccionada: _categoriaSeleccionada,
+            onCategoriaSeleccionada: (categoria) {
+              if (categoria == _categoriaSeleccionada) return;
+              setState(() => _categoriaSeleccionada = categoria);
+              context.read<DonacionBloc>().add(CargarOrganizaciones(categoria));
+            },
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: BlocBuilder<DonacionBloc, DonacionState>(
+              builder: (context, state) {
+                if (state is DonacionLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (state is DonacionError) {
+                  return Center(
+                    child: Text(
+                      state.message,
+                      style: TextStyle(color: colorScheme.onSurface),
+                    ),
+                  );
+                }
+                if (state is DonacionLoaded) {
+                  if (state.organizaciones.isEmpty) {
+                    return const Center(
+                      child: Text('No hay organizaciones en esta categoría.'),
+                    );
+                  }
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      final textScale = MediaQuery.textScalerOf(
+                        context,
+                      ).scale(1);
+                      final columnas = constraints.maxWidth < 330 ? 1 : 2;
+                      final altura =
+                          190.0 +
+                          ((textScale - 1).clamp(0.0, 1.0).toDouble() * 30);
+                      return GridView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: columnas,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          mainAxisExtent: altura,
+                        ),
+                        itemCount: state.organizaciones.length,
+                        itemBuilder: (context, index) {
+                          final organizacion = state.organizaciones[index];
+                          return OrganizacionCard(
+                            organizacion: organizacion,
+                            onTap: () {
+                              context.read<DonacionBloc>().add(
+                                SeleccionarOrganizacion(organizacion),
+                              );
+                              context.push('/seleccion-cantidad');
+                            },
+                          );
+                        },
+                      );
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 18),

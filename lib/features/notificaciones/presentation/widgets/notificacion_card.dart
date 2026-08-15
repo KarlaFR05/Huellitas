@@ -16,25 +16,37 @@ class NotificacionCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final (icono, color) = _getIconoYColor(notificacion.tipo, colorScheme);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      color: notificacion.leida ? colorScheme.surface : colorScheme.primaryContainer.withValues(alpha: 0.2),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: notificacion.leida
+            ? colorScheme.surfaceContainerLowest
+            : color.withValues(alpha: .07),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: .45)),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(0, 14, 14, 14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 5,
+                height: 68,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
+                  color: color,
+                  borderRadius: const BorderRadius.horizontal(
+                    right: Radius.circular(8),
+                  ),
                 ),
+              ),
+              const SizedBox(width: 12),
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: color.withValues(alpha: .14),
                 child: Icon(icono, color: color, size: 22),
               ),
               const SizedBox(width: 12),
@@ -48,16 +60,18 @@ class NotificacionCard extends StatelessWidget {
                           child: Text(
                             notificacion.titulo,
                             style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              fontWeight: notificacion.leida
+                                  ? FontWeight.w700
+                                  : FontWeight.w900,
                               color: colorScheme.onSurface,
                             ),
                           ),
                         ),
                         if (!notificacion.leida)
                           Container(
-                            width: 8,
-                            height: 8,
+                            width: 9,
+                            height: 9,
                             decoration: BoxDecoration(
                               color: colorScheme.primary,
                               shape: BoxShape.circle,
@@ -65,17 +79,40 @@ class NotificacionCard extends StatelessWidget {
                           ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       notificacion.mensaje,
-                      style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
-                      maxLines: 2,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.35,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _formatearFecha(notificacion.creadaEn),
-                      style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+                    const SizedBox(height: 9),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.schedule_rounded,
+                          size: 14,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _formatearFecha(notificacion.creadaEn),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: colorScheme.onSurfaceVariant,
+                          size: 20,
+                        ),
+                      ],
                     ),
                   ],
                 ),

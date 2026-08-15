@@ -27,10 +27,39 @@ class ReportFormScreen extends StatefulWidget {
   State<ReportFormScreen> createState() => _ReportFormScreenState();
 }
 
+class _EtiquetaUrgenciaInfo extends StatelessWidget {
+  const _EtiquetaUrgenciaInfo({required this.texto, required this.color});
+
+  final String texto;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Text(
+        texto,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+          height: 1,
+        ),
+      ),
+    );
+  }
+}
+
 class _ReportFormScreenState extends State<ReportFormScreen> {
   Color get _fieldBackground =>
       Theme.of(context).inputDecorationTheme.fillColor ??
       Theme.of(context).colorScheme.surfaceContainer;
+
+  Color get _accent => Theme.of(context).colorScheme.primary;
 
   // Controladores
   final TextEditingController _descripcionController = TextEditingController();
@@ -390,10 +419,12 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               height: 150,
               decoration: BoxDecoration(
                 color: _fieldBackground,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 2,
+                  color: _evidenceImages.isNotEmpty
+                      ? _accent
+                      : Theme.of(context).colorScheme.outlineVariant,
+                  width: _evidenceImages.isNotEmpty ? 2 : 1,
                 ),
               ),
               child: _evidenceImages.isNotEmpty
@@ -449,7 +480,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.camera_alt,
+                          Icons.add_a_photo_outlined,
                           size: 48,
                           color: Theme.of(context).colorScheme.primary,
                         ),
@@ -687,8 +718,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                   ),
                   child: Text(
                     'Salir',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
+                    style: const TextStyle(
+                      color: Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -765,16 +796,72 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           centerTitle: true,
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [_accent, _accent.withValues(alpha: .72)],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _accent.withValues(alpha: .2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(13),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: .2),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: const Icon(
+                        Icons.pets_rounded,
+                        color: Colors.white,
+                        size: 34,
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Ayúdanos a ayudar',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 21,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Completa los datos para que la comunidad pueda actuar rápidamente.',
+                            style: TextStyle(color: Colors.white, height: 1.3),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 26),
               Text(
                 'Clasificación de reporte',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  color: _accent,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 19,
                 ),
               ),
               const SizedBox(height: 16),
@@ -876,61 +963,61 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             text: '• ',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          TextSpan(
-                            text: 'Baja: ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: _EtiquetaUrgenciaInfo(
+                              texto: 'Baja',
+                              color: Colors.yellow.shade700,
                             ),
                           ),
                           TextSpan(
                             text:
-                                'Animal consciente, camina bien, sin heridas visibles. Solo necesita alimento o refugio.\n\n',
+                                '  Animal consciente, camina bien, sin heridas visibles. Solo necesita alimento o refugio.\n\n',
                           ),
                           TextSpan(
                             text: '• ',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          TextSpan(
-                            text: 'Media: ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
+                          const WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: _EtiquetaUrgenciaInfo(
+                              texto: 'Media',
+                              color: Colors.orange,
                             ),
                           ),
                           TextSpan(
                             text:
-                                'Heridas leves, cojea, deshidratación o desnutrición evidente. Requiere atención en las próximas horas.\n\n',
+                                '  Heridas leves, cojea, deshidratación o desnutrición evidente. Requiere atención en las próximas horas.\n\n',
                           ),
                           TextSpan(
                             text: '• ',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          TextSpan(
-                            text: 'Alta: ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
+                          const WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: _EtiquetaUrgenciaInfo(
+                              texto: 'Alta',
+                              color: Colors.red,
                             ),
                           ),
                           TextSpan(
                             text:
-                                'No puede moverse, sangrado visible, heridas graves o signos de maltrato. Riesgo de empeorar pronto.\n\n',
+                                '  No puede moverse, sangrado visible, heridas graves o signos de maltrato. Riesgo de empeorar pronto.\n\n',
                           ),
                           TextSpan(
                             text: '• ',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          TextSpan(
-                            text: 'Crítica: ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
+                          const WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: _EtiquetaUrgenciaInfo(
+                              texto: 'Crítica',
+                              color: Color.fromARGB(255, 128, 0, 0),
                             ),
                           ),
                           TextSpan(
                             text:
-                                'Inconsciente, hemorragia severa, respiración muy difícil o convulsiones. Necesita inmediata YA!',
+                                '  Inconsciente, hemorragia severa, respiración muy difícil o convulsiones. Necesita inmediata YA!',
                           ),
                         ],
                       ),
@@ -947,9 +1034,9 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               Text(
                 'Datos del animal',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  color: _accent,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 19,
                 ),
               ),
               const SizedBox(height: 16),
@@ -1053,12 +1140,12 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(18),
                     ),
-                    elevation: 4,
+                    elevation: 0,
                   ),
                   child: Text(
-                    'Enviar Reporte',
+                    'Enviar reporte',
                     style: TextStyle(
                       fontSize: 18,
                       color: Theme.of(context).colorScheme.onPrimary,
@@ -1201,8 +1288,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               label,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
               ),
             ),
             if (infoContent != null && infoTitle != null)
@@ -1210,42 +1297,80 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: _fieldBackground,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Theme.of(context).colorScheme.outline),
-          ),
-          child: DropdownButton<String>(
-            value: value,
-            isExpanded: true,
-            underline: const SizedBox(),
-            hint: Text(
-              hintText ?? 'Seleccione $label',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+        LayoutBuilder(
+          builder: (context, constraints) => DropdownMenu<String>(
+            key: ValueKey('$label-$value'),
+            initialSelection: value,
+            width: constraints.maxWidth,
+            menuHeight: 390,
+            enableFilter: false,
+            enableSearch: false,
+            requestFocusOnTap: false,
+            hintText: hintText ?? 'Selecciona $label',
+            trailingIcon: const Icon(Icons.keyboard_arrow_down_rounded),
+            selectedTrailingIcon: const Icon(Icons.keyboard_arrow_up_rounded),
+            textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontSize: 17,
+              fontWeight: FontWeight.w500,
+            ),
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.surface,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 18,
+              ),
+              constraints: const BoxConstraints(minHeight: 62),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: _accent, width: 2),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: _accent, width: 2),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: _accent, width: 2),
               ),
             ),
-            icon: Icon(
-              Icons.arrow_drop_down,
-              color: Theme.of(context).colorScheme.primary,
+            menuStyle: MenuStyle(
+              backgroundColor: WidgetStatePropertyAll(
+                Theme.of(context).colorScheme.surface,
+              ),
+              elevation: const WidgetStatePropertyAll(8),
+              padding: const WidgetStatePropertyAll(
+                EdgeInsets.symmetric(vertical: 10),
+              ),
+              shape: WidgetStatePropertyAll(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
             ),
-            items: items
-                .map(
-                  (item) => DropdownMenuItem<String>(
-                    value: item,
-                    child: Text(
-                      item,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontSize: 14,
-                      ),
-                    ),
+            dropdownMenuEntries: [
+              DropdownMenuEntry<String>(
+                value: '__hint__$label',
+                label: hintText ?? 'Selecciona $label',
+                enabled: false,
+                style: MenuItemButton.styleFrom(
+                  minimumSize: const Size(0, 58),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  textStyle: const TextStyle(fontSize: 17),
+                ),
+              ),
+              for (final item in items)
+                DropdownMenuEntry<String>(
+                  value: item,
+                  label: item,
+                  style: MenuItemButton.styleFrom(
+                    minimumSize: const Size(0, 58),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    textStyle: const TextStyle(fontSize: 17),
                   ),
-                )
-                .toList(),
-            onChanged: onChanged,
+                ),
+            ],
+            onSelected: onChanged,
           ),
         ),
       ],
@@ -1253,28 +1378,37 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   }
 
   Widget _buildTextArea(TextEditingController controller) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _fieldBackground,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.outline),
-      ),
-      child: TextField(
-        controller: controller,
-        maxLines: 4,
-        decoration: const InputDecoration(
-          border: InputBorder.none,
-          isDense: true,
-          contentPadding: EdgeInsets.zero,
-          hintText: 'Describe los detalles sobre el animal a reportar...',
-          hintStyle: TextStyle(color: Color.fromARGB(255, 102, 102, 102)),
-        ),
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.onSurface,
-          fontSize: 14,
+    return TextField(
+      controller: controller,
+      minLines: 5,
+      maxLines: 7,
+      maxLength: 500,
+      textCapitalization: TextCapitalization.sentences,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: _fieldBackground,
+        hintText: 'Describe el color, tamaño, condición y señas particulares...',
+        hintStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
           height: 1.4,
         ),
+        alignLabelWithHint: true,
+        contentPadding: const EdgeInsets.all(18),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide(color: _accent, width: 2),
+        ),
+      ),
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
+        fontSize: 15,
+        height: 1.45,
       ),
     );
   }
@@ -1381,40 +1515,89 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   }
 
   Widget _buildUrgencySelector() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.outline),
-      ),
-      child: Column(
-        children: _nivelesUrgencia.map((nivel) {
+    final colors = Theme.of(context).colorScheme;
+    Map<String, dynamic>? seleccionada;
+    for (final nivel in _nivelesUrgencia) {
+      if (nivel['value'] == _urgencia) {
+        seleccionada = nivel;
+        break;
+      }
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final ancho = (constraints.maxWidth - 8) / 2;
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _nivelesUrgencia.map((nivel) {
           final isSelected = _urgencia == nivel['value'];
-          return RadioListTile<String>(
-            value: nivel['value'],
-            groupValue: _urgencia,
-            onChanged: (value) => setState(() => _urgencia = value!),
-            activeColor: nivel['color'] as Color,
-            title: Text(
-              nivel['label'],
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          final color = nivel['color'] as Color;
+                return SizedBox(
+                  width: ancho,
+                  height: 44,
+            child: Material(
+              color: isSelected
+                        ? color.withValues(alpha: .16)
+                        : colors.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      side: BorderSide(
+                        color: isSelected
+                            ? color
+                            : colors.outlineVariant.withValues(alpha: .6),
+                        width: isSelected ? 2 : 1,
+                      ),
+                    ),
+              child: InkWell(
+                onTap: () => setState(() => _urgencia = nivel['value']),
+                      borderRadius: BorderRadius.circular(24),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 13),
+                  child: Row(
+                    children: [
+                      Container(
+                              width: 11,
+                              height: 11,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                            const SizedBox(width: 8),
+                      Expanded(
+                              child: Text(
+                              nivel['label'],
+                              style: TextStyle(
+                                fontWeight: isSelected
+                                    ? FontWeight.w800
+                                    : FontWeight.w600,
+                                  color: isSelected ? color : colors.onSurface,
+                              ),
+                            ),
+                      ),
+                            if (isSelected)
+                              Icon(Icons.check_rounded, color: color, size: 19),
+                    ],
+                  ),
+                ),
               ),
             ),
-            subtitle: Text(
-              nivel['desc'],
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 12,
-              ),
-            ),
-            contentPadding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
           );
-        }).toList(),
-      ),
+              }).toList(),
+            );
+          },
+        ),
+        if (seleccionada != null) ...[
+          const SizedBox(height: 10),
+          Text(
+            seleccionada['desc'] as String,
+            style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+          ),
+        ],
+      ],
     );
   }
 }

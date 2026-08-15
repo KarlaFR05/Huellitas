@@ -45,7 +45,14 @@ class PublicacionModel {
         : const <String, dynamic>{};
     return PublicacionModel(
       id: json['publicacion_id'] as int,
-      usuarioId: json['usuario_id'] as int?,
+      usuarioId: _enteroOpcional(
+        json['usuario_id'] ??
+            json['usuario_id_fk'] ??
+            json['autor_id'] ??
+            usuario['usuario_id_pk'] ??
+            usuario['usuario_id'] ??
+            usuario['id'],
+      ),
       grupoId: json['grupo_id_fk'] as int?,
       titulo: json['titulo'] as String,
       nombreUsuario:
@@ -126,5 +133,10 @@ class PublicacionModel {
   static String? _textoOpcional(Object? valor) {
     final texto = valor?.toString().trim();
     return texto == null || texto.isEmpty ? null : texto;
+  }
+
+  static int? _enteroOpcional(Object? valor) {
+    if (valor is int) return valor;
+    return int.tryParse(valor?.toString() ?? '');
   }
 }

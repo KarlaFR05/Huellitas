@@ -16,6 +16,7 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
   Future<PaginaModel<PublicacionModel>> obtenerFeed({
     String? categoria,
     int? grupoId,
+    int? usuarioId,
     String? cursor,
     int limite = 20,
   }) async {
@@ -24,6 +25,7 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
       queryParameters: {
         if (categoria != null) 'categoria': categoria,
         if (grupoId != null) 'grupo_id': grupoId,
+        if (usuarioId != null) 'usuario_id': usuarioId,
         if (cursor != null) 'cursor': cursor,
         'limite': limite,
       },
@@ -235,6 +237,11 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
   Future<GrupoModel> salirDeGrupo(int id) async {
     final res = await dio.post('/grupos/$id/salir');
     return GrupoModel.fromJson(res.data);
+  }
+
+  @override
+  Future<void> eliminarGrupo(int id) async {
+    await dio.delete('/grupos/$id');
   }
 
   @override

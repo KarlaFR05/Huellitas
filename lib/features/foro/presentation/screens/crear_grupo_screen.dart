@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../domain/entities/grupo.dart';
+import '../widgets/grupo_imagen.dart';
 
 class CrearGrupoScreen extends StatefulWidget {
   const CrearGrupoScreen({super.key, this.grupo});
@@ -44,8 +45,59 @@ class _CrearGrupoScreenState extends State<CrearGrupoScreen> {
   }
 
   Future<void> _elegirImagen({required bool esPortada}) async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: 8),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color:
+                Theme.of(sheetContext).inputDecorationTheme.fillColor ??
+                Theme.of(sheetContext).colorScheme.surfaceContainer,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Seleccionar imagen',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: _FuenteImagen(
+                      icono: Icons.camera_alt,
+                      titulo: 'Tomar fotografía',
+                      onTap: () =>
+                          Navigator.pop(sheetContext, ImageSource.camera),
+                    ),
+                  ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: _FuenteImagen(
+                      icono: Icons.photo_library,
+                      titulo: 'Seleccionar de galería',
+                      onTap: () =>
+                          Navigator.pop(sheetContext, ImageSource.gallery),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
     final imagen = await _picker.pickImage(
-      source: ImageSource.gallery,
+      source: source,
       maxWidth: esPortada ? 1800 : 900,
       maxHeight: esPortada ? 1000 : 900,
       imageQuality: 85,
@@ -121,7 +173,7 @@ class _CrearGrupoScreenState extends State<CrearGrupoScreen> {
                         onTap: _guardando
                             ? null
                             : () => _elegirImagen(esPortada: true),
-                        child: _portada == null
+                        child: _portada == null && !_editando
                             ? Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -134,7 +186,29 @@ class _CrearGrupoScreenState extends State<CrearGrupoScreen> {
                                   const Text('Agregar portada'),
                                 ],
                               )
-                            : Image.file(_portada!, fit: BoxFit.cover),
+                            : Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  if (_portada != null)
+                                    Image.file(_portada!, fit: BoxFit.cover)
+                                  else
+                                    portadaGrupo(widget.grupo!),
+                                  ColoredBox(
+                                    color: Colors.black.withValues(alpha: .12),
+                                  ),
+                                  Positioned(
+                                    right: 12,
+                                    bottom: 12,
+                                    child: CircleAvatar(
+                                      backgroundColor: colors.surface,
+                                      child: Icon(
+                                        Icons.edit_rounded,
+                                        color: colors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                       ),
                     ),
                   ),
@@ -152,14 +226,27 @@ class _CrearGrupoScreenState extends State<CrearGrupoScreen> {
                           radius: 43,
                           backgroundColor: colors.primaryContainer,
                           backgroundImage: _perfil == null
-                              ? null
+                              ? (_editando
+                                    ? imagenPerfilGrupo(widget.grupo!)
+                                    : null)
                               : FileImage(_perfil!),
-                          child: _perfil == null
+                          child: _perfil == null && !_editando
                               ? Icon(
                                   Icons.add_a_photo_outlined,
                                   color: colors.primary,
                                 )
-                              : null,
+                              : Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: CircleAvatar(
+                                    radius: 15,
+                                    backgroundColor: colors.primary,
+                                    child: Icon(
+                                      Icons.edit_rounded,
+                                      size: 17,
+                                      color: colors.onPrimary,
+                                    ),
+                                  ),
+                                ),
                         ),
                       ),
                     ),
@@ -260,6 +347,29 @@ class _CrearGrupoScreenState extends State<CrearGrupoScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _FuenteImagen extends StatelessWidget {
+  const _FuenteImagen({
+    required this.icono,
+    required this.titulo,
+    required this.onTap,
+  });
+
+  final IconData icono;
+  final String titulo;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+      leading: Icon(icono, color: colors.primary),
+      title: Text(titulo),
+      onTap: onTap,
     );
   }
 }

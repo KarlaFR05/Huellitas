@@ -9,6 +9,7 @@ class GrupoCard extends StatelessWidget {
     required this.grupo,
     required this.onAbrir,
     required this.onCambiarMembresia,
+    this.actualizando = false,
     this.accentColor = const Color(0xFF27A56D),
     this.icon = Icons.groups_rounded,
   });
@@ -16,6 +17,7 @@ class GrupoCard extends StatelessWidget {
   final Grupo grupo;
   final VoidCallback onAbrir;
   final VoidCallback onCambiarMembresia;
+  final bool actualizando;
   final Color accentColor;
   final IconData icon;
 
@@ -100,23 +102,33 @@ class GrupoCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  grupo.solicitudPendiente
-                      ? OutlinedButton.icon(
-                          onPressed: onCambiarMembresia,
-                          icon: const Icon(Icons.schedule_rounded, size: 18),
-                          label: const Text('Pendiente'),
-                        )
-                      : grupo.esMiembro
-                      ? OutlinedButton.icon(
-                          onPressed: onCambiarMembresia,
-                          icon: const Icon(Icons.check_rounded, size: 18),
-                          label: const Text('Unido'),
-                        )
-                      : OutlinedButton.icon(
-                          onPressed: onCambiarMembresia,
-                          icon: const Icon(Icons.add_rounded, size: 18),
-                          label: const Text('Unirme'),
-                        ),
+                  if (actualizando)
+                    const SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: Padding(
+                        padding: EdgeInsets.all(11),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  else if (grupo.solicitudPendiente)
+                    OutlinedButton.icon(
+                      onPressed: onCambiarMembresia,
+                      icon: const Icon(Icons.schedule_rounded, size: 18),
+                      label: const Text('Pendiente'),
+                    )
+                  else if (grupo.esMiembro)
+                    OutlinedButton.icon(
+                      onPressed: null,
+                      icon: const Icon(Icons.check_rounded, size: 18),
+                      label: const Text('Ya eres miembro'),
+                    )
+                  else
+                    OutlinedButton.icon(
+                      onPressed: onCambiarMembresia,
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: const Text('Unirme'),
+                    ),
                 ],
               ),
             ),

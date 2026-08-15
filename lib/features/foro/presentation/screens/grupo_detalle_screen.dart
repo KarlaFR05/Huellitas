@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/mensaje_error.dart';
 import '../../../auth/domain/entities/usuario.dart';
@@ -16,6 +17,58 @@ import 'crear_grupo_screen.dart';
 import 'crear_publicacion_screen.dart';
 import 'administrar_grupo_screen.dart';
 
+enum _AccionGrupo { solicitudes, miembros, editar, eliminar }
+
+class _OpcionGrupo extends StatelessWidget {
+  const _OpcionGrupo({
+    required this.icono,
+    required this.titulo,
+    required this.subtitulo,
+    required this.accion,
+    this.esDestructiva = false,
+  });
+
+  final IconData icono;
+  final String titulo;
+  final String subtitulo;
+  final _AccionGrupo accion;
+  final bool esDestructiva;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final color = esDestructiva ? colors.error : colors.primary;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: color.withValues(alpha: .08),
+        borderRadius: BorderRadius.circular(16),
+        child: ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          leading: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: .13),
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: Icon(icono, color: color),
+          ),
+          title: Text(
+            titulo,
+            style: TextStyle(fontWeight: FontWeight.w800, color: color),
+          ),
+          subtitle: Text(subtitulo),
+          trailing: Icon(Icons.chevron_right_rounded, color: color),
+          onTap: () => Navigator.pop(context, accion),
+        ),
+      ),
+    );
+  }
+}
+
 class GrupoDetalleScreen extends StatefulWidget {
   final Grupo grupo;
 
@@ -30,6 +83,7 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
   final List<Publicacion> _publicaciones = [];
   bool _inicializado = false;
   bool _cargando = true;
+  bool _actualizandoMembresia = false;
   String? _error;
 
   @override
@@ -59,7 +113,11 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
       );
       if (!mounted) return;
       setState(() {
-        _grupo = grupo;
+        _grupo = grupo.copyWith(
+          esMiembro: grupo.esMiembro || _grupo.esMiembro,
+          esAdministradorActual:
+              grupo.esAdministradorActual || _grupo.esAdministradorActual,
+        );
         _publicaciones
           ..clear()
           ..addAll(pagina.elementos);
@@ -75,17 +133,21 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
   }
 
   Future<void> _cambiarMembresia() async {
-    if (_grupo.solicitudPendiente) return;
+    if (_grupo.solicitudPendiente ||
+        _grupo.esMiembro ||
+        _actualizandoMembresia) {
+      return;
+    }
+    setState(() => _actualizandoMembresia = true);
     try {
       final repository = context.read<ForoRepository>();
       late Grupo actualizado;
       if (!_grupo.esMiembro && _grupo.privacidad == PrivacidadGrupo.privado) {
         actualizado = await repository.solicitarIngresoGrupo(_grupo.id);
         actualizado = actualizado.copyWith(solicitudPendiente: true);
-      } else if (_grupo.esMiembro) {
-        actualizado = await repository.salirDeGrupo(_grupo.id);
       } else {
         actualizado = await repository.unirseAGrupo(_grupo.id);
+        actualizado = actualizado.copyWith(esMiembro: true);
       }
       if (mounted) setState(() => _grupo = actualizado);
     } catch (error) {
@@ -94,6 +156,157 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(mensajeDeError(error))));
       }
+    } finally {
+      if (mounted) setState(() => _actualizandoMembresia = false);
+    }
+  }
+
+  Future<void> _salirDelGrupo() async {
+    if (_actualizandoMembresia) return;
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Salir del grupo'),
+        content: Text('¿Seguro que quieres salir de ${_grupo.nombre}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            icon: const Icon(Icons.logout_rounded),
+            label: const Text('Salir'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true || !mounted) return;
+    setState(() => _actualizandoMembresia = true);
+    try {
+      final respuesta = await context.read<ForoRepository>().salirDeGrupo(
+        _grupo.id,
+      );
+      if (!mounted) return;
+      _grupo = respuesta.copyWith(esMiembro: false);
+      Navigator.pop(context, _grupo);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(mensajeDeError(error))));
+      }
+    } finally {
+      if (mounted) setState(() => _actualizandoMembresia = false);
+    }
+  }
+
+  Future<void> _eliminarGrupo() async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminar grupo'),
+        content: Text(
+          '¿Seguro que quieres eliminar ${_grupo.nombre}? Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true || !mounted) return;
+    try {
+      await context.read<ForoRepository>().eliminarGrupo(_grupo.id);
+      if (!mounted) return;
+      _grupo = _grupo.copyWith(estado: EstadoGrupo.eliminado);
+      Navigator.pop(context, _grupo);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(mensajeDeError(error))));
+      }
+    }
+  }
+
+  Future<void> _abrirAdministracion(int tab) async {
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AdministrarGrupoScreen(grupo: _grupo, initialTab: tab),
+      ),
+    );
+  }
+
+  Future<void> _mostrarMenuAdministrador() async {
+    final accion = await showModalBottomSheet<_AccionGrupo>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Administrar comunidad',
+                style: Theme.of(
+                  sheetContext,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 12),
+              if (_grupo.privacidad == PrivacidadGrupo.privado)
+                _OpcionGrupo(
+                  icono: Icons.person_add_alt_1_rounded,
+                  titulo: 'Solicitudes',
+                  subtitulo: 'Revisa quién quiere entrar',
+                  accion: _AccionGrupo.solicitudes,
+                ),
+              const _OpcionGrupo(
+                icono: Icons.groups_2_outlined,
+                titulo: 'Miembros',
+                subtitulo: 'Administra las personas del grupo',
+                accion: _AccionGrupo.miembros,
+              ),
+              const _OpcionGrupo(
+                icono: Icons.edit_outlined,
+                titulo: 'Editar grupo',
+                subtitulo: 'Cambia información e imágenes',
+                accion: _AccionGrupo.editar,
+              ),
+              _OpcionGrupo(
+                icono: Icons.delete_outline_rounded,
+                titulo: 'Eliminar grupo',
+                subtitulo: 'Elimina esta comunidad definitivamente',
+                accion: _AccionGrupo.eliminar,
+                esDestructiva: true,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (accion == null || !mounted) return;
+    switch (accion) {
+      case _AccionGrupo.solicitudes:
+        await _abrirAdministracion(0);
+      case _AccionGrupo.miembros:
+        await _abrirAdministracion(
+          _grupo.privacidad == PrivacidadGrupo.privado ? 1 : 0,
+        );
+      case _AccionGrupo.editar:
+        await _editarGrupo();
+      case _AccionGrupo.eliminar:
+        await _eliminarGrupo();
     }
   }
 
@@ -189,12 +402,55 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
     }
   }
 
+  Future<void> _confirmarEliminarPublicacionGrupo(
+    Publicacion publicacion,
+  ) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminar publicación'),
+        content: const Text(
+          '¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true || !mounted) return;
+    try {
+      await context.read<ForoRepository>().eliminarPublicacion(publicacion.id);
+      if (!mounted) return;
+      setState(() {
+        _publicaciones.removeWhere((item) => item.id == publicacion.id);
+      });
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(mensajeDeError(error))));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
     final usuarioId = authState is AuthSuccess && authState.data is Usuario
         ? (authState.data as Usuario).usuarioIdPk
         : null;
+    final esAdministrador =
+        _grupo.esAdministradorActual || _grupo.creadorUsuarioId == usuarioId;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -204,22 +460,17 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
         appBar: AppBar(
           title: const Text('Comunidad'),
           actions: [
-            if (_grupo.esAdministradorActual)
+            if (_grupo.esMiembro && !esAdministrador)
               IconButton(
-                tooltip: 'Editar grupo',
-                onPressed: _editarGrupo,
-                icon: const Icon(Icons.edit_outlined),
+                tooltip: 'Salir del grupo',
+                onPressed: _actualizandoMembresia ? null : _salirDelGrupo,
+                icon: const Icon(Icons.logout_rounded),
               ),
-            if (_grupo.esAdministradorActual)
+            if (esAdministrador)
               IconButton(
-                tooltip: 'Administrar miembros',
-                onPressed: () => Navigator.push<void>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AdministrarGrupoScreen(grupo: _grupo),
-                  ),
-                ),
-                icon: const Icon(Icons.manage_accounts_outlined),
+                tooltip: 'Opciones del grupo',
+                onPressed: _mostrarMenuAdministrador,
+                icon: const Icon(Icons.more_vert_rounded),
               ),
           ],
         ),
@@ -346,14 +597,27 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
                             )
                           : _grupo.esMiembro
                           ? OutlinedButton.icon(
-                              onPressed: _cambiarMembresia,
+                              onPressed: null,
                               icon: const Icon(Icons.check_rounded),
                               label: const Text('Ya eres miembro'),
                             )
                           : FilledButton.icon(
-                              onPressed: _cambiarMembresia,
-                              icon: const Icon(Icons.add_rounded),
-                              label: const Text('Unirme al grupo'),
+                              onPressed: _actualizandoMembresia
+                                  ? null
+                                  : _cambiarMembresia,
+                              icon: _actualizandoMembresia
+                                  ? const SizedBox.square(
+                                      dimension: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.add_rounded),
+                              label: Text(
+                                _actualizandoMembresia
+                                    ? 'Uniéndote...'
+                                    : 'Unirme al grupo',
+                              ),
                             ),
                     ),
                     const SizedBox(height: 24),
@@ -403,6 +667,14 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
                   child: PublicacionCard(
                     publicacion: _publicaciones[index],
                     avatarUrl: _publicaciones[index].fotoUsuarioUrl,
+                    onPerfil: _publicaciones[index].usuarioId == null
+                        ? null
+                        : () => context.push(
+                            '/mi-perfil',
+                            extra: _publicaciones[index].usuarioId == usuarioId
+                                ? null
+                                : _publicaciones[index].usuarioId,
+                          ),
                     onMeGusta: () async {
                       try {
                         final actualizada = await context
@@ -423,6 +695,11 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
                     ),
                     onEditar: _publicaciones[index].usuarioId == usuarioId
                         ? () => _editarPublicacionGrupo(_publicaciones[index])
+                        : null,
+                    onEliminar: _publicaciones[index].usuarioId == usuarioId
+                        ? () => _confirmarEliminarPublicacionGrupo(
+                            _publicaciones[index],
+                          )
                         : null,
                   ),
                 );

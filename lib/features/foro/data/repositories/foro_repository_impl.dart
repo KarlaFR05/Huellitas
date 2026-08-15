@@ -18,6 +18,7 @@ class ForoRepositoryImpl implements ForoRepository {
     final pagina = await remote.obtenerFeed(
       categoria: filtro.categoria?.name,
       grupoId: filtro.grupoId,
+      usuarioId: filtro.usuarioId,
       cursor: filtro.cursor,
       limite: filtro.limite,
     );
@@ -177,6 +178,9 @@ class ForoRepositoryImpl implements ForoRepository {
     final model = await remote.salirDeGrupo(grupoId);
     return model.toEntity();
   }
+
+  @override
+  Future<void> eliminarGrupo(int grupoId) => remote.eliminarGrupo(grupoId);
 
   @override
   Future<Grupo> solicitarIngresoGrupo(int grupoId) async {
