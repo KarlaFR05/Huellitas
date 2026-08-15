@@ -94,7 +94,7 @@ void main() {
 
   // final notificacionDataSource = NotificacionRemoteDataSourceImpl(dio);
   // pruebas
-  final notificacionDataSource = NotificacionRemoteDataSourceMock();
+  final notificacionDataSource = NotificacionRemoteDataSourceImpl(dio);
   final notificacionRepository = NotificacionRepositoryImpl(
     notificacionDataSource,
   );
