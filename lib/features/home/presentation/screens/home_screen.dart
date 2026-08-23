@@ -21,6 +21,7 @@ import '../../../../core/verificacion/verificacion_cubit.dart';
 import '../../../../core/widgets/verificado_badge.dart';
 import '../../../../core/widgets/avatar_helper.dart';
 import '../../../notificaciones/presentation/widgets/campana_badge.dart';
+import '../widgets/filtro_reportes.dart';
 
 const int _faseConcluido = 3;
 const Duration _tiempoVisibleTrasConcluir = Duration(seconds: 35);
@@ -44,6 +45,15 @@ class _HomeScreenState extends State<HomeScreen> {
         return false;
       }
 
+      if (_filtroAnimales.isNotEmpty && !_filtroAnimales.contains(m.animal)) {
+        return false;
+      }
+
+      if (_filtroUrgencias.isNotEmpty &&
+          !_filtroUrgencias.contains(m.urgency)) {
+        return false;
+      }
+
       if (m.faseActualId == _faseConcluido) {
         if (m.fechaActualizacion == null) return true;
         final tiempoTranscurrido = ahora.difference(m.fechaActualizacion!);
@@ -53,6 +63,9 @@ class _HomeScreenState extends State<HomeScreen> {
       return true;
     }).toList();
   }
+
+  Set<ReportAnimal> _filtroAnimales = {};
+  Set<ReportUrgency> _filtroUrgencias = {};
 
   bool _cargando = true;
 
@@ -186,6 +199,28 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _abrirFiltro() async {
+    final resultado = await showModalBottomSheet<ResultadoFiltroReportes>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => FiltroReportesSheet(
+        animalesSeleccionados: _filtroAnimales,
+        urgenciasSeleccionadas: _filtroUrgencias,
+      ),
+    );
+
+    if (resultado != null) {
+      setState(() {
+        _filtroAnimales = resultado.animales;
+        _filtroUrgencias = resultado.urgencias;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -201,18 +236,32 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: _cargando
                       ? const Center(child: CircularProgressIndicator())
-                      : BlocBuilder<VerificacionCubit, EstadoVerificacion>(
-                          builder: (context, estadoVerificacion) {
-                            final estaVerificado =
-                                estadoVerificacion ==
-                                EstadoVerificacion.verificado;
-                            return MapWidget(
-                              markers: _markersVisibles(estaVerificado),
-                              userLocation: _userLocation,
-                              mapController: _mapController,
-                              reporteIdInicial: widget.reporteIdInicial,
-                            );
-                          },
+                      : Stack(
+                          children: [
+                            BlocBuilder<VerificacionCubit, EstadoVerificacion>(
+                              builder: (context, estadoVerificacion) {
+                                final estaVerificado =
+                                    estadoVerificacion ==
+                                    EstadoVerificacion.verificado;
+                                return MapWidget(
+                                  markers: _markersVisibles(estaVerificado),
+                                  userLocation: _userLocation,
+                                  mapController: _mapController,
+                                  reporteIdInicial: widget.reporteIdInicial,
+                                );
+                              },
+                            ),
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: FiltroReportesButton(
+                                cantidadActiva:
+                                    _filtroAnimales.length +
+                                    _filtroUrgencias.length,
+                                onTap: _abrirFiltro,
+                              ),
+                            ),
+                          ],
                         ),
                 ),
               ],
@@ -269,7 +318,6 @@ class _Header extends StatelessWidget {
             },
           ),
           const SizedBox(width: 10),
-
           Expanded(
             child: BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
