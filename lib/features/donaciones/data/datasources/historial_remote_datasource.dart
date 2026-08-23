@@ -20,9 +20,11 @@ class HistorialRemoteDataSourceImpl implements HistorialRemoteDataSource {
   Donacion _donacionFromJson(Map<String, dynamic> json) {
     return Donacion(
       id: json['id'] ?? 0,
-      usuarioId: json['usuario_id'] ?? json['usuarioId'] ?? 0,
+      usuarioId: json['usuario_id'] ?? json['usuarioId'] ?? json['usuario_id_pk'] ?? 0,
       organizacionId: json['organizacion_id'] ?? json['organizacionId'] ?? 0,
-      monto: (json['monto'] as num?)?.toDouble() ?? 0.0,
+      monto: json['monto'] is num
+          ? (json['monto'] as num).toDouble()
+          : double.tryParse(json['monto']?.toString() ?? '') ?? 0.0,
       tarjetaId: json['tarjeta_id'] ?? json['tarjetaId'] ?? 0,
       metodoPago: json['metodo_pago'] ?? json['metodoPago'] ?? 'tarjeta',
       fechaDonacion:

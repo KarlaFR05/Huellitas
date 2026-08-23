@@ -23,16 +23,53 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
   final _tituloController = TextEditingController();
   final _contenidoController = TextEditingController();
   final _imagePicker = ImagePicker();
+
   File? _imagen;
   String? _imagenExistenteUrl;
   bool _publicando = false;
-  CategoriaPublicacion _categoria = CategoriaPublicacion.adopcion;
+
+  CategoriaPublicacion _categoria = CategoriaPublicacion.cuidado;
+
+  static const _categorias =
+      <(CategoriaPublicacion, String, IconData)>[
+    (
+      CategoriaPublicacion.vacunacion,
+      'Vacunación',
+      Icons.vaccines_rounded,
+    ),
+    (
+      CategoriaPublicacion.salud,
+      'Salud',
+      Icons.health_and_safety_rounded,
+    ),
+    (
+      CategoriaPublicacion.extraviados,
+      'Extraviados',
+      Icons.search_rounded,
+    ),
+    (
+      CategoriaPublicacion.alimentacion,
+      'Alimentación',
+      Icons.restaurant_rounded,
+    ),
+    (
+      CategoriaPublicacion.entrenamiento,
+      'Entrenamiento',
+      Icons.school_rounded,
+    ),
+    (
+      CategoriaPublicacion.cuidado,
+      'Cuidado',
+      Icons.favorite_rounded,
+    ),
+  ];
 
   bool get _editando => widget.publicacion != null;
 
   @override
   void initState() {
     super.initState();
+
     final publicacion = widget.publicacion;
     if (publicacion != null) {
       _tituloController.text = publicacion.titulo;
@@ -41,20 +78,6 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
       _imagenExistenteUrl = publicacion.imagenUrl;
     }
   }
-
-  static const _categorias = <(CategoriaPublicacion, String, IconData)>[
-    (CategoriaPublicacion.adopcion, 'Adopción', Icons.pets_rounded),
-    (CategoriaPublicacion.vacunacion, 'Vacunación', Icons.vaccines_rounded),
-    (CategoriaPublicacion.salud, 'Salud', Icons.health_and_safety_rounded),
-    (CategoriaPublicacion.extraviados, 'Extraviados', Icons.search_rounded),
-    (
-      CategoriaPublicacion.alimentacion,
-      'Alimentación',
-      Icons.restaurant_rounded,
-    ),
-    (CategoriaPublicacion.entrenamiento, 'Entrenamiento', Icons.school_rounded),
-    (CategoriaPublicacion.cuidado, 'Cuidado', Icons.favorite_rounded),
-  ];
 
   @override
   void dispose() {
@@ -69,6 +92,7 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         final colors = Theme.of(sheetContext).colorScheme;
+
         return SafeArea(
           top: false,
           minimum: const EdgeInsets.only(bottom: 8),
@@ -94,7 +118,10 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
                 ),
                 const SizedBox(height: 20),
                 ListTile(
-                  leading: Icon(Icons.camera_alt, color: colors.primary),
+                  leading: Icon(
+                    Icons.camera_alt,
+                    color: colors.primary,
+                  ),
                   title: const Text('Tomar fotografía'),
                   onTap: () => Navigator.pop(
                     sheetContext,
@@ -102,7 +129,10 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
                   ),
                 ),
                 ListTile(
-                  leading: Icon(Icons.photo_library, color: colors.primary),
+                  leading: Icon(
+                    Icons.photo_library,
+                    color: colors.primary,
+                  ),
                   title: const Text('Seleccionar de galería'),
                   onTap: () => Navigator.pop(
                     sheetContext,
@@ -115,7 +145,9 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
         );
       },
     );
+
     if (source == null) return;
+
     try {
       final seleccionada = await _imagePicker.pickImage(
         source: source,
@@ -123,6 +155,7 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
         maxHeight: 1800,
         imageQuality: 85,
       );
+
       if (seleccionada != null && mounted) {
         setState(() {
           _imagen = File(seleccionada.path);
@@ -131,7 +164,9 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo seleccionar la imagen')),
+          const SnackBar(
+            content: Text('No se pudo seleccionar la imagen'),
+          ),
         );
       }
     }
@@ -140,39 +175,59 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
   Future<void> _publicar() async {
     final titulo = _tituloController.text.trim();
     final contenido = _contenidoController.text.trim();
+
     if (titulo.isEmpty || contenido.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Escribe un título y una descripción')),
+        const SnackBar(
+          content: Text('Escribe un título y una descripción'),
+        ),
       );
       return;
     }
-    setState(() => _publicando = true);
-    await Future<void>.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
-    Navigator.pop(context, {
-      'titulo': titulo,
-      'contenido': contenido,
-      'imagen': _imagen,
-      'categoria': _categoria,
+
+    setState(() {
+      _publicando = true;
     });
+
+    await Future<void>.delayed(
+      const Duration(milliseconds: 700),
+    );
+
+    if (!mounted) return;
+
+    Navigator.pop(
+      context,
+      {
+        'titulo': titulo,
+        'contenido': contenido,
+        'imagen': _imagen,
+        'categoria': _categoria,
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+
     final authState = context.watch<AuthBloc>().state;
     final usuario = authState is AuthSuccess && authState.data is Usuario
         ? authState.data as Usuario
         : null;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_editando ? 'Editar publicación' : 'Crear publicación'),
+        title: Text(
+          _editando ? 'Editar publicación' : 'Crear publicación',
+        ),
         actions: [
           TextButton(
             onPressed: _publicando ? null : _publicar,
             child: Text(
               _editando ? 'Guardar' : 'Publicar',
-              style: TextStyle(fontWeight: FontWeight.w800),
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
         ],
@@ -184,9 +239,9 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
           children: [
             Text(
               'Tipo de publicación',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
             ),
             const SizedBox(height: 10),
             Wrap(
@@ -200,7 +255,11 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
                     label: Text(categoria.$2),
                     onSelected: _publicando
                         ? null
-                        : (_) => setState(() => _categoria = categoria.$1),
+                        : (_) {
+                            setState(() {
+                              _categoria = categoria.$1;
+                            });
+                          },
                   ),
               ],
             ),
@@ -223,7 +282,10 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
                   backgroundColor: colors.primaryContainer,
                   backgroundImage: avatarProvider(usuario?.fotoPerfil),
                   child: usuario?.fotoPerfil == null
-                      ? Icon(Icons.person_rounded, color: colors.primary)
+                      ? Icon(
+                          Icons.person_rounded,
+                          color: colors.primary,
+                        )
                       : null,
                 ),
                 const SizedBox(width: 12),
@@ -244,32 +306,28 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
             ),
             if (_imagen != null || _imagenExistenteUrl != null) ...[
               const SizedBox(height: 12),
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: _imagen != null
-                        ? Image.file(
-                            _imagen!,
-                            width: double.infinity,
-                            height: 250,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.network(
-                            _imagenExistenteUrl!,
-                            width: double.infinity,
-                            height: 250,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Container(
-                              height: 250,
-                              color: colors.surfaceContainerHighest,
-                              child: const Center(
-                                child: Icon(Icons.broken_image_outlined),
-                              ),
-                            ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: _imagen != null
+                    ? Image.file(
+                        _imagen!,
+                        width: double.infinity,
+                        height: 250,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.network(
+                        _imagenExistenteUrl!,
+                        width: double.infinity,
+                        height: 250,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 250,
+                          color: colors.surfaceContainerHighest,
+                          child: const Center(
+                            child: Icon(Icons.broken_image_outlined),
                           ),
-                  ),
-                ],
+                        ),
+                      ),
               ),
             ],
             const SizedBox(height: 16),
@@ -278,8 +336,8 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
                   ? 'Adjuntar fotografía'
                   : 'Cambiar fotografía',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+                    fontWeight: FontWeight.w800,
+                  ),
             ),
             const SizedBox(height: 12),
             Material(
@@ -300,19 +358,12 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: colors.primary.withValues(alpha: .1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          _imagen == null && _imagenExistenteUrl == null
-                              ? Icons.add_a_photo_outlined
-                              : Icons.change_circle_outlined,
-                          size: 34,
-                          color: colors.primary,
-                        ),
+                      Icon(
+                        _imagen == null && _imagenExistenteUrl == null
+                            ? Icons.add_a_photo_outlined
+                            : Icons.change_circle_outlined,
+                        size: 34,
+                        color: colors.primary,
                       ),
                       const SizedBox(height: 10),
                       Text(
@@ -340,7 +391,9 @@ class _CrearPublicacionScreenState extends State<CrearPublicacionScreen> {
             ),
             if (_publicando) ...[
               const SizedBox(height: 24),
-              const Center(child: CircularProgressIndicator()),
+              const Center(
+                child: CircularProgressIndicator(),
+              ),
             ],
           ],
         ),

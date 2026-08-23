@@ -46,12 +46,14 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
     String? categoria,
     int? grupoId,
     String? imagenPath,
+    Map<String, String>? datosAdopcion,
   }) async {
     final formData = FormData.fromMap({
       'titulo': titulo,
       'contenido': contenido,
       if (categoria != null) 'categoria': categoria,
       if (grupoId != null) 'grupo_id': grupoId,
+      if (datosAdopcion != null) ...datosAdopcion,
       if (imagenPath != null && imagenPath.isNotEmpty)
         'imagen': await MultipartFile.fromFile(
           imagenPath,

@@ -1223,49 +1223,51 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: _fieldBackground,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: _otraRazaError != null
-                  ? Colors.red
-                  : Theme.of(context).colorScheme.outline,
-              width: _otraRazaError != null ? 2 : 1,
+        TextField(
+          controller: _otraRazaController,
+          onChanged: _validarOtraRaza,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: _fieldBackground,
+            hintText: 'Escribe la raza del animal',
+            hintStyle: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-          ),
-          child: TextField(
-            controller: _otraRazaController,
-            onChanged: _validarOtraRaza,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
-              hintText: 'Escribe la raza del animal',
-              hintStyle: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 18,
+              vertical: 16,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
               ),
             ),
-            style: TextStyle(
-              color: _otraRazaError != null
-                  ? Colors.red
-                  : Theme.of(context).colorScheme.onSurface,
-              fontSize: 14,
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide(color: _accent, width: 2),
             ),
+            errorText: _otraRazaError,
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.error,
+                width: 2,
+              ),
+            ),
+          ),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: 15,
           ),
         ),
-        if (_otraRazaError != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            _otraRazaError!,
-            style: const TextStyle(
-              color: Colors.red,
-              fontSize: 11,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ],
       ],
     );
   }

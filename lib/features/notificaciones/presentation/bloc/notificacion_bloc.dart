@@ -17,12 +17,17 @@ class NotificacionBloc extends Bloc<NotificacionEvent, NotificacionState> {
   }
 
   Future<void> _onCargar(CargarNotificaciones event, Emitter<NotificacionState> emit) async {
-    emit(NotificacionLoading());
+    final estadoAnterior = state;
+    if (estadoAnterior is! NotificacionLoaded) emit(NotificacionLoading());
     try {
       final notificaciones = await repository.obtenerNotificaciones();
       emit(NotificacionLoaded(notificaciones));
     } catch (e) {
-      emit(NotificacionError(mensajeDeError(e)));
+      if (estadoAnterior is NotificacionLoaded) {
+        emit(estadoAnterior);
+      } else {
+        emit(NotificacionError(mensajeDeError(e)));
+      }
     }
   }
 

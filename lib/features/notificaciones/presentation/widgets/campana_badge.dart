@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -14,15 +16,22 @@ class CampanaBadge extends StatefulWidget {
 
 class _CampanaBadgeState extends State<CampanaBadge>
     with WidgetsBindingObserver {
+  Timer? _temporizador;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _recargar());
+    _temporizador = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _recargar(),
+    );
   }
 
   @override
   void dispose() {
+    _temporizador?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

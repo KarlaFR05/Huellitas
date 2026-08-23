@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../home/presentation/widgets/bottom_bar.dart';
 import '../../../notificaciones/presentation/widgets/campana_badge.dart';
 import 'grupos_screen.dart';
+import 'adopciones_screen.dart';
 import 'publicaciones_screen.dart';
+import '../../data/repositories/adopciones_repository.dart';
+import '../bloc/adopciones_bloc.dart';
+import '../bloc/adopciones_event.dart';
 
 class ForoScreen extends StatelessWidget {
   const ForoScreen({super.key});
+
+  static final AdopcionesRepositoryMemoria _adopcionesRepository =
+      AdopcionesRepositoryMemoria();
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         extendBody: true,
         backgroundColor: colors.surface,
@@ -83,13 +91,23 @@ class ForoScreen extends StatelessWidget {
                 tabs: const [
                   Tab(text: 'Publicaciones'),
                   Tab(text: 'Grupos'),
+                  Tab(text: 'Adopciones'),
                 ],
               ),
             ),
           ),
         ),
-        body: const TabBarView(
-          children: [PublicacionesScreen(), GruposScreen()],
+        body: TabBarView(
+          children: [
+            const PublicacionesScreen(),
+            const GruposScreen(),
+            BlocProvider(
+              create: (_) => AdopcionesBloc(
+                repository: _adopcionesRepository,
+              )..add(const AdopcionesSolicitadas()),
+              child: const AdopcionesScreen(),
+            ),
+          ],
         ),
         bottomNavigationBar: const BottomBarWidget(currentIndex: 1),
       ),
