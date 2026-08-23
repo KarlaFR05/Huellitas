@@ -35,7 +35,6 @@ class _VerificacionFormState extends State<VerificacionForm> {
   @override
   void initState() {
     super.initState();
-    context.read<AuthBloc>().add(EnviarCodigoEvent(correo: widget.correo));
     _iniciarCooldown();
   }
 
