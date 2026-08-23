@@ -10,7 +10,6 @@ String mensajeDeError(
     case DioExceptionType.connectionTimeout:
     case DioExceptionType.sendTimeout:
     case DioExceptionType.receiveTimeout:
-    case DioExceptionType.transformTimeout:
       return 'La conexión tardó demasiado. Inténtalo nuevamente.';
     case DioExceptionType.connectionError:
       return 'No se pudo conectar con el servidor. Revisa tu conexión.';

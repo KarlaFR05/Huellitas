@@ -1,16 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../auth/domain/entities/usuario.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../home/presentation/widgets/bottom_bar.dart';
 import '../../../notificaciones/presentation/widgets/campana_badge.dart';
 import 'grupos_screen.dart';
+import 'mi_organizacion_screen.dart';
 import 'publicaciones_screen.dart';
 
 class ForoScreen extends StatelessWidget {
   const ForoScreen({super.key});
 
+  bool _esOrganizacion(BuildContext context) {
+    return true;
+    /*final state = context.watch<AuthBloc>().state;
+    return state is AuthSuccess &&
+        state.data is Usuario &&
+        (state.data as Usuario).esOrganizacion;*/
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final esOrganizacion = _esOrganizacion(context);
 
     return DefaultTabController(
       length: 2,
@@ -80,16 +94,18 @@ class ForoScreen extends StatelessWidget {
                   ),
                   insets: const EdgeInsets.symmetric(horizontal: 8),
                 ),
-                tabs: const [
-                  Tab(text: 'Publicaciones'),
-                  Tab(text: 'Grupos'),
+                tabs: [
+                  const Tab(text: 'Publicaciones'),
+                  Tab(text: esOrganizacion ? 'Mi organización' : 'Grupos'),
                 ],
               ),
             ),
           ),
         ),
-        body: const TabBarView(
-          children: [PublicacionesScreen(), GruposScreen()],
+        body: TabBarView(
+          children: esOrganizacion
+              ? const [PublicacionesScreen(), MiOrganizacionScreen()]
+              : const [PublicacionesScreen(), GruposScreen()],
         ),
         bottomNavigationBar: const BottomBarWidget(currentIndex: 1),
       ),

@@ -10,6 +10,12 @@ import '../bloc/donacion_state.dart';
 import '../widgets/categoria_selector.dart';
 import '../widgets/organizacion_card.dart';
 
+// ✅ IMPORTS NUEVOS para detectar si es organización
+import '../../../auth/domain/entities/usuario.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import 'donaciones_organizacion_screen.dart';
+
 class DonacionesScreen extends StatefulWidget {
   const DonacionesScreen({super.key});
 
@@ -207,6 +213,11 @@ class _DonacionesScreenState extends State<DonacionesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ NUEVO: si es organización, redirige al panel de donaciones de organización
+    if (_esOrganizacion(context)) {
+      return const DonacionesOrganizacionScreen();
+    }
+
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -350,5 +361,17 @@ class _DonacionesScreenState extends State<DonacionesScreen> {
       ),
       bottomNavigationBar: const BottomBarWidget(currentIndex: 2),
     );
+  }
+
+  //detecta si el usuario es organización
+  bool _esOrganizacion(BuildContext context) {
+    return true; // TEMPORAL para pruebas
+
+    /*
+    final state = context.watch<AuthBloc>().state;
+    return state is AuthSuccess &&
+        state.data is Usuario &&
+        (state.data as Usuario).esOrganizacion;
+    */
   }
 }

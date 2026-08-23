@@ -77,6 +77,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         apellidos: event.apellidos,
         numTelefono: event.numTelefono,
         fechaNacimiento: event.fechaNacimiento,
+        organizacion: event.organizacion,
       );
       emit(AuthSuccess(message: 'Registro exitoso', data: usuario));
     } catch (e) {
@@ -132,7 +133,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  /// Revisa el claim "exp" del JWT sin depender de paquetes externos.
   bool _tokenExpirado(String token) {
     try {
       final partes = token.split('.');

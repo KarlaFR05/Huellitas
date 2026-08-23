@@ -305,6 +305,7 @@ class _PasswordFormState extends State<PasswordForm> {
                                 apellidos: args['apellidos'],
                                 numTelefono: args['telefono'],
                                 fechaNacimiento: args['fechaNacimiento'],
+                                organizacion: args['organizacion'] as Map<String, dynamic>?
                               ),
                             );
                           },

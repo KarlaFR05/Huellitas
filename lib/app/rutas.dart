@@ -92,6 +92,8 @@ import 'package:huellitas/features/notificaciones/presentation/screens/notificac
 import 'package:huellitas/features/foro/presentation/screens/publicacion_detalle_screen.dart';
 import 'package:huellitas/features/foro/presentation/screens/administrar_grupo_por_id_screen.dart';
 
+import 'package:huellitas/features/auth/presentation/screens/registro_organizacion_screen.dart';
+
 final GoRouter router = GoRouter(
   initialLocation: '/',
   routes: [
@@ -105,6 +107,11 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/password',
       builder: (context, state) => const PasswordScreen(),
+    ),
+
+    GoRoute(
+      path: '/registro-organizacion',
+      builder: (context, state) => const RegistroOrganizacionScreen(),
     ),
 
     GoRoute(

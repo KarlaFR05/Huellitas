@@ -34,4 +34,6 @@ class Usuario {
     this.estado,
     this.fotoPerfil,
   });
+  bool get esOrganizacion =>
+    rolUsuario.trim().toLowerCase() == 'organizacion';
 }
