@@ -156,78 +156,58 @@ class _FiltroReportesSheetState extends State<FiltroReportesSheet> {
             const SizedBox(height: 20),
             _SeccionTitulo(texto: 'ANIMAL'),
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: ReportAnimal.values.map((a) {
-                final sel = _animales.contains(a);
-                return FilterChip(
-                  selected: sel,
-                  onSelected: (_) => _toggleAnimal(a),
-                  showCheckmark: false,
-                  avatar: Text(
-                    a.shortLabel,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  label: Text(a.label),
-                  labelStyle: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: sel
-                        ? theme.colorScheme.onPrimary
-                        : theme.colorScheme.onSurface,
-                  ),
-                  selectedColor: theme.colorScheme.primary,
-                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                  side: BorderSide.none,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final ancho = (constraints.maxWidth - 10) / 2;
+                return Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: ReportAnimal.values.map((a) {
+                    final sel = _animales.contains(a);
+                    return _FiltroPill(
+                      width: ancho,
+                      selected: sel,
+                      color: theme.colorScheme.primary,
+                      leading: Text(
+                        a.shortLabel,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      label: a.label,
+                      onTap: () => _toggleAnimal(a),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             ),
             const SizedBox(height: 22),
             _SeccionTitulo(texto: 'NIVEL DE URGENCIA'),
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: ReportUrgency.values.map((u) {
-                final sel = _urgencias.contains(u);
-                return FilterChip(
-                  selected: sel,
-                  onSelected: (_) => _toggleUrgencia(u),
-                  showCheckmark: false,
-                  avatar: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final ancho = (constraints.maxWidth - 10) / 2;
+                return Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: ReportUrgency.values.map((u) {
+                    final sel = _urgencias.contains(u);
+                    return _FiltroPill(
+                      width: ancho,
+                      selected: sel,
                       color: u.color,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  label: Text(u.label),
-                  labelStyle: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: sel
-                        ? theme.colorScheme.onPrimary
-                        : theme.colorScheme.onSurface,
-                  ),
-                  selectedColor: u.color,
-                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                  side: BorderSide.none,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
+                      leading: Container(
+                        width: 11,
+                        height: 11,
+                        decoration: BoxDecoration(
+                          color: u.color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      label: u.label,
+                      onTap: () => _toggleUrgencia(u),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             ),
             const SizedBox(height: 26),
             ElevatedButton(
@@ -280,4 +260,66 @@ class ResultadoFiltroReportes {
   final Set<ReportUrgency> urgencias;
 
   const ResultadoFiltroReportes(this.animales, this.urgencias);
+}
+
+class _FiltroPill extends StatelessWidget {
+  final double width;
+  final bool selected;
+  final Color color;
+  final Widget leading;
+  final String label;
+  final VoidCallback onTap;
+
+  const _FiltroPill({
+    required this.width,
+    required this.selected,
+    required this.color,
+    required this.leading,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return SizedBox(
+      width: width,
+      height: 44,
+      child: Material(
+        color: selected ? color.withValues(alpha: .16) : colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(
+            color: selected
+                ? color
+                : colors.outlineVariant.withValues(alpha: .6),
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 13),
+            child: Row(
+              children: [
+                leading,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                      color: selected ? color : colors.onSurface,
+                    ),
+                  ),
+                ),
+                if (selected) Icon(Icons.check_rounded, color: color, size: 19),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
