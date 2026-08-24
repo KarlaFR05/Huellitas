@@ -40,18 +40,51 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
     super.dispose();
   }
 
+  void _mostrarAyuda(String titulo, String descripcion) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(
+              Icons.info_outline_rounded,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 10),
+            Expanded(child: Text(titulo)),
+          ],
+        ),
+        content: Text(
+          descripcion,
+          style: const TextStyle(fontSize: 14, height: 1.5),
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Entendido'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> seleccionarFecha() async {
     final fecha = await showDatePicker(
       context: context,
-      initialDate: DateTime(2015),
-      firstDate: DateTime(1900),
+      initialDate: fechaFundacion ?? DateTime(2015),
+      firstDate: DateTime(1950),
       lastDate: DateTime.now(),
     );
 
     if (fecha != null) {
       setState(() {
         fechaFundacion = fecha;
-        fechaController.text = "${fecha.day}/${fecha.month}/${fecha.year}";
+        fechaController.text =
+            "${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}";
       });
     }
   }
@@ -60,19 +93,16 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
 
-    // Paso 1: validando
     setState(() => _paso = _Paso.validando);
-    await Future.delayed(const Duration(seconds: 2)); // ⏳ simulado (luego backend)
+    await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
 
-    // Paso 2: validado
     setState(() => _paso = _Paso.validado);
     await Future.delayed(const Duration(milliseconds: 1600));
 
     if (!mounted) return;
 
-    // Paso 3: ir a contraseña con todos los datos
     context.go('/password', extra: {
       ...widget.datosUsuario,
       'organizacion': {
@@ -93,8 +123,9 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
     return _buildFormulario();
   }
 
-  // ========== FORMULARIO ==========
   Widget _buildFormulario() {
+    final colors = Theme.of(context).colorScheme;
+
     return Form(
       key: _formKey,
       child: Column(
@@ -110,18 +141,25 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Ayudanos a salvar más vidas',
+              'Ayúdanos a salvar más vidas',
               style: TextStyle(
                 fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                color: colors.onSurfaceVariant,
               ),
             ),
           ),
           const SizedBox(height: 24),
 
+          // NOMBRE DE LA ORGANIZACIÓN
           TextFormField(
             controller: nombreOrgController,
             textCapitalization: TextCapitalization.words,
+            maxLength: 80,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(
+                RegExp(r"[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9 .,'&\-]"),
+              ),
+            ],
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Ingresa el nombre de la organización';
@@ -129,47 +167,91 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
               if (value.trim().length < 3) {
                 return 'Mínimo 3 caracteres';
               }
+              if (RegExp(r'^[0-9.\-]+$').hasMatch(value.trim())) {
+                return 'El nombre no puede ser solo números';
+              }
               return null;
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Nombre de la Organización',
-              prefixIcon: Icon(Icons.pets_outlined),
+              prefixIcon: const Icon(Icons.pets_outlined),
+              /*counterText: '',
+              suffixIcon: IconButton(
+                icon: Icon(Icons.info_outline_rounded, color: colors.primary),
+                onPressed: () => _mostrarAyuda(
+                  'Nombre de la Organización',
+                  'El nombre público con el que tu refugio, asociación o grupo de rescate será conocido en Huellitas.\n\nEjemplos:\n• Patitas Felices A.C.\n• Refugio Esperanza Animal\n• Rescate Canino Puebla',
+                ),
+              ),*/
             ),
           ),
           const SizedBox(height: 16),
 
+          //REGISTRO LEGAL
           TextFormField(
             controller: registroLegalController,
+            textCapitalization: TextCapitalization.characters,
+            maxLength: 30,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(
+                RegExp(r'[a-zA-Z0-9\-./ ]'),
+              ),
+            ],
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Ingresa el registro o licencia legal';
               }
+              if (value.trim().length < 5) {
+                return 'Mínimo 5 caracteres';
+              }
               return null;
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Registro/Licencia Legal',
-              prefixIcon: Icon(Icons.verified_user_outlined),
+              prefixIcon: const Icon(Icons.verified_user_outlined),
+              counterText: '',
+              suffixIcon: IconButton(
+                icon: Icon(Icons.info_outline_rounded, color: colors.primary),
+                onPressed: () => _mostrarAyuda(
+                  'Registro o Licencia Legal',
+                  'Número oficial que identifica legalmente a tu organización. Puede ser:\n\n• RFC (ej. PFA123456ABC)\n• Número de acta constitutiva\n• Registro ante la institución correspondiente\n• CLUNI o folio de IAP\n\nSi tu organización está en proceso de registro, puedes usar un identificador temporal.',
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 16),
 
+          // TIPOS DE ANIMALES
           TextFormField(
             controller: tiposAnimalesController,
             textCapitalization: TextCapitalization.sentences,
+            maxLength: 150,
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Indica qué tipos de animales rescatan';
               }
+              if (value.trim().length < 3) {
+                return 'Mínimo 3 caracteres';
+              }
               return null;
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Tipos de Animales Rescatados',
-              hintText: 'Ej. Perros, gatos, aves...',
-              prefixIcon: Icon(Icons.emoji_nature_outlined),
+              hintText: 'Ej. Perros, gatos...',
+              prefixIcon: const Icon(Icons.emoji_nature_outlined),
+              counterText: '',
+              suffixIcon: IconButton(
+                icon: Icon(Icons.info_outline_rounded, color: colors.primary),
+                onPressed: () => _mostrarAyuda(
+                  'Tipos de Animales',
+                  'Especifica qué especies recibe y atiende tu organización. Puedes listar varias separadas por comas.\n\nEjemplos:\n• Perros y gatos\n• Aves, conejos y roedores\n• Fauna silvestre local',
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 16),
 
+          // TELÉFONO DE EMERGENCIA
           TextFormField(
             controller: telefonoController,
             keyboardType: TextInputType.phone,
@@ -184,34 +266,57 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
               if (value.length != 10) {
                 return 'Debe contener 10 dígitos';
               }
+              if (value.startsWith('0') || value.startsWith('1')) {
+                return 'El número no puede iniciar con 0 o 1';
+              }
+              // Verificar que no sean todos iguales
+              if (RegExp(r'^(\d)\1{9}$').hasMatch(value)) {
+                return 'Ingresa un número válido';
+              }
               return null;
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Teléfono de Emergencia',
-              prefixIcon: Icon(Icons.phone_outlined),
+              prefixIcon: const Icon(Icons.phone_outlined),
+              suffixIcon: IconButton(
+                icon: Icon(Icons.info_outline_rounded, color: colors.primary),
+                onPressed: () => _mostrarAyuda(
+                  'Teléfono de Emergencia',
+                  'Número al que rescatistas y usuarios podrán llamar en caso de emergencias con animales.\n\n• Debe ser un número activo de 10 dígitos\n• Puede ser celular o fijo\n• Se mostrará públicamente en el perfil de tu organización',
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 16),
-
+          //Coreo
           TextFormField(
             controller: correoController,
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Ingresa el correo institucional';
+              if (value == null || value.trim().isEmpty) {
+                return 'Ingresa el correo';
               }
-              if (!RegExp(r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+              if (!RegExp(r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$')
+                  .hasMatch(value.trim())) {
                 return 'Correo inválido';
               }
               return null;
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Correo Electrónico Institucional',
-              prefixIcon: Icon(Icons.email_outlined),
+              prefixIcon: const Icon(Icons.email_outlined),
+              suffixIcon: IconButton(
+                icon: Icon(Icons.info_outline_rounded, color: colors.primary),
+                onPressed: () => _mostrarAyuda(
+                  'Correo Electrónico',
+                  'Ingresa un correo electrónico válido que se usará para comunicaciones y notificaciones.\n\nEjemplos:\n• contacto@patitasfelices.org\n• info@rescateanimal.mx\n• tucorreo@gmail.com\n\nSe recomienda usar un correo institucional, pero también puedes usar uno personal si tu organización está en proceso de formalización.',
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 16),
 
+          //FECHA DE FUNDACIÓN
           TextFormField(
             controller: fechaController,
             readOnly: true,
@@ -220,11 +325,29 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
               if (value == null || value.isEmpty) {
                 return 'Selecciona la fecha de fundación';
               }
+              if (fechaFundacion == null) {
+                return 'Selecciona una fecha válida';
+              }
+              final hoy = DateTime.now();
+              if (fechaFundacion!.isAfter(hoy)) {
+                return 'La fecha no puede ser futura';
+              }
+              final antiguedad = hoy.year - fechaFundacion!.year;
+              if (antiguedad > 150) {
+                return 'La fecha es demasiado antigua';
+              }
               return null;
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Fecha de Fundación',
-              prefixIcon: Icon(Icons.calendar_month),
+              prefixIcon: const Icon(Icons.calendar_month),
+              suffixIcon: IconButton(
+                icon: Icon(Icons.info_outline_rounded, color: colors.primary),
+                onPressed: () => _mostrarAyuda(
+                  'Fecha de Fundación',
+                  'Día en que tu organización inició formalmente sus actividades de rescate o protección animal.\n\nSi no recuerdas la fecha exacta, usa el mes y año aproximado de inicio de operaciones.',
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 30),
@@ -241,7 +364,6 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
     );
   }
 
-  // ========== VALIDANDO ==========
   Widget _buildValidando() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 80),
@@ -271,7 +393,6 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
     );
   }
 
-  // ========== VALIDADO ==========
   Widget _buildValidado() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 80),
