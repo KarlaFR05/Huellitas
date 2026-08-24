@@ -3,6 +3,7 @@ import 'app/app.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/bloc/auth_state.dart';
 import 'features/auth/data/datasources/auth_remote_datasource_impl.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/usecases/registro_usecase.dart';
@@ -10,6 +11,7 @@ import 'features/auth/domain/usecases/login_usecase.dart';
 import 'features/auth/domain/usecases/enviar_codigo_usecase.dart';
 import 'features/auth/domain/usecases/confirmar_codigo_usecase.dart';
 import 'core/storage/token_storage_service.dart';
+import 'core/location/usuario_location_sync_service.dart';
 import 'features/completar_registro/data/datasources/completar_perfil_remote_datasource.dart';
 import 'features/completar_registro/data/repositories/completar_perfil_repository_impl.dart';
 import 'features/completar_registro/presentation/bloc/completar_perfil_bloc.dart';
@@ -58,6 +60,7 @@ void main() {
   final authDataSource = AuthRemoteDataSourceImpl(dio);
   final authRepository = AuthRepositoryImpl(authDataSource);
   final tokenStorage = TokenStorageService();
+  final usuarioLocationSync = UsuarioLocationSyncService(dio);
   final completarPerfilDataSource = CompletarPerfilRemoteDataSourceImpl(dio);
   final completarPerfilRepository = CompletarPerfilRepositoryImpl(
     completarPerfilDataSource,
@@ -184,11 +187,25 @@ void main() {
           ),
           BlocProvider(
             create: (context) =>
-                NotificacionBloc(repository: notificacionRepository)
-                  ..add(CargarNotificaciones()),
+                NotificacionBloc(repository: notificacionRepository),
           ),
         ],
-        child: const HuellitasApp(),
+        child: BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) async {
+            final notificaciones = context.read<NotificacionBloc>();
+            if (state is AuthSuccess) {
+              final token = await tokenStorage.obtenerToken();
+              if (token != null && context.mounted) {
+                await usuarioLocationSync.sincronizar();
+                if (!context.mounted) return;
+                notificaciones.add(CargarNotificaciones());
+              }
+            } else if (state is AuthInitial) {
+              notificaciones.add(LimpiarNotificaciones());
+            }
+          },
+          child: const HuellitasApp(),
+        ),
       ),
     ),
   );

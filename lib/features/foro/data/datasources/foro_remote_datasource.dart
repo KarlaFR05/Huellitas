@@ -20,6 +20,7 @@ abstract class ForoRemoteDataSource {
     String? categoria,
     int? grupoId,
     String? imagenPath,
+    Map<String, String>? datosAdopcion,
   });
   Future<PublicacionModel> actualizarPublicacion(
     int id, {

@@ -43,6 +43,11 @@ class PublicacionModel {
     final usuario = json['usuario'] is Map
         ? Map<String, dynamic>.from(json['usuario'] as Map)
         : const <String, dynamic>{};
+    final adopcion = json['datos_adopcion'] is Map
+        ? Map<String, dynamic>.from(json['datos_adopcion'] as Map)
+        : json;
+    final esAdopcion = json['categoria'] == 'adopcion';
+    final nombreMascota = adopcion['nombre_mascota'] ?? adopcion['mascota_nombre'];
     return PublicacionModel(
       id: json['publicacion_id'] as int,
       usuarioId: _enteroOpcional(

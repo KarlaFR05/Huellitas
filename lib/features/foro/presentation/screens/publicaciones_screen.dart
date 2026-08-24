@@ -30,8 +30,14 @@ class PublicacionesScreen extends StatelessWidget {
   }
 }
 
-class _PublicacionesView extends StatelessWidget {
+class _PublicacionesView extends StatefulWidget {
   const _PublicacionesView();
+
+  @override
+  State<_PublicacionesView> createState() => _PublicacionesViewState();
+}
+
+class _PublicacionesViewState extends State<_PublicacionesView> {
 
   static const _categorias =
       <
@@ -42,12 +48,6 @@ class _PublicacionesView extends StatelessWidget {
           CategoriaPublicacion categoria,
         })
       >[
-        (
-          icon: Icons.pets_rounded,
-          nombre: 'Adopción',
-          color: Color(0xFFFF9F2F),
-          categoria: CategoriaPublicacion.adopcion,
-        ),
         (
           icon: Icons.vaccines_rounded,
           nombre: 'Vacunación',
@@ -96,11 +96,14 @@ class _PublicacionesView extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: BlocBuilder<ForoBloc, ForoState>(
         builder: (context, state) {
-          final publicacionesVisibles = state.categoria == null
+          var publicacionesVisibles = state.categoria == null
               ? state.publicaciones
               : state.publicaciones
                     .where((p) => p.categoria == state.categoria)
                     .toList();
+          publicacionesVisibles = publicacionesVisibles
+              .where((p) => p.categoria != CategoriaPublicacion.adopcion)
+              .toList();
 
           return RefreshIndicator(
             onRefresh: () async {

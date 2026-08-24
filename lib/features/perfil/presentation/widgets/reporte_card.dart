@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../reporte/domain/entities/reporte.dart';
+import '../../../reporte/domain/entities/tipo_urgencia.dart';
 
 class ReporteCard extends StatelessWidget {
   const ReporteCard({super.key, required this.reporte, this.onTap});
@@ -8,11 +9,13 @@ class ReporteCard extends StatelessWidget {
   final Reporte reporte;
   final VoidCallback? onTap;
 
-  ({String texto, Color color}) get _estado {
-    return switch (reporte.faseActualId) {
-      3 => (texto: 'Resuelto', color: const Color(0xFF36B985)),
-      2 => (texto: 'En seguimiento', color: const Color(0xFFFFB52E)),
-      _ => (texto: 'En riesgo', color: const Color(0xFFFF5C63)),
+  ({String texto, Color color}) get _urgencia {
+    return switch (reporte.urgenciaId) {
+      1 => (texto: TipoUrgencia.baja.label, color: const Color(0xFFD6A21D)),
+      2 => (texto: TipoUrgencia.media.label, color: const Color(0xFFF39A24)),
+      3 => (texto: TipoUrgencia.alta.label, color: const Color(0xFFE85D5D)),
+      4 => (texto: TipoUrgencia.critica.label, color: const Color(0xFFB3261E)),
+      _ => (texto: 'Sin urgencia', color: const Color(0xFF6B7280)),
     };
   }
 
@@ -25,7 +28,7 @@ class ReporteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final estado = _estado;
+    final urgencia = _urgencia;
     return SizedBox(
       width: 252,
       child: Card(
@@ -47,11 +50,11 @@ class ReporteCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                       decoration: BoxDecoration(
-                        color: estado.color,
+                        color: urgencia.color,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        estado.texto,
+                        urgencia.texto,
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
                       ),
                     ),

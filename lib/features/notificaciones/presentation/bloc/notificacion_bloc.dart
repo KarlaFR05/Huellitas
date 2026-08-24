@@ -10,18 +10,24 @@ class NotificacionBloc extends Bloc<NotificacionEvent, NotificacionState> {
 
   NotificacionBloc({required this.repository}) : super(NotificacionInitial()) {
     on<CargarNotificaciones>(_onCargar);
+    on<LimpiarNotificaciones>((event, emit) => emit(NotificacionInitial()));
     on<MarcarComoLeida>(_onMarcarLeida);
     on<MarcarTodasLeidas>(_onMarcarTodas);
     on<GuardarFcmToken>(_onGuardarToken);
   }
 
   Future<void> _onCargar(CargarNotificaciones event, Emitter<NotificacionState> emit) async {
-    emit(NotificacionLoading());
+    final estadoAnterior = state;
+    if (estadoAnterior is! NotificacionLoaded) emit(NotificacionLoading());
     try {
       final notificaciones = await repository.obtenerNotificaciones();
       emit(NotificacionLoaded(notificaciones));
     } catch (e) {
-      emit(NotificacionError(mensajeDeError(e)));
+      if (estadoAnterior is NotificacionLoaded) {
+        emit(estadoAnterior);
+      } else {
+        emit(NotificacionError(mensajeDeError(e)));
+      }
     }
   }
 

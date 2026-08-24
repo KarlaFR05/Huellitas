@@ -184,6 +184,9 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
         break;
 
       case 'nuevo_miembro':
+      case 'nuevo_miembro_grupo':
+      case 'miembro_grupo':
+      case 'miembro_unido':
       case 'aprobar_miembro':
         if (grupoId != null) {
           context.push('/administrar-grupo/$grupoId');
