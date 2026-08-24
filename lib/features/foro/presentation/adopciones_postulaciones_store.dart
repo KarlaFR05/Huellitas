@@ -9,8 +9,8 @@ class PostulacionAdopcion {
     this.fechaRegistro,
     this.ubicacion,
     this.insigniasRescate = 0,
-    this.reportesHechos = 0,
-    this.montoDonado = 0,
+    this.insigniasReporte = 0,
+    this.insigniasDonacion = 0,
     this.fotoPerfil,
   });
 
@@ -32,8 +32,8 @@ class PostulacionAdopcion {
   final DateTime? fechaRegistro;
   final String? ubicacion;
   final int insigniasRescate;
-  final int reportesHechos;
-  final double montoDonado;
+  final int insigniasReporte;
+  final int insigniasDonacion;
   final String? fotoPerfil;
 }
 

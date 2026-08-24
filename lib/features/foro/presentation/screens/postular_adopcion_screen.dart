@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
-import '../../../donaciones/data/datasources/historial_remote_datasource.dart';
-import '../../../donaciones/domain/entities/donacion.dart';
 import '../../../insignias/data/repositories/insignia_repository_impl.dart';
 import '../../../insignias/domain/entities/categoria_insignia.dart';
 import '../../../insignias/domain/entities/insignia.dart';
-import '../../../reporte/domain/entities/reporte.dart';
-import '../../../reporte/domain/repositories/reporte_repository.dart';
 import '../../domain/entities/adopcion.dart';
 import '../adopciones_postulaciones_store.dart';
 
@@ -126,8 +121,9 @@ class _PostularAdopcionScreenState
         fechaRegistro: usuario?.fechaRegistroUsuario,
         ubicacion: _ubicacionUsuario(usuario),
         insigniasRescate: resumen.insigniasRescate,
-        reportesHechos: resumen.reportesHechos,
-        montoDonado: resumen.montoDonado,
+        insigniasReporte: resumen.insigniasReporte,
+        insigniasDonacion: resumen.insigniasDonacion,
+        porcentajeAptitud: resumen.porcentajeAptitud,
         fotoPerfil: usuario?.fotoPerfil,
       ),
     );
@@ -157,26 +153,45 @@ class _PostularAdopcionScreenState
   Future<_ResumenPostulante> _obtenerResumenPostulante(Usuario? usuario) async {
     if (usuario == null) return const _ResumenPostulante();
     try {
-      final resultados = await Future.wait<dynamic>([
-        context.read<InsigniaRepositoryImpl>().obtenerTodasLasInsignias(usuario.usuarioIdPk).catchError((_) => <CategoriaInsignia, List<Insignia>>{}),
-        context.read<ReporteRepository>().obtenerReportes().catchError((_) => <Reporte>[]),
-        HistorialRemoteDataSourceImpl(context.read<Dio>()).obtenerDonacionesUsuario().catchError((_) => <Donacion>[]),
-      ]);
-      final insignias = resultados[0] as Map<CategoriaInsignia, List<Insignia>>;
-      final reportes = resultados[1] as List<Reporte>;
-      final donaciones = resultados[2] as List<Donacion>;
-      return _ResumenPostulante(
-        insigniasRescate: (insignias[CategoriaInsignia.rescate] ?? const [])
+      final insignias = await context
+          .read<InsigniaRepositoryImpl>()
+          .obtenerTodasLasInsignias(usuario.usuarioIdPk)
+          .catchError((_) => <CategoriaInsignia, List<Insignia>>{});
+      final rescates = (insignias[CategoriaInsignia.rescate] ?? const [])
             .where((insignia) => insignia.obtenida == true)
-            .length,
-        reportesHechos: reportes.where((reporte) => reporte.usuarioId == usuario.usuarioIdPk).length,
-        montoDonado: donaciones
-            .where((donacion) => donacion.usuarioId == 0 || donacion.usuarioId == usuario.usuarioIdPk)
-            .fold<double>(0, (total, donacion) => total + donacion.monto),
+            .length;
+      final donaciones = (insignias[CategoriaInsignia.donacion] ?? const [])
+          .where((insignia) => insignia.obtenida == true)
+          .length;
+      final reportes = (insignias[CategoriaInsignia.reporte] ?? const [])
+          .where((insignia) => insignia.obtenida == true)
+          .length;
+      return _ResumenPostulante(
+        insigniasRescate: rescates,
+        insigniasReporte: reportes,
+        insigniasDonacion: donaciones,
+        porcentajeAptitud: _porcentajePorInsignias(
+          rescates,
+          reportes,
+          donaciones,
+        ),
       );
     } catch (_) {
       return const _ResumenPostulante();
     }
+  }
+
+  int _porcentajePorInsignias(
+    int rescates,
+    int reportes,
+    int donaciones,
+  ) {
+    const totalInsignias = 21;
+    final insigniasObtenidas = rescates + reportes + donaciones;
+    return ((insigniasObtenidas / totalInsignias) * 100)
+        .round()
+        .clamp(0, 100)
+        .toInt();
   }
 
   @override
@@ -350,11 +365,13 @@ class _PostularAdopcionScreenState
 class _ResumenPostulante {
   const _ResumenPostulante({
     this.insigniasRescate = 0,
-    this.reportesHechos = 0,
-    this.montoDonado = 0,
+    this.insigniasReporte = 0,
+    this.insigniasDonacion = 0,
+    this.porcentajeAptitud = 0,
   });
 
   final int insigniasRescate;
-  final int reportesHechos;
-  final double montoDonado;
+  final int insigniasReporte;
+  final int insigniasDonacion;
+  final int porcentajeAptitud;
 }

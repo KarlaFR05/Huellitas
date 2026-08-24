@@ -366,17 +366,17 @@ class _PostulacionCard extends StatelessWidget {
 
                 Expanded(
                   child: _DatoPostulante(
-                    icon: Icons.assignment_outlined,
-                    titulo: 'Reportes\nhechos',
-                    valor: '${postulacion.reportesHechos}',
+                    icon: Icons.report_outlined,
+                    titulo: 'Insignias de\nreporte',
+                    valor: '${postulacion.insigniasReporte}',
                   ),
                 ),
 
                 Expanded(
                   child: _DatoPostulante(
-                    icon: Icons.favorite_rounded,
-                    titulo: 'Donaciones\nrealizadas',
-                    valor: _monto(postulacion.montoDonado),
+                    icon: Icons.volunteer_activism_rounded,
+                    titulo: 'Insignias de\ndonación',
+                    valor: '${postulacion.insigniasDonacion}',
                   ),
                 ),
               ],
@@ -523,8 +523,6 @@ class _PostulacionCard extends StatelessWidget {
             .onSurfaceVariant;
     }
   }
-
-  String _monto(double monto) => '\$${monto.toStringAsFixed(0)}';
 
   String _textoAptitud(int porcentaje) {
     if (porcentaje >= 85) {
