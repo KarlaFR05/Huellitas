@@ -175,19 +175,11 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
             decoration: InputDecoration(
               labelText: 'Nombre de la Organización',
               prefixIcon: const Icon(Icons.pets_outlined),
-              /*counterText: '',
-              suffixIcon: IconButton(
-                icon: Icon(Icons.info_outline_rounded, color: colors.primary),
-                onPressed: () => _mostrarAyuda(
-                  'Nombre de la Organización',
-                  'El nombre público con el que tu refugio, asociación o grupo de rescate será conocido en Huellitas.\n\nEjemplos:\n• Patitas Felices A.C.\n• Refugio Esperanza Animal\n• Rescate Canino Puebla',
-                ),
-              ),*/
             ),
           ),
           const SizedBox(height: 16),
 
-          //REGISTRO LEGAL
+          // REGISTRO LEGAL
           TextFormField(
             controller: registroLegalController,
             textCapitalization: TextCapitalization.characters,
@@ -226,6 +218,10 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
             controller: tiposAnimalesController,
             textCapitalization: TextCapitalization.sentences,
             maxLength: 150,
+            // 👇 AQUÍ SE AGREGA LA VALIDACIÓN PARA BLOQUEAR NÚMEROS
+            inputFormatters: [
+              FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+            ],
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Indica qué tipos de animales rescatan';
@@ -288,7 +284,8 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
             ),
           ),
           const SizedBox(height: 16),
-          //Coreo
+          
+          // CORREO
           TextFormField(
             controller: correoController,
             keyboardType: TextInputType.emailAddress,
@@ -316,7 +313,7 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
           ),
           const SizedBox(height: 16),
 
-          //FECHA DE FUNDACIÓN
+          // FECHA DE FUNDACIÓN
           TextFormField(
             controller: fechaController,
             readOnly: true,
