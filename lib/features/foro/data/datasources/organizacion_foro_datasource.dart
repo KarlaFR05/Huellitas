@@ -34,6 +34,10 @@ class OrganizacionForoDataSourceImpl implements OrganizacionForoDataSource {
       fotoPortada: json['foto_portada'] ?? '',
       verificada: json['verificada'] ?? true,
       cantidadSeguidores: json['cantidad_seguidores'] ?? 0,
+      cantidadRescates: json['cantidad_rescates'] ?? 0,
+      fechaRegistro: json['fecha_registro'] != null
+          ? DateTime.tryParse(json['fecha_registro'])
+          : null,
       esSeguidor: json['es_seguidor'] ?? false,
       tiposAnimales: json['tipos_animales'],
       telefonoEmergencia: json['telefono_emergencia'],
@@ -57,8 +61,10 @@ class OrganizacionForoDataSourceMock implements OrganizacionForoDataSource {
       descripcion:
           'Refugio dedicado al rescate y rehabilitación de perritos en situación de calle. ¡Gracias por apoyarnos!',
       verificada: true,
-        cantidadSeguidores: 128,
-        esSeguidor: false,
+      cantidadSeguidores: 128,
+      cantidadRescates: 48,
+      fechaRegistro: DateTime(2024, 3, 15),
+      esSeguidor: false,
       tiposAnimales: 'Perros y gatos',
       telefonoEmergencia: '2221234567',
       correoInstitucional: 'contacto@patitasfelices.org',
@@ -70,7 +76,7 @@ class OrganizacionForoDataSourceMock implements OrganizacionForoDataSource {
   @override
   Future<List<OrganizacionForo>> obtenerOrganizacionesVerificadas() async {
     await Future.delayed(const Duration(milliseconds: 400));
-    return const [
+    return [
       OrganizacionForo(
         id: 1,
         usuarioId: 101,
@@ -78,6 +84,8 @@ class OrganizacionForoDataSourceMock implements OrganizacionForoDataSource {
         descripcion: 'Refugio y rehabilitación de perritos en situación de calle.',
         verificada: true,
         cantidadSeguidores: 180,
+        cantidadRescates: 48,
+        fechaRegistro: DateTime(2024, 3, 15),
         esSeguidor: false,
         metaMensual: 20000,
         recaudadoMensual: 15850,
@@ -89,6 +97,8 @@ class OrganizacionForoDataSourceMock implements OrganizacionForoDataSource {
         descripcion: 'Comparte fotos de tu mascota en su mood más aesthetic ✨',
         verificada: true,
         cantidadSeguidores: 1528,
+        cantidadRescates: 156,
+        fechaRegistro: DateTime(2023, 8, 20),
         esSeguidor: false,
         metaMensual: 20000,
         recaudadoMensual: 15850,
@@ -100,6 +110,8 @@ class OrganizacionForoDataSourceMock implements OrganizacionForoDataSource {
         descripcion: 'Red nacional de rescate y adopción responsable.',
         verificada: true,
         cantidadSeguidores: 1328,
+        cantidadRescates: 892,
+        fechaRegistro: DateTime(2022, 1, 10),
         esSeguidor: false,
         metaMensual: 50000,
         recaudadoMensual: 31200,

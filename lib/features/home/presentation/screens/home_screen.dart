@@ -36,11 +36,17 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<ReportMapMarker> _markers = [];
+
+  ReportUrgency? _filtroUrgencia;
+
   List<ReportMapMarker> _markersVisibles(bool estaVerificado) {
     final ahora = DateTime.now();
 
     return _markers.where((m) {
       if (!estaVerificado && m.tipoReporte == 'Maltrato animal') {
+        return false;
+      }
+      if (_filtroUrgencia != null && m.urgency != _filtroUrgencia) {
         return false;
       }
 
@@ -102,6 +108,22 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       print('No se pudo iniciar seguimiento de ubicación: $e');
     }
+  }
+
+  // Abre el panel de filtro
+  void _abrirFiltro() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) => _FiltroSheet(
+        seleccionado: _filtroUrgencia,
+        onSeleccionar: (urgencia) {
+          setState(() => _filtroUrgencia = urgencia);
+          Navigator.pop(sheetContext);
+        },
+      ),
+    );
   }
 
   Future<void> _cargarReportes({bool esCargaInicial = false}) async {
@@ -178,21 +200,34 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const _Header(),
                 Expanded(
-                  child: _cargando
-                      ? const Center(child: CircularProgressIndicator())
-                      : BlocBuilder<VerificacionCubit, EstadoVerificacion>(
-                          builder: (context, estadoVerificacion) {
-                            final estaVerificado =
-                                estadoVerificacion ==
-                                EstadoVerificacion.verificado;
-                            return MapWidget(
-                              markers: _markersVisibles(estaVerificado),
-                              userLocation: _userLocation,
-                              mapController: _mapController,
-                              reporteIdInicial: widget.reporteIdInicial,
-                            );
-                          },
+                  child: Stack(
+                    children: [
+                      // Mapa
+                      _cargando
+                          ? const Center(child: CircularProgressIndicator())
+                          : BlocBuilder<VerificacionCubit, EstadoVerificacion>(
+                              builder: (context, estadoVerificacion) {
+                                final estaVerificado =
+                                    estadoVerificacion ==
+                                    EstadoVerificacion.verificado;
+                                return MapWidget(
+                                  markers: _markersVisibles(estaVerificado),
+                                  userLocation: _userLocation,
+                                  mapController: _mapController,
+                                  reporteIdInicial: widget.reporteIdInicial,
+                                );
+                              },
+                            ),
+                      Positioned(
+                        top: 12,
+                        right: 16,
+                        child: _BotonFiltrar(
+                          seleccionado: _filtroUrgencia,
+                          onTap: _abrirFiltro,
                         ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -222,6 +257,233 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       bottomNavigationBar: const BottomBarWidget(currentIndex: 0),
+    );
+  }
+}
+
+// Botón flotante Filtrar
+class _BotonFiltrar extends StatelessWidget {
+  final ReportUrgency? seleccionado;
+  final VoidCallback onTap;
+
+  const _BotonFiltrar({required this.seleccionado, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      elevation: 4,
+      color: colors.surfaceContainerLowest,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(Icons.tune_rounded, color: colors.primary, size: 20),
+                  if (seleccionado != null)
+                    Positioned(
+                      right: -5,
+                      top: -5,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: seleccionado!.color,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: colors.surfaceContainerLowest,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 8),
+              Text(
+                seleccionado == null ? 'Filtrar' : seleccionado!.label,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: colors.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+//  Panel inferior con opciones de urgencia 
+class _FiltroSheet extends StatelessWidget {
+  final ReportUrgency? seleccionado;
+  final ValueChanged<ReportUrgency?> onSeleccionar;
+
+  const _FiltroSheet({
+    required this.seleccionado,
+    required this.onSeleccionar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colors.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Icon(Icons.tune_rounded, color: colors.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Filtrar por urgencia',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: colors.onSurface,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Elige qué reportes quieres ver en el mapa',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 16),
+
+            _OpcionFiltro(
+              label: 'Todas las urgencias',
+              color: colors.primary,
+              seleccionado: seleccionado == null,
+              onTap: () => onSeleccionar(null),
+            ),
+            const SizedBox(height: 10),
+
+            for (final urgencia in ReportUrgency.values) ...[
+              _OpcionFiltro(
+                label: 'Urgencia ${urgencia.label.toLowerCase()}',
+                color: urgencia.color,
+                seleccionado: seleccionado == urgencia,
+                onTap: () => onSeleccionar(urgencia),
+              ),
+              const SizedBox(height: 10),
+            ],
+
+            if (seleccionado != null) ...[
+              const SizedBox(height: 4),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: () => onSeleccionar(null),
+                  icon: const Icon(Icons.filter_alt_off_outlined, size: 18),
+                  label: const Text('Quitar filtro'),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OpcionFiltro extends StatelessWidget {
+  final String label;
+  final Color color;
+  final bool seleccionado;
+  final VoidCallback onTap;
+
+  const _OpcionFiltro({
+    required this.label,
+    required this.color,
+    required this.seleccionado,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: seleccionado
+                ? color.withValues(alpha: .12)
+                : colors.surfaceContainerHighest.withValues(alpha: .4),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: seleccionado ? color : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              Icon(
+                seleccionado
+                    ? Icons.check_circle_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                color: seleccionado ? color : colors.onSurfaceVariant,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

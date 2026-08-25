@@ -47,18 +47,16 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
     if (!mounted) return;
     setState(() {
       _cuenta = prefs.getString('org_cuenta');
-      _banco = prefs.getString('org_banco'); 
+      _banco = prefs.getString('org_banco');
     });
   }
 
-  // oculta los primeros 12 dígitos
   String _ocultarCuenta(String digitos) {
     if (digitos.length < 4) return digitos;
     final ultimos4 = digitos.substring(digitos.length - 4);
     return '•••• •••• •••• $ultimos4';
   }
 
-  // 
   String _labelCuenta() {
     if (_cuenta == null || _cuenta!.isEmpty) {
       return 'Agrega tu cuenta bancaria';
@@ -78,6 +76,14 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
       b.write(s[i]);
     }
     return b.toString();
+  }
+  String _formatearFecha(DateTime? fecha) {
+    if (fecha == null) return 'N/A';
+    const meses = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    return '${meses[fecha.month - 1]} ${fecha.year}';
   }
 
   Future<void> _abrirCuenta() async {
@@ -241,8 +247,8 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
                       children: [
                         _Stat(
                           icono: Icons.pets_rounded,
-                          titulo: 'Reportes',
-                          valor: '48',
+                          titulo: 'Rescates',
+                          valor: org.cantidadRescates.toString(),
                         ),
                         _Stat(
                           icono: Icons.favorite_rounded,
@@ -252,7 +258,7 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
                         _Stat(
                           icono: Icons.calendar_month,
                           titulo: 'Miembro desde',
-                          valor: 'Marzo 2024',
+                          valor: _formatearFecha(org.fechaRegistro),
                         ),
                       ],
                     ),
