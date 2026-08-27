@@ -79,9 +79,11 @@ class LocationService {
 
   Stream<Position> obtenerStreamUbicacion() {
     const locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.bestForNavigation,
-      distanceFilter: 3,
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 8,
     );
-    return Geolocator.getPositionStream(locationSettings: locationSettings);
+    return Geolocator.getPositionStream(
+      locationSettings: locationSettings,
+    ).where((position) => position.accuracy <= 15);
   }
 }
