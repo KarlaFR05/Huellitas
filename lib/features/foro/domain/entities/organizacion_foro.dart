@@ -6,8 +6,10 @@ class OrganizacionForo {
   final String logoUrl;
   final String fotoPortada;
   final bool verificada;
-  final int cantidadSeguidores; 
-  final bool esSeguidor;        
+  final int cantidadSeguidores;
+  final int cantidadRescates;
+  final DateTime? fechaRegistro;
+  final bool esSeguidor;
   final String? tiposAnimales;
   final String? telefonoEmergencia;
   final String? correoInstitucional;
@@ -25,6 +27,8 @@ class OrganizacionForo {
     this.fotoPortada = '',
     this.verificada = true,
     this.cantidadSeguidores = 0,
+    this.cantidadRescates = 0,
+    this.fechaRegistro,
     this.esSeguidor = false,
     this.tiposAnimales,
     this.telefonoEmergencia,

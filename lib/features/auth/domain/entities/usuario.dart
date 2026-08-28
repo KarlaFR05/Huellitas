@@ -15,6 +15,7 @@ class Usuario {
   final String? ciudad;
   final String? estado;
   final String? fotoPerfil;
+  final int? organizacionId; /*yoagrege*/
 
   Usuario({
     required this.usuarioIdPk,
@@ -33,6 +34,7 @@ class Usuario {
     this.ciudad,
     this.estado,
     this.fotoPerfil,
+    this.organizacionId /*yoagrege*/
   });
   bool get esOrganizacion =>
     rolUsuario.trim().toLowerCase() == 'organizacion';
