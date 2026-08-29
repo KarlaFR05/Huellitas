@@ -19,6 +19,7 @@ class ForoRepositoryImpl implements ForoRepository {
       categoria: filtro.categoria?.name,
       grupoId: filtro.grupoId,
       usuarioId: filtro.usuarioId,
+      organizacionId: filtro.organizacionId,
       cursor: filtro.cursor,
       limite: filtro.limite,
     );
@@ -44,6 +45,7 @@ class ForoRepositoryImpl implements ForoRepository {
       contenido: solicitud.contenido,
       categoria: solicitud.categoria.name,
       grupoId: solicitud.grupoId,
+      organizacionId: solicitud.organizacionId,
       imagenPath: solicitud.imagenLocalPath,
     );
     return model.toEntity();

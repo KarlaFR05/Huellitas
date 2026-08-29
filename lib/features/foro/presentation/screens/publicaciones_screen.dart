@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dio/dio.dart';
+
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../data/datasources/organizacion_foro_datasource.dart';
+import '../../data/repositories/organizacion_foro_repository_impl.dart';
+import '../../domain/entities/organizacion_foro.dart';
 import '../../domain/entities/publicacion.dart';
 import '../../domain/entities/solicitudes_foro.dart';
-import '../../domain/repositories/foro_repository.dart'; 
+import '../../domain/repositories/foro_repository.dart';
 import '../bloc/foro_bloc.dart';
 import '../bloc/foro_event.dart';
 import '../bloc/foro_state.dart';
@@ -29,61 +34,105 @@ class PublicacionesScreen extends StatelessWidget {
   }
 }
 
-class _PublicacionesView extends StatelessWidget {
+class _PublicacionesView extends StatefulWidget {
   const _PublicacionesView();
 
+  @override
+  State<_PublicacionesView> createState() => _PublicacionesViewState();
+}
+
+class _PublicacionesViewState extends State<_PublicacionesView> {
+  final Map<int, OrganizacionForo> _mapaOrgs = {};
+  bool _orgsCargadas = false;
+
   static const _categorias =
-      <
-        ({
-          IconData icon,
-          String nombre,
-          Color color,
-          CategoriaPublicacion categoria,
-        })
-      >[
-        (
-          icon: Icons.pets_rounded,
-          nombre: 'Adopción',
-          color: Color(0xFFFF9F2F),
-          categoria: CategoriaPublicacion.adopcion,
-        ),
-        (
-          icon: Icons.vaccines_rounded,
-          nombre: 'Vacunación',
-          color: Color(0xFF3679D8),
-          categoria: CategoriaPublicacion.vacunacion,
-        ),
-        (
-          icon: Icons.health_and_safety_rounded,
-          nombre: 'Salud',
-          color: Color(0xFF27A56D),
-          categoria: CategoriaPublicacion.salud,
-        ),
-        (
-          icon: Icons.search_rounded,
-          nombre: 'Extraviados',
-          color: Color(0xFF7557D5),
-          categoria: CategoriaPublicacion.extraviados,
-        ),
-        (
-          icon: Icons.restaurant_rounded,
-          nombre: 'Alimentación',
-          color: Color(0xFF69B643),
-          categoria: CategoriaPublicacion.alimentacion,
-        ),
-        (
-          icon: Icons.school_rounded,
-          nombre: 'Entrenamiento',
-          color: Color(0xFF3971C8),
-          categoria: CategoriaPublicacion.entrenamiento,
-        ),
-        (
-          icon: Icons.favorite_rounded,
-          nombre: 'Cuidado',
-          color: Color(0xFFE65B70),
-          categoria: CategoriaPublicacion.cuidado,
-        ),
-      ];
+      <({
+        IconData icon,
+        String nombre,
+        Color color,
+        CategoriaPublicacion categoria,
+      })>[
+    (
+      icon: Icons.pets_rounded,
+      nombre: 'Adopción',
+      color: Color(0xFFFF9F2F),
+      categoria: CategoriaPublicacion.adopcion,
+    ),
+    (
+      icon: Icons.vaccines_rounded,
+      nombre: 'Vacunación',
+      color: Color(0xFF3679D8),
+      categoria: CategoriaPublicacion.vacunacion,
+    ),
+    (
+      icon: Icons.health_and_safety_rounded,
+      nombre: 'Salud',
+      color: Color(0xFF27A56D),
+      categoria: CategoriaPublicacion.salud,
+    ),
+    (
+      icon: Icons.search_rounded,
+      nombre: 'Extraviados',
+      color: Color(0xFF7557D5),
+      categoria: CategoriaPublicacion.extraviados,
+    ),
+    (
+      icon: Icons.restaurant_rounded,
+      nombre: 'Alimentación',
+      color: Color(0xFF69B643),
+      categoria: CategoriaPublicacion.alimentacion,
+    ),
+    (
+      icon: Icons.school_rounded,
+      nombre: 'Entrenamiento',
+      color: Color(0xFF3971C8),
+      categoria: CategoriaPublicacion.entrenamiento,
+    ),
+    (
+      icon: Icons.favorite_rounded,
+      nombre: 'Cuidado',
+      color: Color(0xFFE65B70),
+      categoria: CategoriaPublicacion.cuidado,
+    ),
+  ];
+
+  void _cargarOrganizacionesDePublicaciones(List<Publicacion> publicaciones) {
+    if (_orgsCargadas) return;
+
+    final usuarioIds = publicaciones
+        .where((p) => p.usuarioId != null)
+        .map((p) => p.usuarioId!)
+        .toSet()
+        .toList();
+
+    if (usuarioIds.isEmpty) {
+      _orgsCargadas = true;
+      return;
+    }
+
+    final dio = context.read<Dio>();
+    OrganizacionForoRepositoryImpl(
+      OrganizacionForoRemoteDataSourceImpl(dio),
+    )
+        .obtenerOrganizacionesVerificadas()
+        .then((orgs) {
+      if (!mounted) return;
+      final mapa = <int, OrganizacionForo>{};
+      for (final org in orgs) {
+        mapa[org.usuarioId] = org;
+      }
+      setState(() {
+        _mapaOrgs.addAll(mapa);
+        _orgsCargadas = true;
+      });
+    }).catchError((_) {
+      if (mounted) {
+        setState(() {
+          _orgsCargadas = true;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +140,7 @@ class _PublicacionesView extends StatelessWidget {
     final usuarioId = authState is AuthSuccess && authState.data is Usuario
         ? (authState.data as Usuario).usuarioIdPk
         : null;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: BlocBuilder<ForoBloc, ForoState>(
@@ -98,14 +148,24 @@ class _PublicacionesView extends StatelessWidget {
           final publicacionesVisibles = state.categoria == null
               ? state.publicaciones
               : state.publicaciones
-                    .where((p) => p.categoria == state.categoria)
-                    .toList();
+                  .where((p) => p.categoria == state.categoria)
+                  .toList();
+
+          if (publicacionesVisibles.isNotEmpty && !_orgsCargadas) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _cargarOrganizacionesDePublicaciones(publicacionesVisibles);
+            });
+          }
 
           return RefreshIndicator(
             onRefresh: () async {
+              setState(() {
+                _orgsCargadas = false;
+                _mapaOrgs.clear();
+              });
               context.read<ForoBloc>().add(
-                const ForoFeedSolicitado(recargar: true),
-              );
+                    const ForoFeedSolicitado(recargar: true),
+                  );
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -121,10 +181,10 @@ class _PublicacionesView extends StatelessWidget {
                   seleccionada: state.categoria,
                   onSeleccionar: (categoria) {
                     context.read<ForoBloc>().add(
-                      ForoFiltroCambiado(
-                        state.categoria == categoria ? null : categoria,
-                      ),
-                    );
+                          ForoFiltroCambiado(
+                            state.categoria == categoria ? null : categoria,
+                          ),
+                        );
                   },
                 ),
                 const SizedBox(height: 18),
@@ -140,26 +200,19 @@ class _PublicacionesView extends StatelessWidget {
                     state.status == ForoStatus.exito)
                   _SinResultados(
                     onLimpiar: () => context.read<ForoBloc>().add(
-                      const ForoFiltroCambiado(null),
-                    ),
+                          const ForoFiltroCambiado(null),
+                        ),
                   ),
                 for (final publicacion in publicacionesVisibles)
-                  PublicacionCard(
+                  _PublicacionConOrg(
                     publicacion: publicacion,
-                    avatarUrl: publicacion.fotoUsuarioUrl,
+                    mapaOrgs: _mapaOrgs,
+                    usuarioId: usuarioId,
                     onMeGusta: () => context.read<ForoBloc>().add(
-                      ForoMeGustaCambiado(publicacion.id),
-                    ),
+                          ForoMeGustaCambiado(publicacion.id),
+                        ),
                     onComentarios: () =>
                         _abrirComentarios(context, publicacion),
-                    onPerfil: publicacion.usuarioId == null
-                        ? null
-                        : () => context.push(
-                            '/mi-perfil',
-                            extra: publicacion.usuarioId == usuarioId
-                                ? null
-                                : publicacion.usuarioId,
-                          ),
                     onEditar: publicacion.usuarioId == usuarioId
                         ? () => _editarPublicacion(context, publicacion)
                         : null,
@@ -230,14 +283,15 @@ class _PublicacionesView extends StatelessWidget {
     );
     if (resultado == null || !context.mounted) return;
     context.read<ForoBloc>().add(
-      ForoPublicacionEditada(
-        publicacionId: publicacion.id,
-        titulo: resultado['titulo'] as String,
-        contenido: resultado['contenido'] as String,
-        categoria: resultado['categoria'] as CategoriaPublicacion,
-        imagenLocalPath: (resultado['imagen'] as dynamic)?.path as String?,
-      ),
-    );
+          ForoPublicacionEditada(
+            publicacionId: publicacion.id,
+            titulo: resultado['titulo'] as String,
+            contenido: resultado['contenido'] as String,
+            categoria: resultado['categoria'] as CategoriaPublicacion,
+            imagenLocalPath:
+                (resultado['imagen'] as dynamic)?.path as String?,
+          ),
+        );
   }
 
   Future<void> _confirmarEliminar(
@@ -268,8 +322,56 @@ class _PublicacionesView extends StatelessWidget {
       ),
     );
     if (confirmar == true && context.mounted) {
-      context.read<ForoBloc>().add(ForoPublicacionEliminada(publicacion.id));
+      context
+          .read<ForoBloc>()
+          .add(ForoPublicacionEliminada(publicacion.id));
     }
+  }
+}
+
+class _PublicacionConOrg extends StatelessWidget {
+  final Publicacion publicacion;
+  final Map<int, OrganizacionForo> mapaOrgs;
+  final int? usuarioId;
+  final VoidCallback onMeGusta;
+  final VoidCallback onComentarios;
+  final VoidCallback? onEditar;
+  final VoidCallback? onEliminar;
+
+  const _PublicacionConOrg({
+    required this.publicacion,
+    required this.mapaOrgs,
+    required this.usuarioId,
+    required this.onMeGusta,
+    required this.onComentarios,
+    this.onEditar,
+    this.onEliminar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final org = publicacion.usuarioId != null
+        ? mapaOrgs[publicacion.usuarioId]
+        : null;
+    final esOrg = org != null;
+    final publicacionAMostrar = esOrg && org!.nombre.isNotEmpty
+        ? publicacion.copyWith(
+            nombreUsuario: org.nombre,
+            fotoUsuarioUrl: org.logoUrl.isNotEmpty
+                ? org.logoUrl
+                : publicacion.fotoUsuarioUrl,
+          )
+        : publicacion;
+
+    return PublicacionCard(
+      publicacion: publicacionAMostrar,
+      avatarUrl: publicacionAMostrar.fotoUsuarioUrl,
+      autorVerificado: esOrg,
+      onMeGusta: onMeGusta,
+      onComentarios: onComentarios,
+      onEditar: onEditar,
+      onEliminar: onEliminar,
+    );
   }
 }
 
@@ -316,9 +418,9 @@ class _ErrorFeed extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () => context.read<ForoBloc>().add(
-              const ForoFeedSolicitado(recargar: true),
-            ),
+            onPressed: () => context
+                .read<ForoBloc>()
+                .add(const ForoFeedSolicitado(recargar: true)),
             child: const Text('Reintentar'),
           ),
         ],
@@ -334,17 +436,16 @@ class _CategoriasCard extends StatefulWidget {
     required this.onSeleccionar,
   });
 
-  final List<
-    ({
-      IconData icon,
-      String nombre,
-      Color color,
-      CategoriaPublicacion categoria,
-    })
-  >
-  categorias;
+  final List<({
+    IconData icon,
+    String nombre,
+    Color color,
+    CategoriaPublicacion categoria,
+  })>
+      categorias;
   final CategoriaPublicacion? seleccionada;
   final ValueChanged<CategoriaPublicacion> onSeleccionar;
+
   @override
   State<_CategoriasCard> createState() => _CategoriasCardState();
 }
@@ -355,15 +456,15 @@ class _CategoriasCardState extends State<_CategoriasCard> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final visibles = _expandido
-        ? widget.categorias
-        : widget.categorias.take(3).toList();
+    final visibles =
+        _expandido ? widget.categorias : widget.categorias.take(3).toList();
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: colors.outlineVariant.withValues(alpha: .45)),
+        border: Border.all(
+            color: colors.outlineVariant.withValues(alpha: .45)),
       ),
       child: Column(
         children: [
@@ -371,9 +472,10 @@ class _CategoriasCardState extends State<_CategoriasCard> {
             alignment: Alignment.centerLeft,
             child: Text(
               'Explora por etiquetas',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w800),
             ),
           ),
           const SizedBox(height: 6),
@@ -406,11 +508,8 @@ class _CategoriasCardState extends State<_CategoriasCard> {
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Row(
                               children: [
-                                Icon(
-                                  categoria.icon,
-                                  color: categoria.color,
-                                  size: 19,
-                                ),
+                                Icon(categoria.icon,
+                                    color: categoria.color, size: 19),
                                 const SizedBox(width: 6),
                                 Flexible(
                                   child: Text(
@@ -418,8 +517,7 @@ class _CategoriasCardState extends State<_CategoriasCard> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                        fontWeight: FontWeight.w600),
                                   ),
                                 ),
                               ],
@@ -435,7 +533,8 @@ class _CategoriasCardState extends State<_CategoriasCard> {
                       color: colors.primary.withValues(alpha: .08),
                       borderRadius: BorderRadius.circular(24),
                       child: InkWell(
-                        onTap: () => setState(() => _expandido = !_expandido),
+                        onTap: () =>
+                            setState(() => _expandido = !_expandido),
                         borderRadius: BorderRadius.circular(24),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -492,124 +591,6 @@ class _SinResultados extends StatelessWidget {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           TextButton(onPressed: onLimpiar, child: const Text('Ver todas')),
-        ],
-      ),
-    );
-  }
-}
-
-class _AdopcionDestacada extends StatelessWidget {
-  const _AdopcionDestacada();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    const orange = Color(0xFFFF9F2F);
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: orange.withValues(alpha: .65)),
-      ),
-      child: Column(
-        children: [
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  width: 120,
-                  color: orange.withValues(alpha: .12),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.pets_rounded, color: orange, size: 58),
-                      SizedBox(height: 8),
-                      Text(
-                        'LUNA',
-                        style: TextStyle(
-                          color: orange,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: orange,
-                            borderRadius: BorderRadius.circular(9),
-                          ),
-                          child: const Text(
-                            'EN ADOPCIÓN',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Luna busca un hogar',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text('2 años  •  Tamaño mediano'),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on_rounded,
-                              color: colors.primary,
-                              size: 19,
-                            ),
-                            const SizedBox(width: 4),
-                            const Text('Puebla, Pue.'),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton(
-                            onPressed: () {},
-                            child: const Text('Conocer a Luna  ›'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            child: Row(
-              children: [
-                Icon(Icons.favorite_rounded, color: colors.primary, size: 21),
-                const SizedBox(width: 6),
-                const Text('24'),
-                const SizedBox(width: 20),
-                const Icon(Icons.chat_bubble_outline_rounded, size: 20),
-                const SizedBox(width: 6),
-                const Text('8'),
-              ],
-            ),
-          ),
         ],
       ),
     );

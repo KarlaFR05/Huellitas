@@ -42,8 +42,12 @@ class _MiOrganizacionView extends StatefulWidget {
 }
 
 class _MiOrganizacionViewState extends State<_MiOrganizacionView> {
-  late final Future<OrganizacionForo?> _future;
+  late Future<OrganizacionForo?> _future;
   int? _usuarioId;
+  int _refreshKey = 0;
+  
+  final Map<int, OrganizacionForo> _mapaOrgs = {};
+  bool _orgsCargadas = false;
 
   @override
   void initState() {
@@ -52,14 +56,61 @@ class _MiOrganizacionViewState extends State<_MiOrganizacionView> {
     if (authState is AuthSuccess && authState.data is Usuario) {
       _usuarioId = (authState.data as Usuario).usuarioIdPk;
     }
-    
+    _future = _cargarOrganizacion();
+  }
+
+  Future<OrganizacionForo?> _cargarOrganizacion() async {
     final dio = context.read<Dio>();
-    _future = OrganizacionForoRepositoryImpl(
+    return OrganizacionForoRepositoryImpl(
       OrganizacionForoRemoteDataSourceImpl(dio),
     ).obtenerMiOrganizacion();
   }
 
-  Future<void> _crearPublicacion(BuildContext context) async {
+  void _recargar() {
+    setState(() {
+      _refreshKey++;
+      _future = _cargarOrganizacion();
+    });
+  }
+
+  void _cargarOrganizacionesDePublicaciones(List<Publicacion> publicaciones) {
+    if (_orgsCargadas) return;
+
+    final usuarioIds = publicaciones
+        .where((p) => p.usuarioId != null)
+        .map((p) => p.usuarioId!)
+        .toSet()
+        .toList();
+
+    if (usuarioIds.isEmpty) {
+      _orgsCargadas = true;
+      return;
+    }
+
+    final dio = context.read<Dio>();
+    OrganizacionForoRepositoryImpl(
+      OrganizacionForoRemoteDataSourceImpl(dio),
+    )
+        .obtenerOrganizacionesVerificadas()
+        .then((orgs) {
+      if (!mounted) return;
+      final mapa = <int, OrganizacionForo>{};
+      for (final org in orgs) {
+        mapa[org.usuarioId] = org;
+      }
+      setState(() {
+        _mapaOrgs.addAll(mapa);
+        _orgsCargadas = true;
+      });
+    }).catchError((_) {
+      if (mounted) {
+        setState(() {
+          _orgsCargadas = true;
+        });
+      }
+    });
+  }
+  Future<void> _crearPublicacion(BuildContext context, int organizacionId) async {
     final resultado = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(builder: (_) => const CrearPublicacionScreen()),
@@ -70,6 +121,7 @@ class _MiOrganizacionViewState extends State<_MiOrganizacionView> {
       titulo: resultado['titulo'] as String,
       contenido: resultado['contenido'] as String,
       categoria: resultado['categoria'] as CategoriaPublicacion,
+      organizacionId: organizacionId, 
       imagenLocalPath: (resultado['imagen'] as dynamic)?.path as String?,
     );
     context.read<ForoBloc>().add(ForoPublicacionCreada(solicitud));
@@ -80,6 +132,7 @@ class _MiOrganizacionViewState extends State<_MiOrganizacionView> {
     final colors = Theme.of(context).colorScheme;
 
     return FutureBuilder<OrganizacionForo?>(
+      key: ValueKey(_refreshKey), 
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -98,6 +151,12 @@ class _MiOrganizacionViewState extends State<_MiOrganizacionView> {
             final publicaciones = state.publicaciones
                 .where((p) => p.usuarioId == organizacion.usuarioId)
                 .toList();
+
+            if (publicaciones.isNotEmpty && !_orgsCargadas) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _cargarOrganizacionesDePublicaciones(publicaciones);
+              });
+            }
 
             return ListView(
               padding: const EdgeInsets.all(16),
@@ -123,7 +182,7 @@ class _MiOrganizacionViewState extends State<_MiOrganizacionView> {
                               publicaciones: publicaciones,
                             ),
                           ),
-                        ),
+                        ).then((_) => _recargar()),
                         child: Row(
                           children: [
                             CircleAvatar(
@@ -187,7 +246,7 @@ class _MiOrganizacionViewState extends State<_MiOrganizacionView> {
                             ),
                           ),
                           FilledButton.icon(
-                            onPressed: () => _crearPublicacion(context),
+                            onPressed: () => _crearPublicacion(context, organizacion.id),
                             icon: const Icon(Icons.edit_square, size: 18),
                             label: const Text('Publicar'),
                           ),
@@ -212,10 +271,10 @@ class _MiOrganizacionViewState extends State<_MiOrganizacionView> {
                   )
                 else
                   for (final publicacion in publicaciones)
-                    PublicacionCard(
+                    _PublicacionConOrg(
                       publicacion: publicacion,
-                      avatarUrl: publicacion.fotoUsuarioUrl,
-                      autorVerificado: organizacion.verificada,
+                      mapaOrgs: _mapaOrgs,
+                      usuarioId: _usuarioId,
                       onMeGusta: () => context.read<ForoBloc>().add(
                         ForoMeGustaCambiado(publicacion.id),
                       ),
@@ -230,12 +289,66 @@ class _MiOrganizacionViewState extends State<_MiOrganizacionView> {
                       onEditar: publicacion.usuarioId == _usuarioId
                           ? () {}
                           : null,
+                      onEliminar: publicacion.usuarioId == _usuarioId
+                          ? () {
+                              context.read<ForoBloc>().add(
+                                ForoPublicacionEliminada(publicacion.id),
+                              );
+                            }
+                          : null,
                     ),
               ],
             );
           },
         );
       },
+    );
+  }
+}
+
+class _PublicacionConOrg extends StatelessWidget {
+  final Publicacion publicacion;
+  final Map<int, OrganizacionForo> mapaOrgs;
+  final int? usuarioId;
+  final VoidCallback onMeGusta;
+  final VoidCallback onComentarios;
+  final VoidCallback? onEditar;
+  final VoidCallback? onEliminar;
+
+  const _PublicacionConOrg({
+    required this.publicacion,
+    required this.mapaOrgs,
+    required this.usuarioId,
+    required this.onMeGusta,
+    required this.onComentarios,
+    this.onEditar,
+    this.onEliminar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final org = publicacion.usuarioId != null
+        ? mapaOrgs[publicacion.usuarioId]
+        : null;
+    final esOrg = org != null;
+    
+    final publicacionAMostrar = esOrg && org!.nombre.isNotEmpty
+        ? publicacion.copyWith(
+            nombreUsuario: org.nombre,
+            fotoUsuarioUrl: org.logoUrl.isNotEmpty
+                ? org.logoUrl
+                : publicacion.fotoUsuarioUrl,
+          )
+        : publicacion;
+
+    return PublicacionCard(
+      publicacion: publicacionAMostrar,
+      avatarUrl: publicacionAMostrar.fotoUsuarioUrl,
+      autorVerificado: esOrg,
+      onMeGusta: onMeGusta,
+      onComentarios: onComentarios,
+      onEditar: onEditar,
+      onEliminar: onEliminar,
     );
   }
 }
