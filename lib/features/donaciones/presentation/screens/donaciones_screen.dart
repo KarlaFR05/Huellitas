@@ -10,7 +10,6 @@ import '../bloc/donacion_state.dart';
 import '../widgets/categoria_selector.dart';
 import '../widgets/organizacion_card.dart';
 
-// ✅ IMPORTS NUEVOS para detectar si es organización
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -365,13 +364,10 @@ class _DonacionesScreenState extends State<DonacionesScreen> {
 
   //detecta si el usuario es organización
   bool _esOrganizacion(BuildContext context) {
-    return true; // TEMPORAL para pruebas
-
-    /*
+    
     final state = context.watch<AuthBloc>().state;
     return state is AuthSuccess &&
         state.data is Usuario &&
         (state.data as Usuario).esOrganizacion;
-    */
   }
 }

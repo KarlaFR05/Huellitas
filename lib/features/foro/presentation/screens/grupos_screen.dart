@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:dio/dio.dart';
 import '../../domain/entities/grupo.dart';
 import '../../domain/entities/solicitudes_foro.dart';
 import '../../domain/repositories/foro_repository.dart';
@@ -329,10 +329,9 @@ class _OrganizacionesVerificadasState
   @override
   void initState() {
     super.initState();
-    // Cuando el backend esté listo, cambia el Mock por:
-    // OrganizacionForoDataSourceImpl(context.read<Dio>())
+    final dio = context.read<Dio>();
     _future = OrganizacionForoRepositoryImpl(
-      OrganizacionForoDataSourceMock(),
+      OrganizacionForoRemoteDataSourceImpl(dio),
     ).obtenerOrganizacionesVerificadas();
   }
 

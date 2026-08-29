@@ -25,8 +25,7 @@ class PerfilScreen extends StatefulWidget {
 }
 
 class _PerfilScreenState extends State<PerfilScreen> {
-  //MODO PRUEBA, DESPUES cambia a false
-  bool forzarVistaOrganizacion = true;
+  bool forzarVistaOrganizacion = false;
 
   @override
   void initState() {

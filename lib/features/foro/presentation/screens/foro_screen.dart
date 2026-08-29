@@ -14,11 +14,10 @@ class ForoScreen extends StatelessWidget {
   const ForoScreen({super.key});
 
   bool _esOrganizacion(BuildContext context) {
-    return true;
-    /*final state = context.watch<AuthBloc>().state;
+    final state = context.watch<AuthBloc>().state;
     return state is AuthSuccess &&
         state.data is Usuario &&
-        (state.data as Usuario).esOrganizacion;*/
+        (state.data as Usuario).esOrganizacion;
   }
 
   @override

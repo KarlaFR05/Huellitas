@@ -3,11 +3,10 @@ import 'package:go_router/go_router.dart';
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; //añadiyo
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/publicacion.dart';
-import '../../domain/entities/solicitudes_foro.dart'; //añadiyo
-import '../../domain/repositories/foro_repository.dart'; //añadiyo
+import '../../domain/entities/solicitudes_foro.dart';
+import '../../domain/repositories/foro_repository.dart'; 
 import '../bloc/foro_bloc.dart';
 import '../bloc/foro_event.dart';
 import '../bloc/foro_state.dart';

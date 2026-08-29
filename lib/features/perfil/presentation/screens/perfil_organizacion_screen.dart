@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/widgets/organizacion_verificada_badge.dart';
@@ -32,13 +33,10 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
   @override
   void initState() {
     super.initState();
-    final authState = context.read<AuthBloc>().state;
-    final usuarioId = authState is AuthSuccess && authState.data is Usuario
-        ? (authState.data as Usuario).usuarioIdPk
-        : 0;
+    final dio = context.read<Dio>();
     _futureOrg = OrganizacionForoRepositoryImpl(
-      OrganizacionForoDataSourceMock(),
-    ).obtenerMiOrganizacion(usuarioId);
+      OrganizacionForoRemoteDataSourceImpl(dio),
+    ).obtenerMiOrganizacion();
     _cargarCuenta();
   }
 
@@ -47,18 +45,16 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
     if (!mounted) return;
     setState(() {
       _cuenta = prefs.getString('org_cuenta');
-      _banco = prefs.getString('org_banco'); 
+      _banco = prefs.getString('org_banco');
     });
   }
 
-  // oculta los primeros 12 dígitos
   String _ocultarCuenta(String digitos) {
     if (digitos.length < 4) return digitos;
     final ultimos4 = digitos.substring(digitos.length - 4);
     return '•••• •••• •••• $ultimos4';
   }
 
-  // 
   String _labelCuenta() {
     if (_cuenta == null || _cuenta!.isEmpty) {
       return 'Agrega tu cuenta bancaria';
@@ -78,6 +74,15 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
       b.write(s[i]);
     }
     return b.toString();
+  }
+
+  String _formatearFecha(DateTime? fecha) {
+    if (fecha == null) return 'N/A';
+    const meses = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    return '${meses[fecha.month - 1]} ${fecha.year}';
   }
 
   Future<void> _abrirCuenta() async {
@@ -146,7 +151,6 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
               BottomBarWidget.contentClearance(context) + 16,
             ),
             children: [
-              // ===== HEADER DE LA ORGANIZACIÓN =====
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -241,18 +245,18 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
                       children: [
                         _Stat(
                           icono: Icons.pets_rounded,
-                          titulo: 'Reportes',
-                          valor: '48',
-                        ),
-                        _Stat(
-                          icono: Icons.favorite_rounded,
                           titulo: 'Seguidores',
                           valor: _miles(org.cantidadSeguidores),
                         ),
                         _Stat(
+                          icono: Icons.favorite_rounded,
+                          titulo: 'Meta mensual',
+                          valor: '\$${org.metaMensual.toStringAsFixed(0)}',
+                        ),
+                        _Stat(
                           icono: Icons.calendar_month,
-                          titulo: 'Miembro desde',
-                          valor: 'Marzo 2024',
+                          titulo: 'Recaudado',
+                          valor: '\$${org.recaudadoMensual.toStringAsFixed(0)}',
                         ),
                       ],
                     ),
@@ -261,7 +265,6 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
               ),
               const SizedBox(height: 20),
 
-              // OPCIONES
               _Opcion(
                 icono: Icons.account_balance_outlined,
                 titulo: 'Mi Cuenta',

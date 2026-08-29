@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/widgets/organizacion_verificada_badge.dart';
 import '../../../auth/domain/entities/usuario.dart';
@@ -51,10 +52,11 @@ class _MiOrganizacionViewState extends State<_MiOrganizacionView> {
     if (authState is AuthSuccess && authState.data is Usuario) {
       _usuarioId = (authState.data as Usuario).usuarioIdPk;
     }
-    // Cuando el backend esté listo, cambia Mock por Impl(context.read<Dio>())
+    
+    final dio = context.read<Dio>();
     _future = OrganizacionForoRepositoryImpl(
-      OrganizacionForoDataSourceMock(),
-    ).obtenerMiOrganizacion(_usuarioId ?? 0);
+      OrganizacionForoRemoteDataSourceImpl(dio),
+    ).obtenerMiOrganizacion();
   }
 
   Future<void> _crearPublicacion(BuildContext context) async {
@@ -196,7 +198,6 @@ class _MiOrganizacionViewState extends State<_MiOrganizacionView> {
                 ),
                 const SizedBox(height: 14),
 
-                // ===== PUBLICACIONES =====
                 if (state.status == ForoStatus.cargando && publicaciones.isEmpty)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 40),
@@ -227,7 +228,7 @@ class _MiOrganizacionViewState extends State<_MiOrganizacionView> {
                         ),
                       ),
                       onEditar: publicacion.usuarioId == _usuarioId
-                          ? () {} // TODO: editar
+                          ? () {}
                           : null,
                     ),
               ],

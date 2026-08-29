@@ -1,6 +1,6 @@
-import '../../domain/entities/organizacion_foro_entity.dart';
+import '../../domain/entities/organizacion_foro.dart';
 
-class OrganizacionForoModel extends OrganizacionForoEntity {
+class OrganizacionForoModel extends OrganizacionForo {
   OrganizacionForoModel({
     required super.id,
     required super.usuarioId,
@@ -25,9 +25,9 @@ class OrganizacionForoModel extends OrganizacionForoEntity {
       id: json['id'] ?? 0,
       usuarioId: json['usuario_id'] ?? 0,
       nombre: json['nombre'] ?? '',
-      descripcion: json['descripcion'],
-      logoUrl: json['logo_url'],
-      fotoPortada: json['foto_portada'],
+      descripcion: json['descripcion'] ?? '',
+      logoUrl: json['logo_url'] ?? '',
+      fotoPortada: json['foto_portada'] ?? '',
       verificada: json['verificada'] ?? true,
       cantidadSeguidores: json['cantidad_seguidores'] ?? 0,
       esSeguidor: json['es_seguidor'] ?? false,
@@ -35,7 +35,9 @@ class OrganizacionForoModel extends OrganizacionForoEntity {
       telefonoEmergencia: json['telefono_emergencia'],
       correoInstitucional: json['correo_institucional'],
       registroLegal: json['registro_legal'],
-      fechaFundacion: json['fecha_fundacion'],
+      fechaFundacion: json['fecha_fundacion'] != null
+          ? DateTime.tryParse(json['fecha_fundacion'].toString())
+          : null,
       metaMensual: (json['meta_mensual'] as num?)?.toDouble() ?? 0.0,
       recaudadoMensual: (json['recaudado_mensual'] as num?)?.toDouble() ?? 0.0,
     );

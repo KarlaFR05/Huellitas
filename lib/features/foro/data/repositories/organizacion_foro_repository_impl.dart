@@ -14,10 +14,9 @@ class OrganizacionForoRepositoryImpl implements OrganizacionForoRepository {
   Future<List<OrganizacionForo>> obtenerOrganizacionesVerificadas() =>
       dataSource.obtenerOrganizacionesVerificadas();
 }*/
-
-import '../../domain/entities/organizacion_foro_entity.dart';
+import '../../domain/entities/organizacion_foro.dart';
 import '../../domain/repositories/organizacion_foro_repository.dart';
-import '../datasources/organizacion_foro_remote_datasource.dart';
+import '../datasources/organizacion_foro_datasource.dart'; 
 
 class OrganizacionForoRepositoryImpl implements OrganizacionForoRepository {
   final OrganizacionForoRemoteDataSource remoteDataSource;
@@ -25,12 +24,12 @@ class OrganizacionForoRepositoryImpl implements OrganizacionForoRepository {
   OrganizacionForoRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<OrganizacionForoEntity?> obtenerMiOrganizacion() async {
+  Future<OrganizacionForo?> obtenerMiOrganizacion() async {
     return await remoteDataSource.obtenerMiOrganizacion();
   }
 
   @override
-  Future<List<OrganizacionForoEntity>> obtenerOrganizacionesVerificadas() async {
+  Future<List<OrganizacionForo>> obtenerOrganizacionesVerificadas() async {
     return await remoteDataSource.obtenerOrganizacionesVerificadas();
   }
 

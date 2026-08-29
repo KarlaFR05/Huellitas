@@ -1,6 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 
+import '../../../foro/data/datasources/organizacion_foro_datasource.dart';
+import '../../../foro/data/repositories/organizacion_foro_repository_impl.dart';
+import '../../../foro/domain/entities/organizacion_foro.dart';
 import '../../../home/presentation/widgets/bottom_bar.dart';
 
 class DonacionesOrganizacionScreen extends StatefulWidget {
@@ -13,25 +18,80 @@ class DonacionesOrganizacionScreen extends StatefulWidget {
 
 class _DonacionesOrganizacionScreenState
     extends State<DonacionesOrganizacionScreen> {
-  // MOCK
-  double _metaMensual = 20000;
-  double _recaudadoMensual = 15850;
+  late final Future<OrganizacionForo?> _futureOrg;
+  late final Future<List<_DonacionRecibida>> _futureDonaciones;
 
-  // editar la meta 
+  double _metaMensual = 0;
+  double _recaudadoMensual = 0;
+
   bool _editandoMeta = false;
+  bool _guardandoMeta = false;
   final TextEditingController _metaController = TextEditingController();
+
+  static const _meses = [
+    'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+    'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    final dio = context.read<Dio>();
+
+    // Meta y recaudado desde el backend
+    _futureOrg = OrganizacionForoRepositoryImpl(
+      OrganizacionForoRemoteDataSourceImpl(dio),
+    ).obtenerMiOrganizacion().then((org) {
+      if (org != null && mounted) {
+        setState(() {
+          _metaMensual = org.metaMensual;
+          _recaudadoMensual = org.recaudadoMensual;
+        });
+      }
+      return org;
+    });
+
+    // Historial desde el backend
+    _futureDonaciones = _obtenerDonaciones(dio);
+  }
 
   @override
   void dispose() {
     _metaController.dispose();
     super.dispose();
   }
+
+  Future<List<_DonacionRecibida>> _obtenerDonaciones(Dio dio) async {
+    try {
+      final response = await dio.get('/organizaciones/mis-donaciones');
+      final List<dynamic> data = response.data;
+      return data.map((d) {
+        final fecha = DateTime.tryParse(d['fecha_donacion']?.toString() ?? '');
+        return _DonacionRecibida(
+          nombre: d['nombre_donante']?.toString() ?? 'Donante anónimo',
+          fecha: fecha != null
+              ? '${fecha.day.toString().padLeft(2, '0')} ${_meses[fecha.month - 1]} ${fecha.year}'
+              : '',
+          monto: (d['monto'] as num?)?.toDouble() ?? 0,
+        );
+      }).toList();
+    } catch (e) {
+      print(' No se pudo cargar el historial: $e');
+      return [];
+    }
+  }
+
   void _iniciarEdicion() {
     _metaController.text = _metaMensual.toStringAsFixed(0);
     setState(() => _editandoMeta = true);
   }
 
-    void _guardarMeta() {
+  void _cancelarEdicion() {
+    setState(() => _editandoMeta = false);
+  }
+
+  //Guarda la meta en el backend
+  Future<void> _guardarMeta() async {
     final valor = double.tryParse(_metaController.text);
     if (valor == null || valor <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -39,18 +99,42 @@ class _DonacionesOrganizacionScreenState
       );
       return;
     }
-    
+
     setState(() {
-      _metaMensual = valor;
       _editandoMeta = false;
+      _guardandoMeta = true;
     });
 
+    try {
+      final dio = context.read<Dio>();
+      await dio.patch(
+        '/usuarios/mi-organizacion',
+        data: {'meta_mensual': valor},
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _metaMensual = valor;
+        _guardandoMeta = false;
+      });
+      _mostrarDialogoExito(valor);
+    } catch (e) {
+      print('❌ ERROR AL GUARDAR META: $e');
+      if (!mounted) return;
+      setState(() => _guardandoMeta = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo actualizar la meta. Intenta de nuevo.'),
+        ),
+      );
+    }
+  }
+
+  void _mostrarDialogoExito(double valor) {
     showDialog(
       context: context,
       builder: (dialogContext) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -92,22 +176,8 @@ class _DonacionesOrganizacionScreenState
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text(
-                    'Entendido',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
+                  child: const Text('Entendido'),
                 ),
               ),
             ],
@@ -116,18 +186,6 @@ class _DonacionesOrganizacionScreenState
       ),
     );
   }
-
-  void _cancelarEdicion() {
-    setState(() => _editandoMeta = false);
-  }
-
-  final List<_DonacionRecibida> _donacionesRecibidas = const [
-    _DonacionRecibida(nombre: 'María García', fecha: '15 ago 2026', monto: 15),
-    _DonacionRecibida(nombre: 'Juan Pérez', fecha: '14 ago 2026', monto: 15),
-    _DonacionRecibida(nombre: 'Ana López', fecha: '12 ago 2026', monto: 20),
-    _DonacionRecibida(nombre: 'Carlos Ruiz', fecha: '10 ago 2026', monto: 500),
-    _DonacionRecibida(nombre: 'Lucía Hernández', fecha: '08 ago 2026', monto: 5),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +210,6 @@ class _DonacionesOrganizacionScreenState
             BottomBarWidget.contentClearance(context) + 16,
           ),
           children: [
-            // ===== HEADER =====
             Row(
               children: [
                 Container(
@@ -162,27 +219,29 @@ class _DonacionesOrganizacionScreenState
                     color: colors.primary.withValues(alpha: .12),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(
-                    Icons.volunteer_activism,
-                    color: colors.primary,
-                    size: 28,
-                  ),
+                  child: Icon(Icons.volunteer_activism,
+                      color: colors.primary, size: 28),
                 ),
                 const SizedBox(width: 12),
                 Text(
                   'Donaciones',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: colors.primary,
-                    fontWeight: FontWeight.w800,
-                  ),
+                        color: colors.primary,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ],
             ),
             const SizedBox(height: 20),
 
-            // META MENSUAL Y PROGRESO  
+            if (_guardandoMeta)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 12),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+
+            // META MENSUAL Y PROGRESO
             Container(
-              key: ValueKey('meta-$_metaMensual-$_editandoMeta'),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: colors.surfaceContainerLowest,
@@ -197,9 +256,7 @@ class _DonacionesOrganizacionScreenState
                     TextField(
                       controller: _metaController,
                       keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       autofocus: true,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
@@ -226,7 +283,7 @@ class _DonacionesOrganizacionScreenState
                         const SizedBox(width: 8),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _guardarMeta,
+                            onPressed: _guardandoMeta ? null : _guardarMeta,
                             child: const Text('Guardar'),
                           ),
                         ),
@@ -248,18 +305,15 @@ class _DonacionesOrganizacionScreenState
                         IconButton(
                           tooltip: 'Editar meta mensual',
                           onPressed: _iniciarEdicion,
-                          icon: Icon(
-                            Icons.edit_outlined,
-                            color: colors.primary,
-                          ),
+                          icon: Icon(Icons.edit_outlined, color: colors.primary),
                         ),
                       ],
                     ),
                     Text(
                       'de \$${_metaMensual.toStringAsFixed(2)}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
+                            color: colors.onSurfaceVariant,
+                          ),
                     ),
                   ],
                   const SizedBox(height: 14),
@@ -275,16 +329,12 @@ class _DonacionesOrganizacionScreenState
                     ),
                   ),
                   const SizedBox(height: 10),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Porcentaje
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: metaAlcanzada
                               ? Colors.green.withValues(alpha: 0.1)
@@ -317,7 +367,6 @@ class _DonacionesOrganizacionScreenState
                           ],
                         ),
                       ),
-                      // Faltante o mensaje de meta alcanzada
                       if (metaAlcanzada)
                         Text(
                           '¡Meta alcanzada!',
@@ -338,7 +387,6 @@ class _DonacionesOrganizacionScreenState
                         ),
                     ],
                   ),
-
                   const SizedBox(height: 10),
                   Text(
                     'META DEL MES DE DONACIONES',
@@ -354,22 +402,38 @@ class _DonacionesOrganizacionScreenState
             ),
             const SizedBox(height: 20),
 
-            // HISTORIAL DE DONACIONES RECIBIDAS
+            // HISTORIAL DESDE EL BACKEND
             Text(
               'Donaciones recibidas',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+                    fontWeight: FontWeight.w800,
+                  ),
             ),
             const SizedBox(height: 10),
-            if (_donacionesRecibidas.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 30),
-                child: Center(child: Text('Aún no has recibido donaciones.')),
-              )
-            else
-              for (final donacion in _donacionesRecibidas)
-                _DonacionRecibidaCard(donacion: donacion),
+            FutureBuilder<List<_DonacionRecibida>>(
+              future: _futureDonaciones,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 30),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                final donaciones = snapshot.data ?? [];
+                if (donaciones.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 30),
+                    child: Center(child: Text('Aún no has recibido donaciones.')),
+                  );
+                }
+                return Column(
+                  children: [
+                    for (final donacion in donaciones)
+                      _DonacionRecibidaCard(donacion: donacion),
+                  ],
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -404,9 +468,7 @@ class _DonacionRecibidaCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: .45),
-        ),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: .45)),
       ),
       child: Row(
         children: [
@@ -430,8 +492,8 @@ class _DonacionRecibidaCard extends StatelessWidget {
                 Text(
                   donacion.fecha,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                  ),
+                        color: colors.onSurfaceVariant,
+                      ),
                 ),
               ],
             ),
@@ -441,14 +503,13 @@ class _DonacionRecibidaCard extends StatelessWidget {
             children: [
               Text(
                 '\$${donacion.monto.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: colors.primary,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w800,
+                    color: colors.primary),
               ),
               const SizedBox(height: 2),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: colors.primary.withValues(alpha: .12),
                   borderRadius: BorderRadius.circular(8),
