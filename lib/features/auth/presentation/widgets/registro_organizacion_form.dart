@@ -29,6 +29,12 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
   String? _categoriaSeleccionada; 
   _Paso _paso = _Paso.formulario;
 
+  static const Map<String, String> _categoriaBackendMap = {
+    'Sin fines de lucro': 'sinFinesLucro',
+    'Refugio': 'refugios',
+    'Gubernamental': 'gubernamentales',
+  };
+
   @override
   void dispose() {
     nombreOrgController.dispose();
@@ -100,6 +106,8 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
         ? "${fechaFundacion!.year}-${fechaFundacion!.month.toString().padLeft(2, '0')}-${fechaFundacion!.day.toString().padLeft(2, '0')}"
         : null;
 
+    final categoriaBackend = _categoriaBackendMap[_categoriaSeleccionada] ?? _categoriaSeleccionada;
+
     context.go('/password', extra: {
       ...widget.datosUsuario,
       'organizacion': {
@@ -109,7 +117,7 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
         'telefonoEmergencia': telefonoController.text.trim(),
         'correoInstitucional': correoController.text.trim(),
         'fechaFundacion': fechaFormateada,
-        'categoria': _categoriaSeleccionada,
+        'categoria': categoriaBackend, 
       },
     });
   }
@@ -340,7 +348,7 @@ class _RegistroOrganizacionFormState extends State<RegistroOrganizacionForm> {
                 child: const Text('Continuar'),
               ),
             ),
-            const SizedBox(height: 24), // Espacio extra al final para que el scroll no corte el botón
+            const SizedBox(height: 24),
           ],
         ),
       ),
