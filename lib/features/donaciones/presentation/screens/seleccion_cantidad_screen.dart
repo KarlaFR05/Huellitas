@@ -76,7 +76,12 @@ class _SeleccionCantidadScreenState extends State<SeleccionCantidadScreen> {
                 }
 
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.fromLTRB(
+                    24,
+                    24,
+                    24,
+                    24 + MediaQuery.viewPaddingOf(context).bottom,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

@@ -13,6 +13,10 @@ import 'bloc/reporte_estado_state.dart';
 import 'bloc/reporte_estado_event.dart';
 import 'reporte_detalle_screen.dart';
 import 'actualizar_estado_screen.dart';
+import '../../donaciones/presentation/models/solicitud_donacion.dart';
+import '../../donaciones/presentation/screens/solicitar_donaciones_screen.dart';
+import '../../donaciones/presentation/screens/donar_reporte_screen.dart';
+import '../../../core/verificacion/verificacion_cubit.dart';
 
 class ReporteEstadoScreen extends StatelessWidget {
   final int reporteId;
@@ -260,6 +264,23 @@ class ReporteEstadoScreen extends StatelessWidget {
             ),
           ],
 
+          // La solicitud sólo se habilita al llegar a la segunda fase y para
+          // quien tomó el caso.
+          if (reporte.faseActual.id >= FaseReporte.recibiendoAtencion.id &&
+              (yoLoAtiendo ||
+                  SolicitudesDonacionStore.obtener(reporte.reporteId) !=
+                      null)) ...[
+            const SizedBox(height: 24),
+            ValueListenableBuilder<int>(
+              valueListenable: SolicitudesDonacionStore.cambios,
+              builder: (_, __, ___) => _buildSolicitudDonaciones(
+                context,
+                reporte,
+                esResponsable: yoLoAtiendo,
+              ),
+            ),
+          ],
+
           const SizedBox(height: 40),
 
           SizedBox(
@@ -346,6 +367,172 @@ class ReporteEstadoScreen extends StatelessWidget {
                     ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSolicitudDonaciones(
+    BuildContext context,
+    ReporteEstado reporte, {
+    required bool esResponsable,
+  }) {
+    final solicitud = SolicitudesDonacionStore.obtener(reporte.reporteId);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (solicitud != null) ...[
+          Text('Meta de donación', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height:8),
+          LinearProgressIndicator(
+            value: solicitud.meta == 0
+                ? 0
+                : (solicitud.totalDonado / solicitud.meta)
+                    .clamp(0.0, 1.0)
+                    .toDouble(),
+          ),
+          const SizedBox(height: 6),
+          Text('\$${solicitud.totalDonado.toStringAsFixed(2)} recaudados de \$${solicitud.meta.toStringAsFixed(2)} MXN'),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => _mostrarGastos(context, solicitud),
+            icon: const Icon(Icons.receipt_long_outlined),
+            label: Text(
+              'Ver gastos y evidencias (${solicitud.gastos.length})',
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        if (esResponsable) OutlinedButton.icon(
+          icon: const Icon(Icons.volunteer_activism_outlined),
+          label: Text(solicitud == null ? 'Solicitar donaciones' : 'Editar solicitud de donaciones'),
+          onPressed: () => _abrirSolicitudDonaciones(context, reporte),
+        ) else FilledButton.icon(
+          icon: const Icon(Icons.favorite_outline),
+          label: const Text('Donar'),
+          onPressed: solicitud == null ? null : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => DonarReporteScreen(reporteId: reporte.reporteId))),
+        ),
+      ],
+    );
+  }
+
+  void _mostrarGastos(BuildContext context, SolicitudDonacion solicitud) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          const Text('Gastos del rescate', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          Text(solicitud.descripcion),
+          const SizedBox(height: 16),
+          ...solicitud.gastos.map(
+            (gasto) => Card(
+              child: ListTile(
+                leading: gasto.evidencia == null
+                    ? const Icon(Icons.receipt_long_outlined)
+                    : Tooltip(
+                        message: 'Toca para ampliar el ticket',
+                        child: InkWell(
+                          onTap: () => _mostrarTicket(context, gasto),
+                          borderRadius: BorderRadius.circular(6),
+                          child: SizedBox(
+                            width: 46,
+                            height: 46,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Image.file(
+                                    gasto.evidencia!,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                const Positioned(
+                                  right: 2,
+                                  bottom: 2,
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      color: Colors.black54,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(3),
+                                      child: Icon(
+                                        Icons.fullscreen,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                title: Text(gasto.descripcion),
+                subtitle: Text('\$${gasto.monto.toStringAsFixed(2)} MXN'),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarTicket(BuildContext context, GastoRescate gasto) {
+    final evidencia = gasto.evidencia;
+    if (evidencia == null) return;
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Dialog.fullscreen(
+        backgroundColor: Colors.black,
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Center(
+                child: InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 4,
+                  child: Image.file(evidencia, fit: BoxFit.contain),
+                ),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: IconButton.filled(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  icon: const Icon(Icons.close),
+                  tooltip: 'Cerrar',
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _abrirSolicitudDonaciones(BuildContext context, ReporteEstado reporte) {
+    final authState = context.read<AuthBloc>().state;
+    final verificadoEnCuenta = authState is AuthSuccess && authState.data is Usuario && (authState.data as Usuario).verificado;
+    final verificadoTemporal = context.read<VerificacionCubit>().state == EstadoVerificacion.verificado;
+    if (verificadoEnCuenta || verificadoTemporal) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => SolicitarDonacionesScreen(reporteId: reporte.reporteId)));
+      return;
+    }
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Verificación requerida'),
+        content: const Text('Para solicitar donaciones debes verificarte completando el registro en tu perfil.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancelar')),
+          FilledButton(onPressed: () { Navigator.pop(dialogContext); context.push('/completar-perfil'); }, child: const Text('Completar perfil')),
         ],
       ),
     );

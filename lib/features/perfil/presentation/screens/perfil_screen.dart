@@ -218,6 +218,22 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 },
               ),
 
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, authState) => BlocBuilder<VerificacionCubit, EstadoVerificacion>(
+                  builder: (context, estado) {
+                    final verificadoEnCuenta = authState is AuthSuccess && authState.data is Usuario && (authState.data as Usuario).verificado;
+                    final estaVerificado = verificadoEnCuenta || estado == EstadoVerificacion.verificado;
+                    if (!estaVerificado) return const SizedBox.shrink();
+                    return PerfilOption(
+                      icon: Icons.account_balance_wallet_outlined,
+                      titulo: 'Mi cuenta',
+                      subtitulo: 'Recibe donaciones en tus reportes',
+                      onTap: () => context.push('/mi-cuenta'),
+                    );
+                  },
+                ),
+              ),
+
               BlocBuilder<TarjetaBloc, TarjetaState>(
                 builder: (context, tarjetaState) {
                   int cantidadTarjetas = 0;
