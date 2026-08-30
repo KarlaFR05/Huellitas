@@ -1211,6 +1211,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   }
 
   Widget _buildOtraRazaField() {
+    final tieneError = _otraRazaError != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1223,51 +1224,53 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        TextField(
-          controller: _otraRazaController,
-          onChanged: _validarOtraRaza,
-          textCapitalization: TextCapitalization.words,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: _fieldBackground,
-            hintText: 'Escribe la raza del animal',
-            hintStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 18,
-              vertical: 16,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.outlineVariant,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(color: _accent, width: 2),
-            ),
-            errorText: _otraRazaError,
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.error,
-              ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.error,
-                width: 2,
-              ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: _fieldBackground,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: tieneError
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.outline,
+              width: tieneError ? 2 : 1,
             ),
           ),
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 15,
+          child: TextField(
+            controller: _otraRazaController,
+            onChanged: _validarOtraRaza,
+            textCapitalization: TextCapitalization.words,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              focusedErrorBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              filled: false,
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+              hintText: 'Escribe la raza del animal',
+              hintStyle: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 14,
+            ),
           ),
         ),
+        if (tieneError) ...[
+          const SizedBox(height: 6),
+          Text(
+            _otraRazaError!,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.error,
+              fontSize: 12,
+            ),
+          ),
+        ],
       ],
     );
   }
