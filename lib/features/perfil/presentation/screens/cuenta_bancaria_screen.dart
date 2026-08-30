@@ -16,6 +16,7 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
   final _cuentaController = TextEditingController();
   String? _bancoDetectado;
   bool _guardando = false;
+  bool _esCuentaExistente = false; 
 
   static const Map<String, String> _bancosPorPrefijo3 = {
     '400': 'BBVA',
@@ -67,11 +68,38 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
   Future<void> _cargarDatos() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
-    setState(() {
-      final cuentaGuardada = prefs.getString('org_cuenta') ?? '';
-      _cuentaController.text = _formatearCuenta(cuentaGuardada);
-      _detectarBanco(cuentaGuardada);
-    });
+    
+    final cuentaGuardada = prefs.getString('org_cuenta') ?? '';
+    
+    if (cuentaGuardada.isNotEmpty) {
+      setState(() {
+        _cuentaController.text = _enmascararCuenta(cuentaGuardada);
+        _esCuentaExistente = true;
+        _detectarBanco(cuentaGuardada);
+      });
+    } else {
+      // Si no hay cuenta guardada, mostrar campo vacío
+      setState(() {
+        _cuentaController.text = '';
+        _esCuentaExistente = false;
+      });
+    }
+  }
+
+  String _enmascararCuenta(String cuenta) {
+    final solo = cuenta.replaceAll(RegExp(r'\D'), '');
+    if (solo.length < 4) return solo;
+    
+    final ultimos4 = solo.substring(solo.length - 4);
+    final enmascarada = '•' * (solo.length - 4) + ultimos4;
+    
+    // Formatear con espacios cada 4 dígitos
+    final buffer = StringBuffer();
+    for (var i = 0; i < enmascarada.length; i++) {
+      if (i > 0 && i % 4 == 0) buffer.write(' ');
+      buffer.write(enmascarada[i]);
+    }
+    return buffer.toString();
   }
 
   // Detecta el banco basado en los primeros dígitos
@@ -327,6 +355,14 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [LengthLimitingTextInputFormatter(19)],
                   onChanged: (v) {
+                    if (_esCuentaExistente && v.contains('•')) {
+                      _cuentaController.clear();
+                      setState(() {
+                        _esCuentaExistente = false;
+                      });
+                      return;
+                    }
+                    
                     final f = _formatearCuenta(v);
                     if (f != v) {
                       _cuentaController.value = TextEditingValue(
@@ -338,16 +374,18 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
                     _detectarBanco(v);
                   },
                   validator: (v) {
-                    final solo = v?.replaceAll(' ', '') ?? '';
+                    final solo = v?.replaceAll(RegExp(r'[\s•]'), '') ?? '';
                     if (solo.isEmpty) return 'Ingresa el número de cuenta';
                     if (solo.length != 16) return 'Debe tener 16 dígitos';
                     return null;
                   },
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Número de cuenta',
                     prefixIcon: Icon(Icons.credit_card_outlined),
-                    hintText: '1234 5678 1234 5678',
-                    helperText: 'Ingresa los 16 dígitos de tu cuenta',
+                    hintText: _esCuentaExistente ? null : '1234 5678 1234 5678',
+                    helperText: _esCuentaExistente 
+                        ? 'Borra y escribe para actualizar' 
+                        : 'Ingresa los 16 dígitos de tu cuenta',
                   ),
                 ),
                 const SizedBox(height: 16),
