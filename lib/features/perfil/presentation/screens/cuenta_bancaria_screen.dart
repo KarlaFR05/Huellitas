@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CuentaBancariaScreen extends StatefulWidget {
   const CuentaBancariaScreen({super.key});
@@ -11,25 +13,43 @@ class CuentaBancariaScreen extends StatefulWidget {
 
 class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
   final _formKey = GlobalKey<FormState>();
-  String? _bancoSeleccionado;
   final _cuentaController = TextEditingController();
-  final _titularController = TextEditingController();
+  String? _bancoDetectado;
+  bool _guardando = false;
 
-  //Lista de bancos comunes en México
-  static const List<String> _bancos = [
-    'BBVA',
-    'Banorte',
-    'Santander',
-    'Citibanamex',
-    'HSBC',
-    'Scotiabank',
-    'BanBajío',
-    'Inbursa',
-    'Banregio',
-    'Afirme',
-    'Banco Azteca',
-    'Otro',
-  ];
+  static const Map<String, String> _bancosPorPrefijo3 = {
+    '400': 'BBVA',
+    '401': 'Banorte',
+    '402': 'Citibanamex',
+    '403': 'HSBC',
+    '404': 'BBVA',
+    '405': 'Santander',
+    '406': 'Scotiabank',
+    '407': 'BanBajío',
+    '408': 'Inbursa',
+    '409': 'Banregio',
+    '410': 'Afirme',
+    '411': 'Banco Azteca',
+    '412': 'HSBC',
+    '413': 'Santander',
+    '414': 'Citibanamex',
+    '415': 'BBVA',
+    '416': 'Banorte',
+    '417': 'Scotiabank',
+    '418': 'BanBajío',
+    '419': 'Inbursa',
+    '420': 'Banregio',
+    '421': 'Citibanamex',
+    '422': 'HSBC',
+    '423': 'Santander',
+    '424': 'BBVA',
+    '425': 'Banorte',
+    '426': 'Scotiabank',
+    '427': 'BanBajío',
+    '428': 'Inbursa',
+    '429': 'Afirme',
+    '430': 'Banco Azteca',
+  };
 
   @override
   void initState() {
@@ -41,7 +61,6 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
   @override
   void dispose() {
     _cuentaController.dispose();
-    _titularController.dispose();
     super.dispose();
   }
 
@@ -49,14 +68,31 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
-      _bancoSeleccionado = prefs.getString('org_banco');
-      _cuentaController.text =
-          _formatearCuenta(prefs.getString('org_cuenta') ?? '');
-      _titularController.text = prefs.getString('org_titular') ?? '';
+      final cuentaGuardada = prefs.getString('org_cuenta') ?? '';
+      _cuentaController.text = _formatearCuenta(cuentaGuardada);
+      _detectarBanco(cuentaGuardada);
     });
   }
 
-  //Aviso de que todo es simulado
+  // Detecta el banco basado en los primeros dígitos
+  void _detectarBanco(String cuenta) {
+    final soloDigitos = cuenta.replaceAll(RegExp(r'\D'), '');
+    
+    if (soloDigitos.length < 3) {
+      setState(() => _bancoDetectado = null);
+      return;
+    }
+
+    // Fallback a prefijo de 3 dígitos
+    final prefijo3 = soloDigitos.substring(0, 3);
+    if (_bancosPorPrefijo3.containsKey(prefijo3)) {
+      setState(() => _bancoDetectado = _bancosPorPrefijo3[prefijo3]);
+    } else {
+      setState(() => _bancoDetectado = null);
+    }
+  }
+
+  // Aviso de que todo es simulado
   Future<void> _mostrarAviso() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool('aviso_cuenta_simulada') ?? false) return;
@@ -178,22 +214,56 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
   Future<void> _guardar() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('org_banco', _bancoSeleccionado ?? '');
-    await prefs.setString(
-      'org_cuenta',
-      _cuentaController.text.replaceAll(' ', ''),
-    );
-    await prefs.setString('org_titular', _titularController.text.trim());
+    setState(() => _guardando = true);
 
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Cuenta guardada correctamente'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    Navigator.pop(context, true);
+    try {
+      final dio = context.read<Dio>();
+      final cuentaLimpia = _cuentaController.text.replaceAll(' ', '');
+      final response = await dio.patch(
+        '/usuarios/mi-organizacion', 
+        data: {
+          'cuenta_bancaria': cuentaLimpia,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('org_cuenta', cuentaLimpia);
+        if (_bancoDetectado != null) {
+          await prefs.setString('org_banco', _bancoDetectado!);
+        }
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cuenta guardada correctamente'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      String mensajeError = 'Error al guardar la cuenta';
+      if (e is DioException && e.response?.data != null) {
+        mensajeError = e.response?.data['detail'] ?? mensajeError;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(mensajeError),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _guardando = false);
+      }
+    }
   }
 
   @override
@@ -206,7 +276,7 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          'Mi cuenta',
+          'Mi cuenta bancaria',
           style: TextStyle(
             color: colors.onSurface,
             fontWeight: FontWeight.w800,
@@ -249,30 +319,9 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
           Form(
             key: _formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // DROPDOWN DE BANCOS
-                DropdownButtonFormField<String>(
-                  value: _bancoSeleccionado,
-                  decoration: const InputDecoration(
-                    labelText: 'Banco',
-                    prefixIcon: Icon(Icons.account_balance_outlined),
-                    hintText: 'Selecciona tu banco',
-                  ),
-                  items: _bancos.map((banco) {
-                    return DropdownMenuItem<String>(
-                      value: banco,
-                      child: Text(banco),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _bancoSeleccionado = value;
-                    });
-                  },
-                  validator: (value) =>
-                      value == null || value.isEmpty ? 'Selecciona un banco' : null,
-                ),
-                const SizedBox(height: 16),
+                // Campo de número de cuenta
                 TextFormField(
                   controller: _cuentaController,
                   keyboardType: TextInputType.number,
@@ -285,6 +334,8 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
                         selection: TextSelection.collapsed(offset: f.length),
                       );
                     }
+                    // Detectar banco automáticamente mientras escribe
+                    _detectarBanco(v);
                   },
                   validator: (v) {
                     final solo = v?.replaceAll(' ', '') ?? '';
@@ -296,27 +347,86 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
                     labelText: 'Número de cuenta',
                     prefixIcon: Icon(Icons.credit_card_outlined),
                     hintText: '1234 5678 1234 5678',
+                    helperText: 'Ingresa los 16 dígitos de tu cuenta',
                   ),
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _titularController,
-                  textCapitalization: TextCapitalization.words,
-                  validator: (v) => v == null || v.trim().isEmpty
-                      ? 'Ingresa el titular'
-                      : null,
-                  decoration: const InputDecoration(
-                    labelText: 'Titular de la cuenta',
-                    prefixIcon: Icon(Icons.person_outline),
-                    hintText: 'Nombre tal como aparece en la cuenta',
+
+                // Campo de banco detectado (solo lectura)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colors.primaryContainer.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: colors.primary.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.account_balance_rounded,
+                        color: colors.primary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Banco',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colors.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _bancoDetectado ?? 'No identificado',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: _bancoDetectado != null
+                                    ? colors.primary
+                                    : colors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_bancoDetectado == null)
+                        Icon(
+                          Icons.help_outline,
+                          color: colors.onSurfaceVariant,
+                          size: 20,
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'El banco se detecta automáticamente según los primeros dígitos de tu cuenta.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colors.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
                 const SizedBox(height: 24),
+
+                // Botón de guardar
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _guardar,
-                    child: const Text('Guardar cuenta'),
+                    onPressed: _guardando ? null : _guardar,
+                    child: _guardando
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Guardar cuenta'),
                   ),
                 ),
               ],

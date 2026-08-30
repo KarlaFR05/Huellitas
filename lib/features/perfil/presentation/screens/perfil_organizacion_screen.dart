@@ -244,17 +244,17 @@ class _PerfilOrganizacionScreenState extends State<PerfilOrganizacionScreen> {
                     Row(
                       children: [
                         _Stat(
-                          icono: Icons.pets_rounded,
+                          icono: Icons.people_alt_rounded,
                           titulo: 'Seguidores',
                           valor: _miles(org.cantidadSeguidores),
                         ),
                         _Stat(
-                          icono: Icons.favorite_rounded,
+                          icono: Icons.flag_rounded, 
                           titulo: 'Meta mensual',
                           valor: '\$${org.metaMensual.toStringAsFixed(0)}',
                         ),
                         _Stat(
-                          icono: Icons.calendar_month,
+                          icono: Icons.payments_rounded,
                           titulo: 'Recaudado',
                           valor: '\$${org.recaudadoMensual.toStringAsFixed(0)}',
                         ),
@@ -321,17 +321,22 @@ class _Stat extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Icon(icono, color: colors.primary, size: 20),
-          const SizedBox(height: 4),
+          Icon(icono, color: colors.primary, size: 22), 
+          const SizedBox(height: 6),
           Text(
             titulo,
-            style: Theme.of(context).textTheme.bodySmall,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
             valor,
-            style: const TextStyle(fontWeight: FontWeight.w800),
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 15,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -393,7 +398,7 @@ class _Opcion extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: colors.onSurface),
+              Icon(Icons.chevron_right_rounded, color: colors.onSurfaceVariant),
             ],
           ),
         ),
