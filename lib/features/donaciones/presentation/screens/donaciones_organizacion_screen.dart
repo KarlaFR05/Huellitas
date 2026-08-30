@@ -1,10 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../foro/data/datasources/organizacion_foro_datasource.dart';
 import '../../../foro/data/repositories/organizacion_foro_repository_impl.dart';
 import '../../../foro/domain/entities/organizacion_foro.dart';
+import '../../data/datasources/donacion_organizacion_remote_datasource.dart';
+import '../../data/repositories/donacion_organizacion_repository_impl.dart';
+import '../../domain/entities/donacion_recibida_entity.dart';
 import '../../../home/presentation/widgets/bottom_bar.dart';
 
 class DonacionesOrganizacionScreen extends StatefulWidget {
@@ -17,12 +21,12 @@ class DonacionesOrganizacionScreen extends StatefulWidget {
 
 class _DonacionesOrganizacionScreenState
     extends State<DonacionesOrganizacionScreen> {
-  late final Future<OrganizacionForo?> _futureOrg;
-  late final Future<List<_DonacionRecibida>> _futureDonaciones;
-
+  
   double _metaMensual = 0;
   double _recaudadoMensual = 0;
-  int? _organizacionId; 
+  int? _organizacionId;
+  List<DonacionRecibidaEntity> _donaciones = [];
+  bool _cargandoInicial = true;
 
   bool _editandoMeta = false;
   bool _guardandoMeta = false;
@@ -36,41 +40,58 @@ class _DonacionesOrganizacionScreenState
   @override
   void initState() {
     super.initState();
-    final dio = Dio(); 
+    _cargarDatosIniciales();
+  }
 
-    _futureOrg = OrganizacionForoRepositoryImpl(
-      OrganizacionForoRemoteDataSourceImpl(dio),
-    ).obtenerMiOrganizacion().then((org) {
-      // 🔍 DEBUG: Ver exactamente qué devuelve el repositorio
-      print('🔍 [DEBUG] ORG RECIBIDA DEL REPOSITORIO: $org');
-      
-      if (org != null) {
-        print('✅ [DEBUG] ORG.ID: ${org.id}');
-        print('✅ [DEBUG] META: ${org.metaMensual}');
-        print('✅ [DEBUG] RECAUDADO: ${org.recaudadoMensual}');
-        
-        if (mounted) {
-          setState(() {
-            _organizacionId = org.id; 
-            _metaMensual = org.metaMensual; 
-            _recaudadoMensual = org.recaudadoMensual;
-            print('✅ [DEBUG] _organizacionId guardado exitosamente en setState');
-          });
+  Future<void> _cargarDatosIniciales() async {
+    setState(() => _cargandoInicial = true);
+    
+    try {
+      final dio = context.read<Dio>();
+      final org = await OrganizacionForoRepositoryImpl(
+        OrganizacionForoRemoteDataSourceImpl(dio),
+      ).obtenerMiOrganizacion();
+
+      if (org == null) {
+        throw Exception('No tienes una organización registrada');
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _organizacionId = org.id;
+        _metaMensual = org.metaMensual;
+        _recaudadoMensual = org.recaudadoMensual;
+      });
+      final repository = DonacionOrganizacionRepositoryImpl(
+        DonacionOrganizacionRemoteDataSourceImpl(dio),
+      );
+
+      final estadisticas = await repository.obtenerEstadisticas(org.id);
+
+      if (!mounted) return;
+
+      setState(() {
+        if (estadisticas.metaMensual > 0) {
+          _metaMensual = estadisticas.metaMensual;
         }
-      } else {
-        print('❌ [DEBUG] El repositorio devolvió NULL. Revisa tu DataSource o el endpoint del backend.');
+        _recaudadoMensual = estadisticas.recaudadoMensual;
+        _donaciones = estadisticas.donacionesRecientes;
+        _cargandoInicial = false;
+      });
+      
+    } catch (e) {
+      print('Error al cargar datos: $e');
+      if (mounted) {
+        setState(() => _cargandoInicial = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
-      return org;
-    }).catchError((error) {
-      print('❌ [DEBUG] ERROR al obtener organización: $error');
-      if (error is DioException) {
-        print('❌ [DEBUG] STATUS CODE: ${error.response?.statusCode}');
-        print('❌ [DEBUG] DETALLE DEL ERROR: ${error.response?.data}');
-      }
-      return null;
-    });
-
-    _futureDonaciones = _obtenerDonaciones(dio);
+    }
   }
 
   @override
@@ -79,28 +100,13 @@ class _DonacionesOrganizacionScreenState
     super.dispose();
   }
 
-  Future<List<_DonacionRecibida>> _obtenerDonaciones(Dio dio) async {
-    try {
-      // Asegúrate de que esta ruta sea la correcta para obtener las donaciones de la organización
-      final response = await dio.get('/donaciones/organizacion/mis-donaciones'); 
-      final List<dynamic> data = response.data is List ? response.data : [];
-      return data.map((d) {
-        final fecha = DateTime.tryParse(d['fecha_donacion']?.toString() ?? '');
-        return _DonacionRecibida(
-          nombre: d['nombre_donante']?.toString() ?? 'Donante anónimo',
-          fecha: fecha != null
-              ? '${fecha.day.toString().padLeft(2, '0')} ${_meses[fecha.month - 1]} ${fecha.year}'
-              : '',
-          monto: (d['monto'] as num?)?.toDouble() ?? 0,
-        );
-      }).toList();
-    } catch (e) {
-      print('⚠️ [DEBUG] No se pudo cargar el historial: $e');
-      return [];
-    }
-  }
-
   void _iniciarEdicion() {
+    if (_organizacionId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cargando datos de organización...')),
+      );
+      return;
+    }
     _metaController.text = _metaMensual > 0 ? _metaMensual.toStringAsFixed(0) : '';
     setState(() => _editandoMeta = true);
   }
@@ -110,18 +116,11 @@ class _DonacionesOrganizacionScreenState
   }
 
   Future<void> _guardarMeta() async {
-    // ⏳ DEBUG: Si por alguna razón aún es null, esperamos a que la Future termine
     if (_organizacionId == null) {
-      print('⏳ [DEBUG] Esperando a que cargue la organización...');
-      await _futureOrg;
-      
-      if (_organizacionId == null) {
-        print('❌ [DEBUG] Después de esperar, _organizacionId sigue siendo null');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo identificar tu organización. Verifica tu sesión.')),
-        );
-        return;
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo identificar tu organización')),
+      );
+      return;
     }
 
     final valor = double.tryParse(_metaController.text);
@@ -138,34 +137,30 @@ class _DonacionesOrganizacionScreenState
     });
 
     try {
-      final dio = Dio(); 
-      
-      print('📡 [DEBUG] ENVIANDO PATCH A: /donaciones/organizacion/$_organizacionId/meta');
-      print('📦 [DEBUG] DATOS: {"meta_mensual": $valor}');
-      
-      final response = await dio.patch(
-        '/donaciones/organizacion/$_organizacionId/meta',
-        data: {'meta_mensual': valor},
+      final dio = context.read<Dio>();
+      final repository = DonacionOrganizacionRepositoryImpl(
+        DonacionOrganizacionRemoteDataSourceImpl(dio),
       );
-      
-      print('✅ [DEBUG] RESPUESTA DEL SERVIDOR: ${response.statusCode}');
+
+      await repository.actualizarMeta(_organizacionId!, valor);
 
       if (!mounted) return;
+
       setState(() {
         _metaMensual = valor;
         _guardandoMeta = false;
       });
+
       _mostrarDialogoExito(valor);
     } catch (e) {
-      print('❌ [DEBUG] ERROR AL GUARDAR META: $e');
-      if (e is DioException) {
-        print('❌ [DEBUG] STATUS CODE DEL ERROR: ${e.response?.statusCode}');
-        print('❌ [DEBUG] DETALLE DEL ERROR: ${e.response?.data}');
-      }
+      print('Error al guardar meta: $e');
       if (!mounted) return;
       setState(() => _guardandoMeta = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -190,18 +185,14 @@ class _DonacionesOrganizacionScreenState
                 child: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 45),
               ),
               const SizedBox(height: 20),
-              Text(
+              const Text(
                 '¡Meta actualizada!',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               Text(
-                'Tu meta mensual se actualizó correctamente a \$${valor.toStringAsFixed(2)}.',
+                'Tu meta mensual se actualizó a \$${valor.toStringAsFixed(2)}.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
@@ -223,6 +214,10 @@ class _DonacionesOrganizacionScreenState
     );
   }
 
+  String _formatearFecha(DateTime fecha) {
+    return '${fecha.day.toString().padLeft(2, '0')} ${_meses[fecha.month - 1]} ${fecha.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -230,6 +225,12 @@ class _DonacionesOrganizacionScreenState
     final porcentaje = (avance * 100).toStringAsFixed(0);
     final faltante = _metaMensual - _recaudadoMensual;
     final metaAlcanzada = faltante <= 0 && _metaMensual > 0;
+
+    if (_cargandoInicial) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       extendBody: true,
@@ -254,9 +255,9 @@ class _DonacionesOrganizacionScreenState
                 Text(
                   'Donaciones',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: colors.primary,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    color: colors.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ],
             ),
@@ -302,9 +303,7 @@ class _DonacionesOrganizacionScreenState
               decoration: BoxDecoration(
                 color: colors.surfaceContainerLowest,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: colors.outlineVariant.withValues(alpha: .45),
-                ),
+                border: Border.all(color: colors.outlineVariant.withValues(alpha: .45)),
               ),
               child: Column(
                 children: [
@@ -348,8 +347,11 @@ class _DonacionesOrganizacionScreenState
                         const SizedBox(width: 6),
                         IconButton(
                           tooltip: 'Editar meta mensual',
-                          onPressed: _iniciarEdicion,
-                          icon: Icon(Icons.edit_outlined, color: colors.primary),
+                          onPressed: _organizacionId != null ? _iniciarEdicion : null,
+                          icon: Icon(
+                            _organizacionId != null ? Icons.edit_outlined : Icons.error_outline,
+                            color: _organizacionId != null ? colors.primary : Colors.grey,
+                          ),
                         ),
                       ],
                     ),
@@ -365,9 +367,7 @@ class _DonacionesOrganizacionScreenState
                       value: avance,
                       minHeight: 10,
                       backgroundColor: colors.surfaceContainerHighest,
-                      valueColor: AlwaysStoppedAnimation(
-                        metaAlcanzada ? Colors.green : colors.primary,
-                      ),
+                      valueColor: AlwaysStoppedAnimation(metaAlcanzada ? Colors.green : colors.primary),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -377,9 +377,7 @@ class _DonacionesOrganizacionScreenState
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: metaAlcanzada
-                              ? Colors.green.withValues(alpha: 0.1)
-                              : colors.primary.withValues(alpha: 0.1),
+                          color: metaAlcanzada ? Colors.green.withValues(alpha: 0.1) : colors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -403,26 +401,15 @@ class _DonacionesOrganizacionScreenState
                         ),
                       ),
                       if (metaAlcanzada)
-                        Text(
-                          '¡Meta alcanzada!',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.green),
-                        )
+                        Text('¡Meta alcanzada!', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.green))
                       else if (_metaMensual > 0)
-                        Text(
-                          'Faltan \$${faltante.toStringAsFixed(2)}',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.onSurfaceVariant),
-                        ),
+                        Text('Faltan \$${faltante.toStringAsFixed(2)}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.onSurfaceVariant)),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Text(
                     'META DEL MES DE DONACIONES',
-                    style: TextStyle(
-                      fontSize: 11,
-                      letterSpacing: 1.2,
-                      fontWeight: FontWeight.w700,
-                      color: colors.onSurfaceVariant,
-                    ),
+                    style: TextStyle(fontSize: 11, letterSpacing: 1.2, fontWeight: FontWeight.w700, color: colors.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -434,27 +421,23 @@ class _DonacionesOrganizacionScreenState
               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 10),
-            FutureBuilder<List<_DonacionRecibida>>(
-              future: _futureDonaciones,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 30),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                final donaciones = snapshot.data ?? [];
-                if (donaciones.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 30),
-                    child: Center(child: Text('Aún no has recibido donaciones.')),
-                  );
-                }
-                return Column(
-                  children: [for (final donacion in donaciones) _DonacionRecibidaCard(donacion: donacion)],
-                );
-              },
-            ),
+            
+            if (_donaciones.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 30),
+                child: Center(child: Text('Aún no has recibido donaciones.')),
+              )
+            else
+              Column(
+                children: [
+                  for (final donacion in _donaciones)
+                    _DonacionRecibidaCard(
+                      nombre: donacion.nombreDonante,
+                      fecha: _formatearFecha(donacion.fechaDonacion),
+                      monto: donacion.monto,
+                    ),
+                ],
+              ),
           ],
         ),
       ),
@@ -462,17 +445,16 @@ class _DonacionesOrganizacionScreenState
     );
   }
 }
-
-class _DonacionRecibida {
+class _DonacionRecibidaCard extends StatelessWidget {
   final String nombre;
   final String fecha;
   final double monto;
-  const _DonacionRecibida({required this.nombre, required this.fecha, required this.monto});
-}
 
-class _DonacionRecibidaCard extends StatelessWidget {
-  final _DonacionRecibida donacion;
-  const _DonacionRecibidaCard({super.key, required this.donacion});
+  const _DonacionRecibidaCard({
+    required this.nombre,
+    required this.fecha,
+    required this.monto,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -487,35 +469,40 @@ class _DonacionRecibidaCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: colors.primaryContainer,
-            child: Icon(Icons.person_rounded, color: colors.primary),
-          ),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(donacion.nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 2),
-                Text(donacion.fecha, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant)),
+                Text(
+                  nombre, 
+                  maxLines: 1, 
+                  overflow: TextOverflow.ellipsis, 
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  fecha, 
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+                ),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('\$${donacion.monto.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.w800, color: colors.primary)),
-              const SizedBox(height: 2),
+              Text(
+                '\$${monto.toStringAsFixed(2)}', 
+                style: TextStyle(fontWeight: FontWeight.w800, color: colors.primary, fontSize: 16),
+              ),
+              const SizedBox(height: 4),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: colors.primary.withValues(alpha: .12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text(
-                  'completada',
+                  'Completada', 
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
                 ),
               ),
