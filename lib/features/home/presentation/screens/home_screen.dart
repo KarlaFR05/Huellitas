@@ -55,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       if (m.faseActualId == _faseConcluido) {
+        if (_mostrarCompletadosSinLimite) return true;
         if (m.fechaActualizacion == null) return true;
         final tiempoTranscurrido = ahora.difference(m.fechaActualizacion!);
         return tiempoTranscurrido < _tiempoVisibleTrasConcluir;
@@ -66,6 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Set<ReportAnimal> _filtroAnimales = {};
   Set<ReportUrgency> _filtroUrgencias = {};
+  bool _mostrarCompletadosSinLimite = false;
 
   bool _cargando = true;
 
@@ -210,6 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (_) => FiltroReportesSheet(
         animalesSeleccionados: _filtroAnimales,
         urgenciasSeleccionadas: _filtroUrgencias,
+        mostrarCompletados: _mostrarCompletadosSinLimite,
       ),
     );
 
@@ -217,6 +220,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _filtroAnimales = resultado.animales;
         _filtroUrgencias = resultado.urgencias;
+        _mostrarCompletadosSinLimite = resultado.mostrarCompletados;
       });
     }
   }
@@ -257,7 +261,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: FiltroReportesButton(
                                 cantidadActiva:
                                     _filtroAnimales.length +
-                                    _filtroUrgencias.length,
+                                    _filtroUrgencias.length +
+                                    (_mostrarCompletadosSinLimite ? 1 : 0),
                                 onTap: _abrirFiltro,
                               ),
                             ),

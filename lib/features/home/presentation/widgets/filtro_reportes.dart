@@ -19,27 +19,38 @@ class FiltroReportesButton extends StatelessWidget {
     return Material(
       color: theme.colorScheme.surface,
       elevation: 4,
-      shape: const CircleBorder(),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: InkWell(
-        customBorder: const CircleBorder(),
+        borderRadius: BorderRadius.circular(24),
         onTap: onTap,
-        child: SizedBox(
-          width: 48,
-          height: 48,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              Center(
-                child: Icon(
-                  Icons.tune_rounded,
-                  color: theme.colorScheme.primary,
-                  size: 24,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.tune_rounded,
+                    color: theme.colorScheme.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Filtrar',
+                    style: TextStyle(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
               ),
               if (cantidadActiva > 0)
                 Positioned(
-                  top: -2,
-                  right: -2,
+                  top: -8,
+                  right: -8,
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
@@ -79,11 +90,13 @@ class FiltroReportesButton extends StatelessWidget {
 class FiltroReportesSheet extends StatefulWidget {
   final Set<ReportAnimal> animalesSeleccionados;
   final Set<ReportUrgency> urgenciasSeleccionadas;
+  final bool mostrarCompletados;
 
   const FiltroReportesSheet({
     super.key,
     required this.animalesSeleccionados,
     required this.urgenciasSeleccionadas,
+    required this.mostrarCompletados,
   });
 
   @override
@@ -92,6 +105,7 @@ class FiltroReportesSheet extends StatefulWidget {
 
 class _FiltroReportesSheetState extends State<FiltroReportesSheet> {
   late Set<ReportAnimal> _animales;
+  late bool _mostrarCompletados;
   late Set<ReportUrgency> _urgencias;
 
   @override
@@ -99,6 +113,7 @@ class _FiltroReportesSheetState extends State<FiltroReportesSheet> {
     super.initState();
     _animales = {...widget.animalesSeleccionados};
     _urgencias = {...widget.urgenciasSeleccionadas};
+    _mostrarCompletados = widget.mostrarCompletados;
   }
 
   void _toggleAnimal(ReportAnimal a) {
@@ -137,10 +152,16 @@ class _FiltroReportesSheetState extends State<FiltroReportesSheet> {
                 ),
                 TextButton(
                   onPressed: hayFiltrosActivos
-                      ? () => setState(() {
-                          _animales.clear();
-                          _urgencias.clear();
-                        })
+                      ? () {
+                          Navigator.pop(
+                            context,
+                            ResultadoFiltroReportes(
+                              <ReportAnimal>{},
+                              <ReportUrgency>{},
+                              false,
+                            ),
+                          );
+                        }
                       : null,
                   child: const Text('Limpiar'),
                 ),
@@ -209,12 +230,35 @@ class _FiltroReportesSheetState extends State<FiltroReportesSheet> {
                 );
               },
             ),
+            const SizedBox(height: 22),
+            _SeccionTitulo(texto: 'ESTADO'),
+            const SizedBox(height: 10),
+            _FiltroPill(
+              width: double.infinity,
+              selected: _mostrarCompletados,
+              color: const Color(0xFF2E7D32),
+              leading: Container(
+                width: 11,
+                height: 11,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF2E7D32),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              label: 'Mostrar completados',
+              onTap: () =>
+                  setState(() => _mostrarCompletados = !_mostrarCompletados),
+            ),
             const SizedBox(height: 26),
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(
                   context,
-                  ResultadoFiltroReportes(_animales, _urgencias),
+                  ResultadoFiltroReportes(
+                    _animales,
+                    _urgencias,
+                    _mostrarCompletados,
+                  ),
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -258,8 +302,13 @@ class _SeccionTitulo extends StatelessWidget {
 class ResultadoFiltroReportes {
   final Set<ReportAnimal> animales;
   final Set<ReportUrgency> urgencias;
+  final bool mostrarCompletados;
 
-  const ResultadoFiltroReportes(this.animales, this.urgencias);
+  const ResultadoFiltroReportes(
+    this.animales,
+    this.urgencias,
+    this.mostrarCompletados,
+  );
 }
 
 class _FiltroPill extends StatelessWidget {
@@ -314,7 +363,20 @@ class _FiltroPill extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (selected) Icon(Icons.check_rounded, color: color, size: 19),
+                if (selected)
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                  ),
               ],
             ),
           ),

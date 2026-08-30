@@ -24,6 +24,7 @@ class MapWidget extends StatefulWidget {
 
 class _MapWidgetState extends State<MapWidget> {
   late MapController _controller;
+  static const String _cartoApiKey = String.fromEnvironment('CARTO_API_KEY');
 
   @override
   void initState() {
@@ -155,7 +156,7 @@ class _MapWidgetState extends State<MapWidget> {
         minZoom:
             5, // qué tan lejos puede alejarse (número más bajo = más alejado)
         maxZoom:
-            22, // qué tan cerca puede acercarse (número más alto = más cercano)
+            20, // qué tan cerca puede acercarse (número más alto = más cercano)
       ),
       children: [
         ColorFiltered(
@@ -208,7 +209,7 @@ class _MapWidgetState extends State<MapWidget> {
           ),
           child: TileLayer(
             urlTemplate:
-                'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+                'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=$_cartoApiKey',
             subdomains: const ['a', 'b', 'c', 'd'],
             userAgentPackageName: 'com.huellitas.app',
           ),
