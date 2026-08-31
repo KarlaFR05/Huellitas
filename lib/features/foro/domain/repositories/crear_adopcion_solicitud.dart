@@ -9,6 +9,7 @@ class CrearAdopcionSolicitud {
     required this.vacunas,
     required this.descripcion,
     required this.preguntas,
+    this.sonVariasMascotas = false,
     this.imagenLocalPath,
     this.imagenExistenteUrl,
     this.id,
@@ -33,4 +34,5 @@ class CrearAdopcionSolicitud {
   final String? imagenExistenteUrl;
 
   final List<String> preguntas;
+  final bool sonVariasMascotas;
 }

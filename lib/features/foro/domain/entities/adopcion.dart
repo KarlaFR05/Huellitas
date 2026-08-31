@@ -14,6 +14,9 @@ class Adopcion {
   final String? imagenUrl;
   final String? imagenPath;
   final List<String> preguntas;
+  /// Una publicación puede representar una camada o más de una mascota.
+  /// En ese caso el responsable puede aceptar a más de un postulante.
+  final bool sonVariasMascotas;
 
   Adopcion({
     required this.id,
@@ -31,5 +34,6 @@ class Adopcion {
     this.imagenUrl,
     this.imagenPath,
     this.preguntas = const [],
+    this.sonVariasMascotas = false,
   }) : fecha = fecha ?? DateTime.now();
 }

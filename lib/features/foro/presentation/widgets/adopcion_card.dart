@@ -4,11 +4,12 @@ import '../../domain/entities/adopcion.dart';
 import '../adopciones_postulaciones_store.dart';
 
 class AdopcionCard extends StatelessWidget {
-  const AdopcionCard({super.key, required this.adopcion, required this.onAbrir, this.esPropietario = false, this.postulacionPendiente = false, this.onAccion});
+  const AdopcionCard({super.key, required this.adopcion, required this.onAbrir, this.esPropietario = false, this.postulacionPendiente = false, this.postulacionAceptada, this.onAccion});
   final Adopcion adopcion;
   final VoidCallback onAbrir;
   final bool esPropietario;
   final bool postulacionPendiente;
+  final PostulacionAdopcion? postulacionAceptada;
   final VoidCallback? onAccion;
 
   @override
@@ -37,7 +38,7 @@ class AdopcionCard extends StatelessWidget {
         Container(padding: const EdgeInsets.fromLTRB(14, 10, 12, 10), color: colors.surfaceContainerLow, child: Row(children: [
           Icon(Icons.calendar_month_outlined, size: 19, color: colors.onSurfaceVariant), const SizedBox(width: 7), Expanded(child: _footer('Publicado el', _fecha(adopcion.fecha), context)),
           Icon(Icons.groups_2_outlined, size: 19, color: colors.onSurfaceVariant), const SizedBox(width: 7), Expanded(child: _footer('Solicitudes', '$solicitudes', context)), const SizedBox(width: 8),
-          SizedBox(height: 45, width: 120, child: FilledButton(onPressed: postulacionPendiente ? null : (onAccion ?? onAbrir), child: FittedBox(child: Text(esPropietario ? 'Postulaciones' : postulacionPendiente ? 'Pendiente' : 'Postularme', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700))))),
+          SizedBox(height: 45, width: 120, child: FilledButton(onPressed: postulacionPendiente && postulacionAceptada == null ? null : (onAccion ?? onAbrir), child: FittedBox(child: Text(esPropietario ? 'Postulaciones' : postulacionAceptada != null ? 'Aceptado' : postulacionPendiente ? 'Pendiente' : 'Postularme', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700))))),
         ])),
       ])),
     );

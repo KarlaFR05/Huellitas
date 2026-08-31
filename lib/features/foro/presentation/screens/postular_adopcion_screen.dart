@@ -28,6 +28,7 @@ class PostularAdopcionScreen extends StatefulWidget {
 class _PostularAdopcionScreenState
     extends State<PostularAdopcionScreen> {
   late final List<TextEditingController> _controllers;
+  final _contactoController = TextEditingController();
 
   @override
   void initState() {
@@ -44,12 +45,13 @@ class _PostularAdopcionScreenState
     for (final controller in _controllers) {
       controller.dispose();
     }
+    _contactoController.dispose();
 
     super.dispose();
   }
 
   bool get _todasRespondidas {
-    return _controllers.every(
+    return _contactoController.text.trim().isNotEmpty && _controllers.every(
       (controller) => controller.text.trim().isNotEmpty,
     );
   }
@@ -125,6 +127,7 @@ class _PostularAdopcionScreenState
         insigniasDonacion: resumen.insigniasDonacion,
         porcentajeAptitud: resumen.porcentajeAptitud,
         fotoPerfil: usuario?.fotoPerfil,
+        contacto: _contactoController.text.trim(),
       ),
     );
 
@@ -303,6 +306,29 @@ class _PostularAdopcionScreenState
             ),
 
             const SizedBox(height: 18),
+
+            Text(
+              'Datos de contacto',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '¿Cómo puede contactarte la persona que da en adopción? Solo se compartirá si eres aceptado.',
+              style: TextStyle(color: colors.onSurfaceVariant),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _contactoController,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                labelText: 'Teléfono o medio de contacto',
+                hintText: 'Ej. 55 1234 5678 o correo@ejemplo.com',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+
+            const SizedBox(height: 24),
 
             for (var i = 0;
                 i < widget.adopcion.preguntas.length;

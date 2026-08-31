@@ -43,6 +43,7 @@ class _CrearAdopcionScreenState
   String _especie = 'Perro';
   String _tamano = 'Mediano';
   String _sexo = 'Macho';
+  bool _sonVariasMascotas = false;
 
   final List<String> _preguntas = [
     '¿Tienes tiempo suficiente?',
@@ -86,6 +87,7 @@ class _CrearAdopcionScreenState
       _preguntas
         ..clear()
         ..addAll(adopcion.preguntas);
+      _sonVariasMascotas = adopcion.sonVariasMascotas;
     }
   }
 
@@ -244,6 +246,7 @@ class _CrearAdopcionScreenState
       imagenExistenteUrl: _imagen == null ? _imagenExistenteUrl : null,
       id: widget.adopcion?.id,
       preguntas: List<String>.from(_preguntas),
+      sonVariasMascotas: _sonVariasMascotas,
     );
 
     if (!mounted) return;
@@ -315,6 +318,7 @@ class _CrearAdopcionScreenState
               especie: _especie,
               tamano: _tamano,
               sexo: _sexo,
+              sonVariasMascotas: _sonVariasMascotas,
               habilitado: !_publicando,
               onEspecie: (valor) {
                 setState(() {
@@ -330,6 +334,9 @@ class _CrearAdopcionScreenState
                 setState(() {
                   _sexo = valor;
                 });
+              },
+              onCantidadMascotas: (valor) {
+                setState(() => _sonVariasMascotas = valor);
               },
             ),
 
@@ -592,10 +599,12 @@ class _CamposAdopcion
     required this.especie,
     required this.tamano,
     required this.sexo,
+    required this.sonVariasMascotas,
     required this.habilitado,
     required this.onEspecie,
     required this.onTamano,
     required this.onSexo,
+    required this.onCantidadMascotas,
   });
 
   final TextEditingController nombreController;
@@ -606,12 +615,14 @@ class _CamposAdopcion
   final String especie;
   final String tamano;
   final String sexo;
+  final bool sonVariasMascotas;
 
   final bool habilitado;
 
   final ValueChanged<String> onEspecie;
   final ValueChanged<String> onTamano;
   final ValueChanged<String> onSexo;
+  final ValueChanged<bool> onCantidadMascotas;
 
   @override
   Widget build(BuildContext context) {
@@ -644,6 +655,26 @@ class _CamposAdopcion
             prefixIcon:
                 Icon(Icons.pets_rounded),
           ),
+        ),
+
+        const SizedBox(height: 10),
+
+        SegmentedButton<bool>(
+          segments: const [
+            ButtonSegment(value: false, icon: Icon(Icons.pets_rounded), label: Text('Una mascota')),
+            ButtonSegment(value: true, icon: Icon(Icons.group_rounded), label: Text('Varias mascotas')),
+          ],
+          selected: {sonVariasMascotas},
+          onSelectionChanged: habilitado
+              ? (seleccion) => onCantidadMascotas(seleccion.first)
+              : null,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          sonVariasMascotas
+              ? 'Podrás aceptar a varios postulantes.'
+              : 'Solo podrás aceptar a un postulante.',
+          style: Theme.of(context).textTheme.bodySmall,
         ),
 
         const SizedBox(height: 10),

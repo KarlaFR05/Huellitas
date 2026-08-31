@@ -12,6 +12,9 @@ class PostulacionAdopcion {
     this.insigniasReporte = 0,
     this.insigniasDonacion = 0,
     this.fotoPerfil,
+    this.contacto,
+    this.contactoResponsable,
+    this.fueAceptada = false,
   });
 
   final String nombre;
@@ -35,6 +38,32 @@ class PostulacionAdopcion {
   final int insigniasReporte;
   final int insigniasDonacion;
   final String? fotoPerfil;
+  /// Contacto que comparte el postulante al enviar su solicitud.
+  final String? contacto;
+  /// Contacto compartido por quien da la mascota en adopción al aceptar.
+  final String? contactoResponsable;
+  final bool fueAceptada;
+
+  PostulacionAdopcion copyWith({
+    String? contactoResponsable,
+    bool? fueAceptada,
+  }) => PostulacionAdopcion(
+    nombre: nombre,
+    respuestas: respuestas,
+    porcentajeAptitud: porcentajeAptitud,
+    estado: fueAceptada == true ? 'Aceptada' : estado,
+    entrevistaCompletada: entrevistaCompletada,
+    usuarioId: usuarioId,
+    fechaRegistro: fechaRegistro,
+    ubicacion: ubicacion,
+    insigniasRescate: insigniasRescate,
+    insigniasReporte: insigniasReporte,
+    insigniasDonacion: insigniasDonacion,
+    fotoPerfil: fotoPerfil,
+    contacto: contacto,
+    contactoResponsable: contactoResponsable ?? this.contactoResponsable,
+    fueAceptada: fueAceptada ?? this.fueAceptada,
+  );
 }
 
 /// Almacenamiento temporal mientras se habilita el endpoint de postulaciones.
@@ -57,4 +86,35 @@ class PostulacionesAdopcionStore {
       (_datos[id] ?? const []).any(
         (postulacion) => postulacion.nombre == nombre,
       );
+
+  /// Conserva solamente a las personas aceptadas; las demás solicitudes se
+  /// eliminan al cerrar el proceso de selección.
+  static void aceptar(
+    int adopcionId,
+    Iterable<PostulacionAdopcion> aceptadas,
+    String contactoResponsable,
+  ) {
+    final seleccionadas = aceptadas.toSet();
+    _datos[adopcionId] = (_datos[adopcionId] ?? const [])
+        .where(seleccionadas.contains)
+        .map((postulacion) => postulacion.copyWith(
+              fueAceptada: true,
+              contactoResponsable: contactoResponsable,
+            ))
+        .toList();
+  }
+
+  static PostulacionAdopcion? postulacionDeUsuario(
+    int adopcionId,
+    int? usuarioId,
+    String nombre,
+  ) {
+    for (final postulacion in _datos[adopcionId] ?? const []) {
+      if ((usuarioId != null && postulacion.usuarioId == usuarioId) ||
+          (usuarioId == null && postulacion.nombre == nombre)) {
+        return postulacion;
+      }
+    }
+    return null;
+  }
 }

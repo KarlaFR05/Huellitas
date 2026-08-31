@@ -71,6 +71,7 @@ class AdopcionesRepositoryMemoria implements AdopcionesRepository {
     imagenPath: solicitud.imagenLocalPath,
     imagenUrl: solicitud.imagenExistenteUrl ?? imagenUrl,
     preguntas: solicitud.preguntas,
+    sonVariasMascotas: solicitud.sonVariasMascotas,
     fecha: fecha,
   );
 }

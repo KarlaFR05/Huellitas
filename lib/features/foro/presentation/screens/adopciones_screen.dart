@@ -188,8 +188,12 @@ class _AdopcionesScreenState
               )
             else
               for (final adopcion in adopciones)
-                AdopcionCard(
+                Builder(builder: (context) {
+                  final postulacion = PostulacionesAdopcionStore
+                      .postulacionDeUsuario(adopcion.id, usuarioId, nombreUsuario);
+                  return AdopcionCard(
                   adopcion: adopcion,
+                  postulacionAceptada: postulacion?.fueAceptada == true ? postulacion : null,
 
                   onAbrir: () {},
 
@@ -210,13 +214,15 @@ class _AdopcionesScreenState
                         adopcion,
                       );
                     } else {
-                      _postularme(
-                        context,
-                        adopcion,
-                      );
+                      if (postulacion?.fueAceptada == true) {
+                        _mostrarContactoAceptacion(context, adopcion, postulacion!);
+                      } else {
+                        _postularme(context, adopcion);
+                      }
                     }
                   },
-                ),
+                );
+                }),
           ],
         ),
       ),
@@ -277,9 +283,34 @@ class _AdopcionesScreenState
           imagenLocalPath: resultado.imagenLocalPath,
           imagenExistenteUrl: resultado.imagenExistenteUrl,
           preguntas: resultado.preguntas,
+          sonVariasMascotas: resultado.sonVariasMascotas,
           usuarioId: usuario?.usuarioIdPk,
           nombreUsuario: usuario?.nombreUsuario,
         ),
+      ),
+    );
+  }
+
+  void _mostrarContactoAceptacion(
+    BuildContext context,
+    Adopcion adopcion,
+    PostulacionAdopcion postulacion,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.celebration_rounded),
+        title: const Text('¡Tu postulación fue aceptada!'),
+        content: Text(
+          '${adopcion.nombreUsuario} aceptó tu solicitud para ${adopcion.nombre}.\n\n'
+          'Contacto: ${postulacion.contactoResponsable ?? 'No disponible'}',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Entendido'),
+          ),
+        ],
       ),
     );
   }

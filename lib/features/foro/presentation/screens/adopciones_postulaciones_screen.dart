@@ -5,7 +5,7 @@ import '../adopciones_postulaciones_store.dart';
 import '../../domain/entities/adopcion.dart';
 import 'adopcion_respuestas_screen.dart';
 
-class AdopcionesPostulacionesScreen extends StatelessWidget {
+class AdopcionesPostulacionesScreen extends StatefulWidget {
   const AdopcionesPostulacionesScreen({
     super.key,
     required this.adopcion,
@@ -14,10 +14,78 @@ class AdopcionesPostulacionesScreen extends StatelessWidget {
   final Adopcion adopcion;
 
   @override
+  State<AdopcionesPostulacionesScreen> createState() =>
+      _AdopcionesPostulacionesScreenState();
+}
+
+class _AdopcionesPostulacionesScreenState
+    extends State<AdopcionesPostulacionesScreen> {
+  final Set<PostulacionAdopcion> _seleccionadas = {};
+
+  Future<void> _aceptarSeleccionadas() async {
+    if (_seleccionadas.isEmpty) return;
+    final nombres = _seleccionadas.map((p) => p.nombre).join(', ');
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar postulantes'),
+        content: Text(
+          '¿Deseas aceptar a $nombres? Las demás postulaciones se eliminarán y las personas aceptadas recibirán una notificación.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sí, aceptar')),
+        ],
+      ),
+    );
+    if (confirmar != true || !mounted) return;
+
+    final contacto = await _pedirContactoResponsable();
+    if (contacto == null || !mounted) return;
+    PostulacionesAdopcionStore.aceptar(widget.adopcion.id, _seleccionadas, contacto);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Se aceptó ${_seleccionadas.length == 1 ? 'la postulación de ${_seleccionadas.first.nombre}' : 'a ${_seleccionadas.length} postulantes'}.')),
+    );
+    setState(() => _seleccionadas.clear());
+  }
+
+  Future<String?> _pedirContactoResponsable() async {
+    final controller = TextEditingController();
+    final resultado = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Comparte tus datos de contacto'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.phone,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Teléfono o medio de contacto',
+            hintText: 'Ej. 55 1234 5678',
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          FilledButton(
+            onPressed: () {
+              final contacto = controller.text.trim();
+              if (contacto.isNotEmpty) Navigator.pop(context, contacto);
+            },
+            child: const Text('Compartir y finalizar'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return resultado;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final postulaciones =
         PostulacionesAdopcionStore.deAdopcion(
-      adopcion.id,
+      widget.adopcion.id,
     );
 
     return Scaffold(
@@ -35,7 +103,7 @@ class AdopcionesPostulacionesScreen extends StatelessWidget {
               ),
               children: [
                 _EncabezadoAdopcion(
-                  adopcion: adopcion,
+                  adopcion: widget.adopcion,
                   cantidad: postulaciones.length,
                 ),
 
@@ -44,20 +112,43 @@ class AdopcionesPostulacionesScreen extends StatelessWidget {
                 for (final postulacion in postulaciones)
                   _PostulacionCard(
                     postulacion: postulacion,
+                    seleccionada: _seleccionadas.contains(postulacion),
+                    seleccionable: widget.adopcion.sonVariasMascotas || _seleccionadas.isEmpty || _seleccionadas.contains(postulacion),
+                    onSeleccionar: () => setState(() {
+                      if (_seleccionadas.contains(postulacion)) {
+                        _seleccionadas.remove(postulacion);
+                      } else {
+                        if (!widget.adopcion.sonVariasMascotas) _seleccionadas.clear();
+                        _seleccionadas.add(postulacion);
+                      }
+                    }),
                     onVerRespuestas: () {
                       Navigator.push<void>(
                         context,
                         MaterialPageRoute(
                           builder: (_) =>
                               AdopcionRespuestasScreen(
-                            adopcion: adopcion,
+                            adopcion: widget.adopcion,
                             postulacion: postulacion,
                           ),
                         ),
                       );
                     },
                   ),
+                const SizedBox(height: 76),
               ],
+            ),
+      bottomNavigationBar: postulaciones.isEmpty
+          ? null
+          : SafeArea(
+              minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: FilledButton.icon(
+                onPressed: _seleccionadas.isEmpty ? null : _aceptarSeleccionadas,
+                icon: const Icon(Icons.check_circle_rounded),
+                label: Text(widget.adopcion.sonVariasMascotas
+                    ? 'Aceptar ${_seleccionadas.length} postulante(s)'
+                    : 'Aceptar postulante'),
+              ),
             ),
     );
   }
@@ -165,10 +256,16 @@ class _PostulacionCard extends StatelessWidget {
   const _PostulacionCard({
     required this.postulacion,
     required this.onVerRespuestas,
+    required this.seleccionada,
+    required this.seleccionable,
+    required this.onSeleccionar,
   });
 
   final PostulacionAdopcion postulacion;
   final VoidCallback onVerRespuestas;
+  final bool seleccionada;
+  final bool seleccionable;
+  final VoidCallback onSeleccionar;
 
   @override
   Widget build(BuildContext context) {
@@ -306,6 +403,7 @@ class _PostulacionCard extends StatelessWidget {
                 ),
 
                 const SizedBox(width: 10),
+                Checkbox(value: seleccionada, onChanged: seleccionable ? (_) => onSeleccionar() : null),
 
                 // PORCENTAJE
                 Column(
@@ -474,6 +572,31 @@ class _PostulacionCard extends StatelessWidget {
               ],
             ),
           ),
+
+          if (postulacion.fueAceptada &&
+              postulacion.contacto != null &&
+              postulacion.contacto!.isNotEmpty)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colors.primaryContainer.withValues(alpha: .45),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.contact_phone_rounded, color: colors.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Contacto de ${postulacion.nombre}: ${postulacion.contacto}',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           const SizedBox(height: 14),
 
