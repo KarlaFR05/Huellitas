@@ -13,9 +13,6 @@ import '../bloc/adopciones_event.dart';
 class ForoScreen extends StatelessWidget {
   const ForoScreen({super.key});
 
-  static final AdopcionesRepositoryMemoria _adopcionesRepository =
-      AdopcionesRepositoryMemoria();
-
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -102,8 +99,8 @@ class ForoScreen extends StatelessWidget {
             const PublicacionesScreen(),
             const GruposScreen(),
             BlocProvider(
-              create: (_) => AdopcionesBloc(
-                repository: _adopcionesRepository,
+              create: (context) => AdopcionesBloc(
+                repository: context.read<AdopcionesRepository>(),
               )..add(const AdopcionesSolicitadas()),
               child: const AdopcionesScreen(),
             ),

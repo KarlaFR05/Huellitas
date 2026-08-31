@@ -1,3 +1,5 @@
+import 'pregunta_adopcion.dart';
+
 class Adopcion {
   final int id;
   final int? usuarioId;
@@ -13,7 +15,7 @@ class Adopcion {
   final DateTime fecha;
   final String? imagenUrl;
   final String? imagenPath;
-  final List<String> preguntas;
+  final List<PreguntaAdopcion> preguntas;
 
   Adopcion({
     required this.id,

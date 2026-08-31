@@ -1,3 +1,5 @@
+import '../entities/pregunta_adopcion.dart';
+
 class CrearAdopcionSolicitud {
   const CrearAdopcionSolicitud({
     required this.nombre,
@@ -32,5 +34,5 @@ class CrearAdopcionSolicitud {
   final String? imagenLocalPath;
   final String? imagenExistenteUrl;
 
-  final List<String> preguntas;
+  final List<PreguntaAdopcion> preguntas;
 }

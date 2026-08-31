@@ -11,27 +11,26 @@ import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/adopcion.dart';
 import '../../domain/repositories/crear_adopcion_solicitud.dart';
 
+import '../../domain/entities/pregunta_adopcion.dart';
+import '../../data/repositories/adopciones_repository.dart';
+
 class CrearAdopcionScreen extends StatefulWidget {
-  const CrearAdopcionScreen({
-    super.key,
-    this.adopcion,
-  });
+  const CrearAdopcionScreen({super.key, this.adopcion});
 
   final Adopcion? adopcion;
 
   @override
-  State<CrearAdopcionScreen> createState() =>
-      _CrearAdopcionScreenState();
+  State<CrearAdopcionScreen> createState() => _CrearAdopcionScreenState();
 }
 
-class _CrearAdopcionScreenState
-    extends State<CrearAdopcionScreen> {
+class _CrearAdopcionScreenState extends State<CrearAdopcionScreen> {
   final _contenidoController = TextEditingController();
   final _nombreMascotaController = TextEditingController();
   final _edadController = TextEditingController();
   final _ciudadController = TextEditingController();
   final _vacunasController = TextEditingController();
   final _preguntaController = TextEditingController();
+  final _criterioController = TextEditingController();
 
   final _imagePicker = ImagePicker();
 
@@ -39,16 +38,21 @@ class _CrearAdopcionScreenState
   String? _imagenExistenteUrl;
 
   bool _publicando = false;
+  bool _sugiriendo = false;
 
   String _especie = 'Perro';
   String _tamano = 'Mediano';
   String _sexo = 'Macho';
 
-  final List<String> _preguntas = [
-    '¿Tienes tiempo suficiente?',
-    '¿Cuentas con un ingreso mensual para proveer alimento?',
-    '¿Consideras que el espacio en tu hogar es el adecuado?',
-    '¿Tienes más mascotas?',
+  final List<PreguntaAdopcion> _preguntas = [
+    const PreguntaAdopcion(texto: '¿Tienes tiempo suficiente?'),
+    const PreguntaAdopcion(
+      texto: '¿Cuentas con un ingreso mensual para proveer alimento?',
+    ),
+    const PreguntaAdopcion(
+      texto: '¿Consideras que el espacio en tu hogar es el adecuado?',
+    ),
+    const PreguntaAdopcion(texto: '¿Tienes más mascotas?'),
   ];
 
   bool get _editando => widget.adopcion != null;
@@ -68,20 +72,11 @@ class _CrearAdopcionScreenState
       _ciudadController.text = adopcion.ciudad;
       _vacunasController.text = adopcion.vacunas;
 
-      _especie =
-          adopcion.especie.isEmpty
-              ? _especie
-              : adopcion.especie;
+      _especie = adopcion.especie.isEmpty ? _especie : adopcion.especie;
 
-      _tamano =
-          adopcion.tamano.isEmpty
-              ? _tamano
-              : adopcion.tamano;
+      _tamano = adopcion.tamano.isEmpty ? _tamano : adopcion.tamano;
 
-      _sexo =
-          adopcion.sexo.isEmpty
-              ? _sexo
-              : adopcion.sexo;
+      _sexo = adopcion.sexo.isEmpty ? _sexo : adopcion.sexo;
 
       _preguntas
         ..clear()
@@ -97,8 +92,101 @@ class _CrearAdopcionScreenState
     _ciudadController.dispose();
     _vacunasController.dispose();
     _preguntaController.dispose();
+    _criterioController.dispose();
 
     super.dispose();
+  }
+
+  Future<void> _sugerirPreguntas() async {
+    final edad = _edadController.text.trim();
+    if (edad.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Completa la edad antes de pedir sugerencias.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _sugiriendo = true);
+
+    try {
+      final sugeridas = await context
+          .read<AdopcionesRepository>()
+          .sugerirPreguntas(
+            especie: _especie,
+            edad: edad,
+            tamano: _tamano,
+            descripcion: _contenidoController.text.trim().isEmpty
+                ? null
+                : _contenidoController.text.trim(),
+          );
+
+      if (!mounted) return;
+
+      final seleccionadas = await showDialog<List<String>>(
+        context: context,
+        builder: (dialogContext) {
+          final marcadas = <String>{};
+          return StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                title: const Text('Preguntas sugeridas'),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: sugeridas.map((pregunta) {
+                      final marcada = marcadas.contains(pregunta);
+                      return CheckboxListTile(
+                        value: marcada,
+                        title: Text(pregunta),
+                        onChanged: (valor) {
+                          setDialogState(() {
+                            if (valor == true) {
+                              marcadas.add(pregunta);
+                            } else {
+                              marcadas.remove(pregunta);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext, <String>[]),
+                    child: const Text('Cancelar'),
+                  ),
+                  FilledButton(
+                    onPressed: () =>
+                        Navigator.pop(dialogContext, marcadas.toList()),
+                    child: const Text('Agregar seleccionadas'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+
+      if (seleccionadas != null && seleccionadas.isNotEmpty && mounted) {
+        setState(() {
+          _preguntas.addAll(
+            seleccionadas.map((texto) => PreguntaAdopcion(texto: texto)),
+          );
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se pudieron sugerir preguntas: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _sugiriendo = false);
+    }
   }
 
   Future<void> _seleccionarImagen() async {
@@ -106,8 +194,7 @@ class _CrearAdopcionScreenState
       context: context,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
-        final colors =
-            Theme.of(sheetContext).colorScheme;
+        final colors = Theme.of(sheetContext).colorScheme;
 
         return SafeArea(
           top: false,
@@ -134,30 +221,14 @@ class _CrearAdopcionScreenState
                 ),
                 const SizedBox(height: 20),
                 ListTile(
-                  leading: Icon(
-                    Icons.camera_alt,
-                    color: colors.primary,
-                  ),
-                  title: const Text(
-                    'Tomar fotografía',
-                  ),
-                  onTap: () => Navigator.pop(
-                    sheetContext,
-                    ImageSource.camera,
-                  ),
+                  leading: Icon(Icons.camera_alt, color: colors.primary),
+                  title: const Text('Tomar fotografía'),
+                  onTap: () => Navigator.pop(sheetContext, ImageSource.camera),
                 ),
                 ListTile(
-                  leading: Icon(
-                    Icons.photo_library,
-                    color: colors.primary,
-                  ),
-                  title: const Text(
-                    'Seleccionar de galería',
-                  ),
-                  onTap: () => Navigator.pop(
-                    sheetContext,
-                    ImageSource.gallery,
-                  ),
+                  leading: Icon(Icons.photo_library, color: colors.primary),
+                  title: const Text('Seleccionar de galería'),
+                  onTap: () => Navigator.pop(sheetContext, ImageSource.gallery),
                 ),
               ],
             ),
@@ -169,8 +240,7 @@ class _CrearAdopcionScreenState
     if (source == null) return;
 
     try {
-      final seleccionada =
-          await _imagePicker.pickImage(
+      final seleccionada = await _imagePicker.pickImage(
         source: source,
         maxWidth: 1800,
         maxHeight: 1800,
@@ -185,38 +255,28 @@ class _CrearAdopcionScreenState
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'No se pudo seleccionar la imagen',
-            ),
-          ),
+          const SnackBar(content: Text('No se pudo seleccionar la imagen')),
         );
       }
     }
   }
 
   Future<void> _publicar() async {
-    final contenido =
-        _contenidoController.text.trim();
+    final contenido = _contenidoController.text.trim();
 
-    final nombre =
-        _nombreMascotaController.text.trim();
+    final nombre = _nombreMascotaController.text.trim();
 
-    final edad =
-        _edadController.text.trim();
+    final edad = _edadController.text.trim();
 
-    final ciudad =
-        _ciudadController.text.trim();
+    final ciudad = _ciudadController.text.trim();
 
-    final vacunas =
-        _vacunasController.text.trim();
+    final vacunas = _vacunasController.text.trim();
 
     if (contenido.isEmpty ||
         edad.isEmpty ||
         ciudad.isEmpty ||
         vacunas.isEmpty ||
-        (_imagen == null &&
-            _imagenExistenteUrl == null)) {
+        (_imagen == null && _imagenExistenteUrl == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -231,6 +291,11 @@ class _CrearAdopcionScreenState
       _publicando = true;
     });
 
+    final authState = context.read<AuthBloc>().state;
+    final usuario = authState is AuthSuccess && authState.data is Usuario
+        ? authState.data as Usuario
+        : null;
+
     final solicitud = CrearAdopcionSolicitud(
       nombre: nombre,
       especie: _especie,
@@ -243,7 +308,9 @@ class _CrearAdopcionScreenState
       imagenLocalPath: _imagen?.path,
       imagenExistenteUrl: _imagen == null ? _imagenExistenteUrl : null,
       id: widget.adopcion?.id,
-      preguntas: List<String>.from(_preguntas),
+      usuarioId: usuario?.usuarioIdPk,
+      nombreUsuario: usuario?.nombreUsuario,
+      preguntas: List<PreguntaAdopcion>.from(_preguntas),
     );
 
     if (!mounted) return;
@@ -252,66 +319,42 @@ class _CrearAdopcionScreenState
       _publicando = false;
     });
 
-    Navigator.pop(
-      context,
-      solicitud,
-    );
+    Navigator.pop(context, solicitud);
   }
 
   @override
   Widget build(BuildContext context) {
-    final colors =
-        Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
 
-    final authState =
-        context.watch<AuthBloc>().state;
+    final authState = context.watch<AuthBloc>().state;
 
-    final usuario =
-        authState is AuthSuccess &&
-                authState.data is Usuario
-            ? authState.data as Usuario
-            : null;
+    final usuario = authState is AuthSuccess && authState.data is Usuario
+        ? authState.data as Usuario
+        : null;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _editando
-              ? 'Editar adopción'
-              : 'Crear adopción',
-        ),
+        title: Text(_editando ? 'Editar adopción' : 'Crear adopción'),
         actions: [
           TextButton(
-            onPressed:
-                _publicando ? null : _publicar,
+            onPressed: _publicando ? null : _publicar,
             child: Text(
               _editando ? 'Guardar' : 'Publicar',
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          16,
-          12,
-          16,
-          32,
-        ),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _CamposAdopcion(
-              nombreController:
-                  _nombreMascotaController,
-              edadController:
-                  _edadController,
-              ciudadController:
-                  _ciudadController,
-              vacunasController:
-                  _vacunasController,
+              nombreController: _nombreMascotaController,
+              edadController: _edadController,
+              ciudadController: _ciudadController,
+              vacunasController: _vacunasController,
               especie: _especie,
               tamano: _tamano,
               sexo: _sexo,
@@ -336,39 +379,26 @@ class _CrearAdopcionScreenState
             const SizedBox(height: 18),
 
             Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
-                  backgroundColor:
-                      colors.primaryContainer,
-                  backgroundImage:
-                      avatarProvider(
-                    usuario?.fotoPerfil,
-                  ),
-                  child:
-                      usuario?.fotoPerfil == null
-                          ? Icon(
-                              Icons.person_rounded,
-                              color: colors.primary,
-                            )
-                          : null,
+                  backgroundColor: colors.primaryContainer,
+                  backgroundImage: avatarProvider(usuario?.fotoPerfil),
+                  child: usuario?.fotoPerfil == null
+                      ? Icon(Icons.person_rounded, color: colors.primary)
+                      : null,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextField(
-                    controller:
-                        _contenidoController,
+                    controller: _contenidoController,
                     enabled: !_publicando,
                     minLines: 5,
                     maxLines: 12,
                     maxLength: 500,
-                    textCapitalization:
-                        TextCapitalization.sentences,
-                    decoration:
-                        const InputDecoration(
-                      hintText:
-                          'Describe a la mascota y su situación',
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: const InputDecoration(
+                      hintText: 'Describe a la mascota y su situación',
                       border: InputBorder.none,
                     ),
                   ),
@@ -376,12 +406,10 @@ class _CrearAdopcionScreenState
               ],
             ),
 
-            if (_imagen != null ||
-                _imagenExistenteUrl != null) ...[
+            if (_imagen != null || _imagenExistenteUrl != null) ...[
               const SizedBox(height: 12),
               ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(18),
                 child: _imagen != null
                     ? Image.file(
                         _imagen!,
@@ -394,17 +422,11 @@ class _CrearAdopcionScreenState
                         width: double.infinity,
                         height: 250,
                         fit: BoxFit.cover,
-                        errorBuilder:
-                            (_, __, ___) =>
-                                Container(
+                        errorBuilder: (_, __, ___) => Container(
                           height: 250,
-                          color: colors
-                              .surfaceContainerHighest,
+                          color: colors.surfaceContainerHighest,
                           child: const Center(
-                            child: Icon(
-                              Icons
-                                  .broken_image_outlined,
-                            ),
+                            child: Icon(Icons.broken_image_outlined),
                           ),
                         ),
                       ),
@@ -415,73 +437,52 @@ class _CrearAdopcionScreenState
 
             Text(
               'Fotografía de la mascota',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
             ),
 
             const SizedBox(height: 12),
 
             Material(
-              color:
-                  colors.surfaceContainerLowest,
-              borderRadius:
-                  BorderRadius.circular(20),
+              color: colors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(20),
               child: InkWell(
-                onTap: _publicando
-                    ? null
-                    : _seleccionarImagen,
-                borderRadius:
-                    BorderRadius.circular(20),
+                onTap: _publicando ? null : _seleccionarImagen,
+                borderRadius: BorderRadius.circular(20),
                 child: Container(
                   width: double.infinity,
                   height: 150,
                   decoration: BoxDecoration(
-                    borderRadius:
-                        BorderRadius.circular(20),
-                    border: Border.all(
-                      color:
-                          colors.outlineVariant,
-                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: colors.outlineVariant),
                   ),
                   child: Column(
-                    mainAxisAlignment:
-                        MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        _imagen == null &&
-                                _imagenExistenteUrl ==
-                                    null
-                            ? Icons
-                                .add_a_photo_outlined
-                            : Icons
-                                .change_circle_outlined,
+                        _imagen == null && _imagenExistenteUrl == null
+                            ? Icons.add_a_photo_outlined
+                            : Icons.change_circle_outlined,
                         size: 34,
                         color: colors.primary,
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        _imagen == null &&
-                                _imagenExistenteUrl ==
-                                    null
+                        _imagen == null && _imagenExistenteUrl == null
                             ? 'Toca para agregar una foto'
                             : 'Toca para elegir otra foto',
                         style: TextStyle(
                           color: colors.primary,
                           fontSize: 14,
-                          fontWeight:
-                              FontWeight.w700,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Cámara o galería · Máximo 1 imagen',
                         style: TextStyle(
-                          color:
-                              colors.onSurfaceVariant,
+                          color: colors.onSurfaceVariant,
                           fontSize: 11,
                         ),
                       ),
@@ -495,85 +496,141 @@ class _CrearAdopcionScreenState
 
             Text(
               'Preguntas para postulantes',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
             ),
 
             const SizedBox(height: 8),
 
             for (final pregunta in _preguntas)
-              ListTile(
-                dense: true,
-                contentPadding:
-                    EdgeInsets.zero,
-                leading: const Icon(
-                  Icons.help_outline_rounded,
-                ),
-                title: Text(pregunta),
-                trailing: IconButton(
-                  icon: const Icon(
-                    Icons.close_rounded,
+              Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: colors.outlineVariant.withValues(alpha: .5),
                   ),
-                  onPressed: _publicando
-                      ? null
-                      : () {
-                          setState(() {
-                            _preguntas
-                                .remove(pregunta);
-                          });
-                        },
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.help_outline_rounded,
+                      color: colors.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            pregunta.texto,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          if (pregunta.criterioEsperado != null &&
+                              pregunta.criterioEsperado!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Buscas: ${pregunta.criterioEsperado}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colors.onSurfaceVariant,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      onPressed: _publicando
+                          ? null
+                          : () => setState(() => _preguntas.remove(pregunta)),
+                    ),
+                  ],
                 ),
               ),
 
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller:
-                        _preguntaController,
-                    enabled: !_publicando,
-                    decoration:
-                        const InputDecoration(
-                      hintText:
-                          'Agregar pregunta',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.add_circle_rounded,
-                  ),
-                  onPressed: _publicando
-                      ? null
-                      : () {
-                          final pregunta =
-                              _preguntaController
-                                  .text
-                                  .trim();
+            const SizedBox(height: 8),
 
-                          if (pregunta.isNotEmpty) {
-                            setState(() {
-                              _preguntas
-                                  .add(pregunta);
-                              _preguntaController
-                                  .clear();
-                            });
-                          }
-                        },
-                ),
-              ],
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _publicando || _sugiriendo
+                    ? null
+                    : _sugerirPreguntas,
+                icon: _sugiriendo
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.auto_awesome_rounded, size: 18),
+                label: Text(_sugiriendo ? 'Pensando...' : 'Sugerir con IA'),
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            TextField(
+              controller: _preguntaController,
+              enabled: !_publicando,
+              decoration: const InputDecoration(
+                labelText: 'Nueva pregunta',
+                hintText: 'Ej. ¿Tienes patio?',
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            TextField(
+              controller: _criterioController,
+              enabled: !_publicando,
+              minLines: 1,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: '¿Qué buscas en la respuesta? (opcional)',
+                hintText: 'Ej. Que tenga espacio abierto para que corra',
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.icon(
+                onPressed: _publicando
+                    ? null
+                    : () {
+                        final texto = _preguntaController.text.trim();
+                        if (texto.isEmpty) return;
+                        setState(() {
+                          _preguntas.add(
+                            PreguntaAdopcion(
+                              texto: texto,
+                              criterioEsperado:
+                                  _criterioController.text.trim().isEmpty
+                                  ? null
+                                  : _criterioController.text.trim(),
+                            ),
+                          );
+                          _preguntaController.clear();
+                          _criterioController.clear();
+                        });
+                      },
+                icon: const Icon(Icons.add_circle_rounded, size: 18),
+                label: const Text('Agregar pregunta'),
+              ),
             ),
 
             if (_publicando) ...[
               const SizedBox(height: 24),
-              const Center(
-                child:
-                    CircularProgressIndicator(),
-              ),
+              const Center(child: CircularProgressIndicator()),
             ],
           ],
         ),
@@ -582,8 +639,7 @@ class _CrearAdopcionScreenState
   }
 }
 
-class _CamposAdopcion
-    extends StatelessWidget {
+class _CamposAdopcion extends StatelessWidget {
   const _CamposAdopcion({
     required this.nombreController,
     required this.edadController,
@@ -616,17 +672,13 @@ class _CamposAdopcion
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Datos para adopción',
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
         ),
 
         const SizedBox(height: 10),
@@ -634,15 +686,11 @@ class _CamposAdopcion
         TextField(
           controller: nombreController,
           enabled: habilitado,
-          textCapitalization:
-              TextCapitalization.words,
+          textCapitalization: TextCapitalization.words,
           decoration: const InputDecoration(
-            labelText:
-                'Nombre de la mascota (opcional)',
-            hintText:
-                'Si no tiene nombre, déjalo vacío',
-            prefixIcon:
-                Icon(Icons.pets_rounded),
+            labelText: 'Nombre de la mascota (opcional)',
+            hintText: 'Si no tiene nombre, déjalo vacío',
+            prefixIcon: Icon(Icons.pets_rounded),
           ),
         ),
 
@@ -651,25 +699,11 @@ class _CamposAdopcion
         Row(
           children: [
             Expanded(
-              child:
-                  DropdownButtonFormField<String>(
+              child: DropdownButtonFormField<String>(
                 value: especie,
-                decoration:
-                    const InputDecoration(
-                  labelText: 'Especie',
-                ),
-                items: const [
-                  'Perro',
-                  'Gato',
-                  'Otro',
-                ]
-                    .map(
-                      (v) =>
-                          DropdownMenuItem(
-                        value: v,
-                        child: Text(v),
-                      ),
-                    )
+                decoration: const InputDecoration(labelText: 'Especie'),
+                items: const ['Perro', 'Gato', 'Otro']
+                    .map((v) => DropdownMenuItem(value: v, child: Text(v)))
                     .toList(),
                 onChanged: habilitado
                     ? (v) {
@@ -687,8 +721,7 @@ class _CamposAdopcion
               child: TextField(
                 controller: edadController,
                 enabled: habilitado,
-                decoration:
-                    const InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Edad *',
                   hintText: 'Ej. 2 años',
                 ),
@@ -702,25 +735,11 @@ class _CamposAdopcion
         Row(
           children: [
             Expanded(
-              child:
-                  DropdownButtonFormField<String>(
+              child: DropdownButtonFormField<String>(
                 value: tamano,
-                decoration:
-                    const InputDecoration(
-                  labelText: 'Tamaño',
-                ),
-                items: const [
-                  'Pequeño',
-                  'Mediano',
-                  'Grande',
-                ]
-                    .map(
-                      (v) =>
-                          DropdownMenuItem(
-                        value: v,
-                        child: Text(v),
-                      ),
-                    )
+                decoration: const InputDecoration(labelText: 'Tamaño'),
+                items: const ['Pequeño', 'Mediano', 'Grande']
+                    .map((v) => DropdownMenuItem(value: v, child: Text(v)))
                     .toList(),
                 onChanged: habilitado
                     ? (v) {
@@ -738,14 +757,10 @@ class _CamposAdopcion
               child: TextField(
                 controller: ciudadController,
                 enabled: habilitado,
-                textCapitalization:
-                    TextCapitalization.words,
-                decoration:
-                    const InputDecoration(
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
                   labelText: 'Ciudad *',
-                  prefixIcon: Icon(
-                    Icons.location_on_outlined,
-                  ),
+                  prefixIcon: Icon(Icons.location_on_outlined),
                 ),
               ),
             ),
@@ -757,24 +772,11 @@ class _CamposAdopcion
         Row(
           children: [
             Expanded(
-              child:
-                  DropdownButtonFormField<String>(
+              child: DropdownButtonFormField<String>(
                 value: sexo,
-                decoration:
-                    const InputDecoration(
-                  labelText: 'Sexo',
-                ),
-                items: const [
-                  'Macho',
-                  'Hembra',
-                ]
-                    .map(
-                      (v) =>
-                          DropdownMenuItem(
-                        value: v,
-                        child: Text(v),
-                      ),
-                    )
+                decoration: const InputDecoration(labelText: 'Sexo'),
+                items: const ['Macho', 'Hembra']
+                    .map((v) => DropdownMenuItem(value: v, child: Text(v)))
                     .toList(),
                 onChanged: habilitado
                     ? (v) {
@@ -793,16 +795,11 @@ class _CamposAdopcion
                 controller: vacunasController,
                 enabled: habilitado,
                 maxLines: 2,
-                textCapitalization:
-                    TextCapitalization.sentences,
-                decoration:
-                    const InputDecoration(
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
                   labelText: 'Vacunas *',
-                  hintText:
-                      'Ej. Rabia, parvovirus',
-                  prefixIcon: Icon(
-                    Icons.vaccines_outlined,
-                  ),
+                  hintText: 'Ej. Rabia, parvovirus',
+                  prefixIcon: Icon(Icons.vaccines_outlined),
                 ),
               ),
             ),
