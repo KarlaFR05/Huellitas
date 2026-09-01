@@ -4,6 +4,8 @@ import '../../../../core/widgets/avatar_helper.dart';
 import '../adopciones_postulaciones_store.dart';
 import '../../domain/entities/adopcion.dart';
 import 'adopcion_respuestas_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../data/repositories/adopciones_repository.dart';
 
 class AdopcionesPostulacionesScreen extends StatefulWidget {
   const AdopcionesPostulacionesScreen({
@@ -22,9 +24,30 @@ class _AdopcionesPostulacionesScreenState
     extends State<AdopcionesPostulacionesScreen> {
   final Set<PostulacionAdopcion> _seleccionadas = {};
 
+  late Future<List<PostulacionAdopcion>> _futuro;
+
+  @override
+  void initState() {
+    super.initState();
+    _futuro = _cargar();
+  }
+
+  Future<List<PostulacionAdopcion>> _cargar() async {
+    final datos = await context
+        .read<AdopcionesRepository>()
+        .calcularRanking(widget.adopcion.id);
+
+    return datos
+        .map((json) => PostulacionAdopcion.fromJson(json))
+        .toList();
+  }
+
   Future<void> _aceptarSeleccionadas() async {
     if (_seleccionadas.isEmpty) return;
-    final nombres = _seleccionadas.map((p) => p.nombre).join(', ');
+
+    final nombres =
+        _seleccionadas.map((p) => p.nombre).join(', ');
+
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -33,29 +56,57 @@ class _AdopcionesPostulacionesScreenState
           '¿Deseas aceptar a $nombres? Las demás postulaciones se eliminarán y las personas aceptadas recibirán una notificación.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sí, aceptar')),
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.pop(context, true),
+            child: const Text('Sí, aceptar'),
+          ),
         ],
       ),
     );
+
     if (confirmar != true || !mounted) return;
 
-    final contacto = await _pedirContactoResponsable();
+    final contacto =
+        await _pedirContactoResponsable();
+
     if (contacto == null || !mounted) return;
-    PostulacionesAdopcionStore.cerrar(widget.adopcion.id, _seleccionadas, contacto);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Se aceptó ${_seleccionadas.length == 1 ? 'la postulación de ${_seleccionadas.first.nombre}' : 'a ${_seleccionadas.length} postulantes'}.')),
+
+    PostulacionesAdopcionStore.cerrar(
+      widget.adopcion.id,
+      _seleccionadas,
+      contacto,
     );
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _seleccionadas.length == 1
+              ? 'Se aceptó la postulación de ${_seleccionadas.first.nombre}'
+              : 'Se aceptó a ${_seleccionadas.length} postulantes',
+        ),
+      ),
+    );
+
     setState(() => _seleccionadas.clear());
   }
 
   Future<String?> _pedirContactoResponsable() async {
     final controller = TextEditingController();
+
     final resultado = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Comparte tus datos de contacto'),
+        title: const Text(
+          'Comparte tus datos de contacto',
+        ),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.phone,
@@ -66,94 +117,178 @@ class _AdopcionesPostulacionesScreenState
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
           FilledButton(
             onPressed: () {
-              final contacto = controller.text.trim();
-              if (contacto.isNotEmpty) Navigator.pop(context, contacto);
+              final contacto =
+                  controller.text.trim();
+
+              if (contacto.isNotEmpty) {
+                Navigator.pop(
+                  context,
+                  contacto,
+                );
+              }
             },
-            child: const Text('Compartir y finalizar'),
+            child: const Text(
+              'Compartir y finalizar',
+            ),
           ),
         ],
       ),
     );
+
     controller.dispose();
+
     return resultado;
   }
 
   @override
   Widget build(BuildContext context) {
-    final postulaciones =
-        PostulacionesAdopcionStore.deAdopcion(
-      widget.adopcion.id,
-    );
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Solicitudes de adopción'),
+        title: const Text(
+          'Solicitudes de adopción',
+        ),
       ),
-      body: postulaciones.isEmpty
-          ? _SinPostulaciones()
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(
-                16,
-                16,
-                16,
-                32,
+      body: FutureBuilder<List<PostulacionAdopcion>>(
+        future: _futuro,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState ==
+              ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'No se pudieron cargar las solicitudes: ${snapshot.error}',
               ),
-              children: [
-                _EncabezadoAdopcion(
-                  adopcion: widget.adopcion,
-                  cantidad: postulaciones.length,
-                ),
+            );
+          }
 
-                const SizedBox(height: 22),
+          final postulaciones =
+              snapshot.data ?? [];
 
-                for (final postulacion in postulaciones)
-                  _PostulacionCard(
-                    postulacion: postulacion,
-                    seleccionada: _seleccionadas.contains(postulacion),
-                    seleccionable:
-                        _seleccionadas.isEmpty ||
-                        _seleccionadas.contains(postulacion),
-                    onSeleccionar: () => setState(() {
-                      if (_seleccionadas.contains(postulacion)) {
-                        _seleccionadas.remove(postulacion);
+          if (postulaciones.isEmpty) {
+            return const _SinPostulaciones();
+          }
+
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              32,
+            ),
+            children: [
+              _EncabezadoAdopcion(
+                adopcion: widget.adopcion,
+                cantidad: postulaciones.length,
+              ),
+
+              const SizedBox(height: 22),
+
+              for (final postulacion in postulaciones)
+                _PostulacionCard(
+                  postulacion: postulacion,
+                  seleccionada:
+                      _seleccionadas.contains(
+                    postulacion,
+                  ),
+                  seleccionable:
+                      _seleccionadas.isEmpty ||
+                          _seleccionadas.contains(
+                            postulacion,
+                          ),
+                  onSeleccionar: () {
+                    setState(() {
+                      if (_seleccionadas
+                          .contains(postulacion)) {
+                        _seleccionadas.remove(
+                          postulacion,
+                        );
                       } else {
                         _seleccionadas.clear();
-                        _seleccionadas.add(postulacion);
+                        _seleccionadas.add(
+                          postulacion,
+                        );
                       }
-                    }),
-                    onVerRespuestas: () {
-                      Navigator.push<void>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              AdopcionRespuestasScreen(
-                            adopcion: widget.adopcion,
-                            postulacion: postulacion,
-                          ),
+                    });
+                  },
+                  onVerRespuestas: () async {
+                    final aprobada =
+                        await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            AdopcionRespuestasScreen(
+                          adopcion:
+                              widget.adopcion,
+                          postulacion:
+                              postulacion,
                         ),
-                      );
-                    },
-                  ),
-                const SizedBox(height: 76),
-              ],
+                      ),
+                    );
+
+                    if (aprobada == true &&
+                        mounted) {
+                      setState(() {
+                        _futuro = _cargar();
+                      });
+                    }
+                  },
+                ),
+
+              const SizedBox(height: 76),
+            ],
+          );
+        },
+      ),
+      bottomNavigationBar: FutureBuilder<
+          List<PostulacionAdopcion>>(
+        future: _futuro,
+        builder: (context, snapshot) {
+          final postulaciones =
+              snapshot.data ?? [];
+
+          if (postulaciones.isEmpty) {
+            return const SizedBox.shrink();
+          }
+
+          return SafeArea(
+            minimum: const EdgeInsets.fromLTRB(
+              16,
+              8,
+              16,
+              12,
             ),
-      bottomNavigationBar: postulaciones.isEmpty
-          ? null
-          : SafeArea(
-              minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: FilledButton.icon(
-                onPressed: _seleccionadas.isEmpty ? null : _aceptarSeleccionadas,
-                icon: const Icon(Icons.check_circle_rounded),
-                label: const Text('Cerrar adopción con el postulante'),
+            child: FilledButton.icon(
+              onPressed: _seleccionadas.isEmpty
+                  ? null
+                  : _aceptarSeleccionadas,
+              icon: const Icon(
+                Icons.check_circle_rounded,
+              ),
+              label: const Text(
+                'Cerrar adopción con el postulante',
               ),
             ),
+          );
+        },
+      ),
     );
   }
 }
-class _EncabezadoAdopcion extends StatelessWidget {
+
+class _EncabezadoAdopcion
+    extends StatelessWidget {
   const _EncabezadoAdopcion({
     required this.adopcion,
     required this.cantidad,
@@ -164,10 +299,12 @@ class _EncabezadoAdopcion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final colors =
+        Theme.of(context).colorScheme;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
       children: [
         Row(
           children: [
@@ -175,8 +312,10 @@ class _EncabezadoAdopcion extends StatelessWidget {
               width: 58,
               height: 58,
               decoration: BoxDecoration(
-                color: colors.primaryContainer,
-                borderRadius: BorderRadius.circular(16),
+                color:
+                    colors.primaryContainer,
+                borderRadius:
+                    BorderRadius.circular(16),
               ),
               child: Icon(
                 Icons.pets_rounded,
@@ -198,7 +337,8 @@ class _EncabezadoAdopcion extends StatelessWidget {
                         .textTheme
                         .titleLarge
                         ?.copyWith(
-                          fontWeight: FontWeight.w900,
+                          fontWeight:
+                              FontWeight.w900,
                         ),
                   ),
                   const SizedBox(height: 4),
@@ -207,7 +347,8 @@ class _EncabezadoAdopcion extends StatelessWidget {
                     '${adopcion.edad} · '
                     '${adopcion.ciudad}',
                     style: TextStyle(
-                      color: colors.onSurfaceVariant,
+                      color:
+                          colors.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -252,7 +393,9 @@ class _EncabezadoAdopcion extends StatelessWidget {
     );
   }
 }
-class _PostulacionCard extends StatelessWidget {
+
+class _PostulacionCard
+    extends StatelessWidget {
   const _PostulacionCard({
     required this.postulacion,
     required this.onVerRespuestas,
@@ -269,27 +412,34 @@ class _PostulacionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final colors =
+        Theme.of(context).colorScheme;
 
     final porcentaje =
-        postulacion.porcentajeAptitud.clamp(0, 100);
+        postulacion.porcentajeAptitud
+            .clamp(0, 100);
 
-    final estadoColor = _colorEstado(
+    final estadoColor =
+        _colorEstado(
       context,
       postulacion.estado,
     );
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin:
+          const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius:
+            BorderRadius.circular(20),
         border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: .6),
+          color: colors.outlineVariant
+              .withValues(alpha: .6),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: .04),
+            color: Colors.black
+                .withValues(alpha: .04),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -297,39 +447,50 @@ class _PostulacionCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // =========================
-          // INFORMACIÓN DEL POSTULANTE
-          // =========================
           Padding(
-            padding: const EdgeInsets.fromLTRB(
+            padding:
+                const EdgeInsets.fromLTRB(
               16,
               16,
               16,
               14,
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
-                // FOTO / AVATAR
                 CircleAvatar(
                   radius: 30,
-                  backgroundColor: colors.primaryContainer,
-                  backgroundImage: avatarProvider(postulacion.fotoPerfil),
-                  child: postulacion.fotoPerfil?.isNotEmpty == true ? null : Text(
-                    postulacion.nombre.isNotEmpty
-                        ? postulacion.nombre[0].toUpperCase()
-                        : '?',
-                    style: TextStyle(
-                      color: colors.primary,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 22,
-                    ),
+                  backgroundColor:
+                      colors.primaryContainer,
+                  backgroundImage:
+                      avatarProvider(
+                    postulacion.fotoPerfil,
                   ),
+                  child: postulacion
+                              .fotoPerfil
+                              ?.isNotEmpty ==
+                          true
+                      ? null
+                      : Text(
+                          postulacion.nombre
+                                  .isNotEmpty
+                              ? postulacion
+                                  .nombre[0]
+                                  .toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                            color:
+                                colors.primary,
+                            fontWeight:
+                                FontWeight.w900,
+                            fontSize: 22,
+                          ),
+                        ),
                 ),
 
                 const SizedBox(width: 12),
 
-                // NOMBRE + ESTADO
                 Expanded(
                   child: Column(
                     crossAxisAlignment:
@@ -338,33 +499,44 @@ class _PostulacionCard extends StatelessWidget {
                       Text(
                         postulacion.nombre,
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        overflow:
+                            TextOverflow.ellipsis,
                         style: Theme.of(context)
                             .textTheme
                             .titleMedium
                             ?.copyWith(
-                              fontWeight: FontWeight.w900,
+                              fontWeight:
+                                  FontWeight.w900,
                             ),
                       ),
 
                       const SizedBox(height: 5),
 
                       Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding:
+                            const EdgeInsets
+                                .symmetric(
                           horizontal: 9,
                           vertical: 4,
                         ),
-                        decoration: BoxDecoration(
-                          color: estadoColor.withValues(alpha: .12),
+                        decoration:
+                            BoxDecoration(
+                          color: estadoColor
+                              .withValues(
+                            alpha: .12,
+                          ),
                           borderRadius:
-                              BorderRadius.circular(20),
+                              BorderRadius
+                                  .circular(20),
                         ),
                         child: Text(
                           postulacion.estado,
                           style: TextStyle(
-                            color: estadoColor,
+                            color:
+                                estadoColor,
                             fontSize: 12,
-                            fontWeight: FontWeight.w800,
+                            fontWeight:
+                                FontWeight.w800,
                           ),
                         ),
                       ),
@@ -374,25 +546,34 @@ class _PostulacionCard extends StatelessWidget {
                       Row(
                         children: [
                           Icon(
-                            postulacion.entrevistaCompletada
-                                ? Icons.check_circle_rounded
-                                : Icons.schedule_rounded,
+                            postulacion
+                                    .entrevistaCompletada
+                                ? Icons
+                                    .check_circle_rounded
+                                : Icons
+                                    .schedule_rounded,
                             size: 15,
-                            color:
-                                postulacion.entrevistaCompletada
-                                    ? Colors.green
-                                    : colors.onSurfaceVariant,
+                            color: postulacion
+                                    .entrevistaCompletada
+                                ? Colors.green
+                                : colors
+                                    .onSurfaceVariant,
                           ),
-                          const SizedBox(width: 5),
+
+                          const SizedBox(
+                            width: 5,
+                          ),
+
                           Flexible(
                             child: Text(
                               '${postulacion.fechaRegistro == null ? 'Miembro desde —' : 'Miembro desde ${postulacion.fechaRegistro!.year}'}'
                               '${postulacion.ubicacion == null ? '' : ' · ${postulacion.ubicacion}'}',
                               style: TextStyle(
                                 fontSize: 11,
-                                color:
-                                    colors.onSurfaceVariant,
-                                fontWeight: FontWeight.w600,
+                                color: colors
+                                    .onSurfaceVariant,
+                                fontWeight:
+                                    FontWeight.w600,
                               ),
                             ),
                           ),
@@ -403,28 +584,40 @@ class _PostulacionCard extends StatelessWidget {
                 ),
 
                 const SizedBox(width: 10),
-                Checkbox(value: seleccionada, onChanged: seleccionable ? (_) => onSeleccionar() : null),
 
-                // PORCENTAJE
+                Checkbox(
+                  value: seleccionada,
+                  onChanged:
+                      seleccionable
+                          ? (_) =>
+                              onSeleccionar()
+                          : null,
+                ),
+
                 Column(
                   children: [
                     SizedBox(
                       width: 62,
                       height: 62,
                       child: Stack(
-                        alignment: Alignment.center,
+                        alignment:
+                            Alignment.center,
                         children: [
                           CircularProgressIndicator(
-                            value: porcentaje / 100,
+                            value:
+                                porcentaje / 100,
                             strokeWidth: 6,
                             backgroundColor:
-                                colors.surfaceContainerHighest,
+                                colors
+                                    .surfaceContainerHighest,
                           ),
                           Text(
                             '$porcentaje%',
-                            style: const TextStyle(
+                            style:
+                                const TextStyle(
                               fontSize: 15,
-                              fontWeight: FontWeight.w900,
+                              fontWeight:
+                                  FontWeight.w900,
                             ),
                           ),
                         ],
@@ -437,7 +630,9 @@ class _PostulacionCard extends StatelessWidget {
                       'Nivel de aptitud',
                       style: TextStyle(
                         fontSize: 9,
-                        color: colors.onSurfaceVariant,
+                        color:
+                            colors
+                                .onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -446,35 +641,40 @@ class _PostulacionCard extends StatelessWidget {
             ),
           ),
 
-          // INFORMACIÓN ADICIONAL
-          // =========================
           Padding(
-            padding: const EdgeInsets.symmetric(
+            padding:
+                const EdgeInsets.symmetric(
               horizontal: 16,
             ),
             child: Row(
               children: [
                 Expanded(
                   child: _DatoPostulante(
-                    icon: Icons.workspace_premium_outlined,
-                    titulo: 'Insignias de\nrescate',
-                    valor: '${postulacion.insigniasRescate}',
+                    icon: Icons
+                        .workspace_premium_outlined,
+                    titulo:
+                        'Insignias de\nrescate',
+                    valor:
+                        '${postulacion.insigniasRescate}',
                   ),
                 ),
-
                 Expanded(
                   child: _DatoPostulante(
                     icon: Icons.report_outlined,
-                    titulo: 'Insignias de\nreporte',
-                    valor: '${postulacion.insigniasReporte}',
+                    titulo:
+                        'Insignias de\nreporte',
+                    valor:
+                        '${postulacion.insigniasReporte}',
                   ),
                 ),
-
                 Expanded(
                   child: _DatoPostulante(
-                    icon: Icons.volunteer_activism_rounded,
-                    titulo: 'Insignias de\ndonación',
-                    valor: '${postulacion.insigniasDonacion}',
+                    icon: Icons
+                        .volunteer_activism_rounded,
+                    titulo:
+                        'Insignias de\ndonación',
+                    valor:
+                        '${postulacion.insigniasDonacion}',
                   ),
                 ),
               ],
@@ -483,11 +683,9 @@ class _PostulacionCard extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          // =========================
-          // BARRA DE APTITUD
-          // =========================
           Padding(
-            padding: const EdgeInsets.symmetric(
+            padding:
+                const EdgeInsets.symmetric(
               horizontal: 16,
             ),
             child: Column(
@@ -496,24 +694,31 @@ class _PostulacionCard extends StatelessWidget {
               children: [
                 Row(
                   mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween,
+                      MainAxisAlignment
+                          .spaceBetween,
                   children: [
                     Text(
                       'Nivel de aptitud',
                       style: TextStyle(
                         fontSize: 12,
-                        color: colors.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
+                        color: colors
+                            .onSurfaceVariant,
+                        fontWeight:
+                            FontWeight.w600,
                       ),
                     ),
                     Text(
-                      _textoAptitud(porcentaje),
+                      _textoAptitud(
+                        porcentaje,
+                      ),
                       style: TextStyle(
                         fontSize: 12,
-                        color: _colorAptitud(
+                        color:
+                            _colorAptitud(
                           porcentaje,
                         ),
-                        fontWeight: FontWeight.w900,
+                        fontWeight:
+                            FontWeight.w900,
                       ),
                     ),
                   ],
@@ -522,12 +727,15 @@ class _PostulacionCard extends StatelessWidget {
                 const SizedBox(height: 7),
 
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: porcentaje / 100,
+                  borderRadius:
+                      BorderRadius.circular(10),
+                  child:
+                      LinearProgressIndicator(
+                    value:
+                        porcentaje / 100,
                     minHeight: 8,
-                    backgroundColor:
-                        colors.surfaceContainerHighest,
+                    backgroundColor: colors
+                        .surfaceContainerHighest,
                   ),
                 ),
               ],
@@ -536,19 +744,20 @@ class _PostulacionCard extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // =========================
-          // COMENTARIO / OBSERVACIÓN
-          // =========================
           Container(
             width: double.infinity,
-            margin: const EdgeInsets.symmetric(
+            margin:
+                const EdgeInsets.symmetric(
               horizontal: 16,
             ),
-            padding: const EdgeInsets.all(11),
+            padding:
+                const EdgeInsets.all(11),
             decoration: BoxDecoration(
-              color: colors.surfaceContainerHighest
+              color: colors
+                  .surfaceContainerHighest
                   .withValues(alpha: .55),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius:
+                  BorderRadius.circular(12),
             ),
             child: Row(
               crossAxisAlignment:
@@ -559,13 +768,16 @@ class _PostulacionCard extends StatelessWidget {
                   size: 18,
                   color: colors.primary,
                 ),
+
                 const SizedBox(width: 7),
+
                 Expanded(
                   child: Text(
                     'La solicitud fue completada por el postulante.',
                     style: TextStyle(
                       fontSize: 11,
-                      color: colors.onSurfaceVariant,
+                      color:
+                          colors.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -578,20 +790,39 @@ class _PostulacionCard extends StatelessWidget {
               postulacion.contacto!.isNotEmpty)
             Container(
               width: double.infinity,
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-              padding: const EdgeInsets.all(12),
+              margin:
+                  const EdgeInsets.fromLTRB(
+                16,
+                0,
+                16,
+                14,
+              ),
+              padding:
+                  const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: colors.primaryContainer.withValues(alpha: .45),
-                borderRadius: BorderRadius.circular(12),
+                color: colors
+                    .primaryContainer
+                    .withValues(alpha: .45),
+                borderRadius:
+                    BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.contact_phone_rounded, color: colors.primary),
+                  Icon(
+                    Icons.contact_phone_rounded,
+                    color: colors.primary,
+                  ),
+
                   const SizedBox(width: 8),
+
                   Expanded(
                     child: Text(
                       'Contacto de ${postulacion.nombre}: ${postulacion.contacto}',
-                      style: const TextStyle(fontWeight: FontWeight.w700),
+                      style:
+                          const TextStyle(
+                        fontWeight:
+                            FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],
@@ -600,11 +831,9 @@ class _PostulacionCard extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          // =========================
-          // BOTÓN VER RESPUESTAS
-          // =========================
           Padding(
-            padding: const EdgeInsets.fromLTRB(
+            padding:
+                const EdgeInsets.fromLTRB(
               16,
               0,
               16,
@@ -614,9 +843,17 @@ class _PostulacionCard extends StatelessWidget {
               width: double.infinity,
               height: 44,
               child: FilledButton(
-                onPressed: onVerRespuestas,
+                onPressed:
+                    onVerRespuestas,
                 child: const FittedBox(
-                  child: Text('Conocer respuestas', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                  child: Text(
+                    'Conocer respuestas',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight:
+                          FontWeight.w800,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -675,7 +912,9 @@ class _PostulacionCard extends StatelessWidget {
     return Colors.red;
   }
 }
-class _DatoPostulante extends StatelessWidget {
+
+class _DatoPostulante
+    extends StatelessWidget {
   const _DatoPostulante({
     required this.icon,
     required this.titulo,
@@ -688,7 +927,8 @@ class _DatoPostulante extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final colors =
+        Theme.of(context).colorScheme;
 
     return Column(
       children: [
@@ -697,7 +937,9 @@ class _DatoPostulante extends StatelessWidget {
           size: 20,
           color: colors.primary,
         ),
+
         const SizedBox(height: 4),
+
         Text(
           titulo,
           textAlign: TextAlign.center,
@@ -707,7 +949,9 @@ class _DatoPostulante extends StatelessWidget {
             color: colors.onSurface,
           ),
         ),
+
         const SizedBox(height: 2),
+
         Text(
           valor,
           textAlign: TextAlign.center,
@@ -720,7 +964,11 @@ class _DatoPostulante extends StatelessWidget {
     );
   }
 }
-class _SinPostulaciones extends StatelessWidget {
+
+class _SinPostulaciones
+    extends StatelessWidget {
+  const _SinPostulaciones();
+
   @override
   Widget build(BuildContext context) {
     final colors =
@@ -728,7 +976,8 @@ class _SinPostulaciones extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding:
+            const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment:
               MainAxisAlignment.center,
@@ -738,23 +987,29 @@ class _SinPostulaciones extends StatelessWidget {
               size: 64,
               color: colors.primary,
             ),
+
             const SizedBox(height: 16),
+
             Text(
               'Aún no hay postulaciones',
               style: Theme.of(context)
                   .textTheme
                   .titleLarge
                   ?.copyWith(
-                    fontWeight: FontWeight.w900,
+                    fontWeight:
+                        FontWeight.w900,
                   ),
             ),
+
             const SizedBox(height: 8),
+
             Text(
               'Cuando alguien quiera adoptar esta '
               'mascota, su solicitud aparecerá aquí.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: colors.onSurfaceVariant,
+                color:
+                    colors.onSurfaceVariant,
               ),
             ),
           ],

@@ -1,6 +1,3 @@
-import 'package:flutter/foundation.dart';
-import '../../notificaciones/domain/entities/notificacion.dart';
-
 class PostulacionAdopcion {
   const PostulacionAdopcion({
     required this.nombre,
@@ -8,6 +5,7 @@ class PostulacionAdopcion {
     this.porcentajeAptitud = 0,
     this.estado = 'En evaluación',
     this.entrevistaCompletada = false,
+    this.postulacionId,
     this.usuarioId,
     this.fechaRegistro,
     this.ubicacion,
@@ -16,25 +14,21 @@ class PostulacionAdopcion {
     this.insigniasDonacion = 0,
     this.fotoPerfil,
     this.contacto,
-    this.contactoResponsable,
     this.fueAceptada = false,
-    this.fueRechazada = false,
   });
 
   final String nombre;
   final Map<String, String> respuestas;
 
-  /// Porcentaje de aptitud para adoptar.
+  /// Porcentaje de aptitud para adoptar (calculado por el backend con IA).
   final int porcentajeAptitud;
 
-  /// Ejemplo:
-  /// "Muy apta"
-  /// "Apta"
-  /// "En evaluación"
+  /// "Muy apta" / "Apta" / "En evaluación" / "Baja"
   final String estado;
 
   /// Indica si ya completó la entrevista.
   final bool entrevistaCompletada;
+  final int? postulacionId;
   final int? usuarioId;
   final DateTime? fechaRegistro;
   final String? ubicacion;
@@ -42,25 +36,19 @@ class PostulacionAdopcion {
   final int insigniasReporte;
   final int insigniasDonacion;
   final String? fotoPerfil;
-  /// Contacto que comparte el postulante al enviar su solicitud.
   final String? contacto;
-  /// Contacto compartido por quien da la mascota en adopción al aceptar.
-  final String? contactoResponsable;
   final bool fueAceptada;
-  final bool fueRechazada;
 
   PostulacionAdopcion copyWith({
-    String? contactoResponsable,
+    String? contacto,
     bool? fueAceptada,
-    bool? fueRechazada,
   }) => PostulacionAdopcion(
     nombre: nombre,
     respuestas: respuestas,
     porcentajeAptitud: porcentajeAptitud,
-    estado: fueAceptada == true
-        ? 'Aceptada'
-        : fueRechazada == true ? 'No seleccionada' : estado,
+    estado: estado,
     entrevistaCompletada: entrevistaCompletada,
+    postulacionId: postulacionId,
     usuarioId: usuarioId,
     fechaRegistro: fechaRegistro,
     ubicacion: ubicacion,
@@ -68,44 +56,84 @@ class PostulacionAdopcion {
     insigniasReporte: insigniasReporte,
     insigniasDonacion: insigniasDonacion,
     fotoPerfil: fotoPerfil,
-    contacto: contacto,
-    contactoResponsable: contactoResponsable ?? this.contactoResponsable,
+    contacto: contacto ?? this.contacto,
     fueAceptada: fueAceptada ?? this.fueAceptada,
-    fueRechazada: fueRechazada ?? this.fueRechazada,
   );
+
+  factory PostulacionAdopcion.fromJson(Map<String, dynamic> json) {
+    final porcentaje = ((json['score_final'] as num?)?.round() ?? 0)
+        .clamp(0, 100)
+        .toInt();
+
+    String estadoTexto;
+    if (porcentaje >= 85) {
+      estadoTexto = 'Muy apta';
+    } else if (porcentaje >= 70) {
+      estadoTexto = 'Apta';
+    } else if (porcentaje >= 50) {
+      estadoTexto = 'En evaluación';
+    } else {
+      estadoTexto = 'Baja';
+    }
+
+    DateTime? fechaRegistroUsuario;
+    final fechaRaw = json['fecha_registro_usuario'] as String?;
+    if (fechaRaw != null) {
+      fechaRegistroUsuario = DateTime.tryParse(fechaRaw);
+    }
+
+    final ubicacion = [
+      json['ciudad'],
+      json['estado_usuario'],
+    ].whereType<String>().where((valor) => valor.trim().isNotEmpty).join(', ');
+
+    final nombreUsuario = json['nombre_usuario'] as String?;
+
+    return PostulacionAdopcion(
+      nombre: (nombreUsuario != null && nombreUsuario.trim().isNotEmpty)
+          ? nombreUsuario
+          : 'Usuario #${json['usuario_id_fk']}',
+      respuestas: {
+        for (final r in (json['respuestas'] as List<dynamic>? ?? []))
+          (r['pregunta_id']?.toString() ?? ''):
+              (r['respuesta_texto'] as String? ?? ''),
+      },
+      porcentajeAptitud: porcentaje,
+      estado: estadoTexto,
+      entrevistaCompletada: true,
+      usuarioId: json['usuario_id_fk'] as int?,
+      fechaRegistro: fechaRegistroUsuario,
+      ubicacion: ubicacion.isEmpty ? null : ubicacion,
+      insigniasRescate: json['insignias_rescate'] as int? ?? 0,
+      insigniasReporte: json['insignias_reporte'] as int? ?? 0,
+      insigniasDonacion: json['insignias_donacion'] as int? ?? 0,
+      fotoPerfil: json['foto_perfil'] as String?,
+      postulacionId: json['postulacion_id'] as int?,
+      contacto: json['contacto'] as String?,
+      fueAceptada: json['fue_aceptada'] as bool? ?? false,
+    );
+  }
 }
 
-/// Almacenamiento temporal mientras se habilita el endpoint de postulaciones.
+/// Almacenamiento temporal — ya no se usa para postulaciones (esas ahora
+/// vienen del backend), se mantiene solo si algo más del código aún importa
+/// esta clase.
 class PostulacionesAdopcionStore {
   static final Map<int, List<PostulacionAdopcion>> _datos = {};
-  static final Set<int> _adopcionesCerradas = {};
-  static final ValueNotifier<int> cambios = ValueNotifier(0);
-  static final Map<int, List<Notificacion>> _notificaciones = {};
-  static int _siguienteNotificacionId = -1;
 
   static List<PostulacionAdopcion> deAdopcion(int id) =>
       List.unmodifiable(_datos[id] ?? const []);
 
-  static void agregar(
-    int id,
-    PostulacionAdopcion postulacion,
-  ) {
-    _datos.putIfAbsent(id, () => []).add(postulacion);
-    cambios.notifyListeners();
-  }
+  static void agregar(int id, PostulacionAdopcion postulacion) =>
+      _datos.putIfAbsent(id, () => []).add(postulacion);
 
-  static bool tienePostulacion(
-    int id,
-    String nombre,
-  ) =>
+  static bool tienePostulacion(int id, String nombre) =>
       (_datos[id] ?? const []).any(
         (postulacion) => postulacion.nombre == nombre,
       );
 
-  /// Conserva solamente a las personas aceptadas; las demás solicitudes se
-  /// eliminan al cerrar el proceso de selección.
-  static bool estaCerrada(int adopcionId) => _adopcionesCerradas.contains(adopcionId);
-
+  /// Compatibilidad para el flujo local de cierre de adopción.
+  /// La aprobación definitiva se realiza mediante el backend.
   static void cerrar(
     int adopcionId,
     Iterable<PostulacionAdopcion> aceptadas,
@@ -113,48 +141,14 @@ class PostulacionesAdopcionStore {
   ) {
     final seleccionadas = aceptadas.toSet();
     _datos[adopcionId] = (_datos[adopcionId] ?? const [])
-        .map((postulacion) {
-          final fueAceptada = seleccionadas.contains(postulacion);
-          if (postulacion.usuarioId != null) {
-            _notificaciones.putIfAbsent(postulacion.usuarioId!, () => []).add(
-              Notificacion(
-                id: _siguienteNotificacionId--,
-                tipo: fueAceptada ? 'adopcion_aceptada' : 'adopcion_no_seleccionada',
-                titulo: fueAceptada ? 'Postulación aceptada' : 'Postulación no seleccionada',
-                mensaje: fueAceptada
-                    ? 'Tu solicitud de adopción fue aceptada. Revisa el contacto compartido.'
-                    : 'La adopción se cerró y tu solicitud no fue seleccionada.',
-                data: {'adopcion_id': adopcionId},
-                leida: false,
-                creadaEn: DateTime.now(),
-              ),
-            );
-          }
-          return postulacion.copyWith(
-            fueAceptada: fueAceptada,
-            fueRechazada: !fueAceptada,
-            contactoResponsable: fueAceptada ? contactoResponsable : null,
-          );
-        })
+        .map(
+          (postulacion) => postulacion.copyWith(
+            fueAceptada: seleccionadas.contains(postulacion),
+            contacto: seleccionadas.contains(postulacion)
+                ? contactoResponsable
+                : null,
+          ),
+        )
         .toList();
-    _adopcionesCerradas.add(adopcionId);
-    cambios.notifyListeners();
-  }
-
-  static List<Notificacion> notificacionesDeUsuario(int usuarioId) =>
-      List.unmodifiable(_notificaciones[usuarioId] ?? const []);
-
-  static PostulacionAdopcion? postulacionDeUsuario(
-    int adopcionId,
-    int? usuarioId,
-    String nombre,
-  ) {
-    for (final postulacion in _datos[adopcionId] ?? const []) {
-      if ((usuarioId != null && postulacion.usuarioId == usuarioId) ||
-          (usuarioId == null && postulacion.nombre == nombre)) {
-        return postulacion;
-      }
-    }
-    return null;
   }
 }

@@ -12,8 +12,7 @@ String mensajeDeError(
   switch (error.type) {
     case DioExceptionType.connectionTimeout:
     case DioExceptionType.sendTimeout:
-    case DioExceptionType.receiveTimeout:
-    case DioExceptionType.transformTimeout:
+      case DioExceptionType.receiveTimeout:
       return 'La conexión tardó demasiado. Inténtalo nuevamente.';
 
     case DioExceptionType.connectionError:

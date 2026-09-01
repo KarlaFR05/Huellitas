@@ -1,3 +1,5 @@
+import '../entities/pregunta_adopcion.dart';
+
 class CrearAdopcionSolicitud {
   const CrearAdopcionSolicitud({
     required this.nombre,
@@ -9,7 +11,6 @@ class CrearAdopcionSolicitud {
     required this.vacunas,
     required this.descripcion,
     required this.preguntas,
-    this.sonVariasMascotas = false,
     this.imagenLocalPath,
     this.imagenExistenteUrl,
     this.id,
@@ -33,6 +34,6 @@ class CrearAdopcionSolicitud {
   final String? imagenLocalPath;
   final String? imagenExistenteUrl;
 
-  final List<String> preguntas;
-  final bool sonVariasMascotas;
+  final List<PreguntaAdopcion> preguntas;
 }
+

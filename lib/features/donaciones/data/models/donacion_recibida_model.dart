@@ -10,12 +10,17 @@ class DonacionRecibidaModel extends DonacionRecibidaEntity {
   });
 
   factory DonacionRecibidaModel.fromJson(Map<String, dynamic> json) {
+    final monto = json['monto'];
     return DonacionRecibidaModel(
-      id: json['id'] ?? 0,
-      nombreDonante: json['nombre_donante'] ?? 'Donante Anónimo',
-      fechaDonacion: DateTime.parse(json['fecha_donacion']),
-      monto: (json['monto'] as num).toDouble(),
-      estado: json['estado'] ?? 'completada',
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombreDonante: json['nombre_donante']?.toString() ?? 'Donante anónimo',
+      fechaDonacion:
+          DateTime.tryParse(json['fecha_donacion']?.toString() ?? '') ??
+          DateTime.now(),
+      monto: monto is num
+          ? monto.toDouble()
+          : double.tryParse(monto?.toString() ?? '') ?? 0,
+      estado: json['estado']?.toString() ?? 'completada',
     );
   }
 }

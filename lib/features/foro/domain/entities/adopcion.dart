@@ -1,3 +1,5 @@
+import 'pregunta_adopcion.dart';
+
 class Adopcion {
   final int id;
   final int? usuarioId;
@@ -13,10 +15,7 @@ class Adopcion {
   final DateTime fecha;
   final String? imagenUrl;
   final String? imagenPath;
-  final List<String> preguntas;
-  /// Una publicación puede representar una camada o más de una mascota.
-  /// En ese caso el responsable puede aceptar a más de un postulante.
-  final bool sonVariasMascotas;
+  final List<PreguntaAdopcion> preguntas;
 
   Adopcion({
     required this.id,
@@ -34,6 +33,6 @@ class Adopcion {
     this.imagenUrl,
     this.imagenPath,
     this.preguntas = const [],
-    this.sonVariasMascotas = false,
   }) : fecha = fecha ?? DateTime.now();
 }
+

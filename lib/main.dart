@@ -52,6 +52,10 @@ import 'features/notificaciones/data/repositories/notificacion_repository_impl.d
 import 'features/notificaciones/presentation/bloc/notificacion_bloc.dart';
 import 'features/notificaciones/presentation/bloc/notificacion_event.dart';
 
+import 'features/foro/data/datasources/adopciones_remote_datasource.dart';
+import 'features/foro/data/repositories/adopciones_repository.dart';
+import 'features/foro/presentation/bloc/adopciones_bloc.dart';
+
 void main() {
   final dio = Dio(
     BaseOptions(baseUrl: 'https://huellitas-backend-xekn.onrender.com'),
@@ -92,7 +96,9 @@ void main() {
   final reporteRepository = ReporteRepositoryImpl(
     ReporteRemoteDataSourceImpl(dio),
   );
-
+  final adopcionesRepository = AdopcionesRepositoryImpl(
+    AdopcionesRemoteDataSourceImpl(dio),
+  );
   final historialDataSource = HistorialRemoteDataSourceImpl(dio);
   // para prueba del front de historial
   //final historialDataSource = HistorialRemoteDataSourceMock();
@@ -134,6 +140,9 @@ void main() {
         ),
         RepositoryProvider<ForoRepository>.value(value: foroRepository),
         RepositoryProvider<ReporteRepository>.value(value: reporteRepository),
+        RepositoryProvider<AdopcionesRepository>.value(
+          value: adopcionesRepository,
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -188,6 +197,11 @@ void main() {
           BlocProvider(
             create: (context) =>
                 NotificacionBloc(repository: notificacionRepository),
+          ),
+          BlocProvider(
+            create: (context) => AdopcionesBloc(
+              repository: context.read<AdopcionesRepository>(),
+            ),
           ),
         ],
         child: BlocListener<AuthBloc, AuthState>(
