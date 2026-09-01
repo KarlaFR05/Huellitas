@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:geolocator/geolocator.dart';
+import 'dart:async';
 
 class LocationService {
   final Dio _dio = Dio();
@@ -19,42 +20,26 @@ class LocationService {
         throw Exception('Permiso de ubicación denegado.');
       }
     }
-
     if (permiso == LocationPermission.deniedForever) {
       throw Exception(
         'Permiso de ubicación denegado permanentemente. Habilítalo desde Configuración.',
       );
     }
 
-    const locationSettings = LocationSettings(
-      accuracy:
-          LocationAccuracy.bestForNavigation, // fuerza uso de GPS real, no red
-    );
+    final ultimaConocida = await Geolocator.getLastKnownPosition();
 
-    Position posicion = await Geolocator.getCurrentPosition(
-      locationSettings: locationSettings,
-    );
-
-    // Si la precisión sigue siendo mala (radio de error grande), esperamos
-    // una lectura mejor del stream de GPS antes de aceptarla.
-    if (posicion.accuracy > 30) {
-      try {
-        posicion =
-            await Geolocator.getPositionStream(
-                  locationSettings: locationSettings,
-                )
-                .firstWhere((p) => p.accuracy <= 30)
-                .timeout(
-                  const Duration(seconds: 8),
-                  onTimeout: () =>
-                      posicion, // si no mejora a tiempo, usamos la que ya teníamos
-                );
-      } catch (_) {
-        // si el stream falla, seguimos con la posición original
-      }
+    try {
+      final posicion = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 6),
+        ),
+      );
+      return posicion;
+    } on TimeoutException {
+      if (ultimaConocida != null) return ultimaConocida;
+      rethrow;
     }
-
-    return posicion;
   }
 
   Future<String> obtenerDireccionDesdeCoordenadas(
@@ -82,8 +67,6 @@ class LocationService {
       accuracy: LocationAccuracy.high,
       distanceFilter: 8,
     );
-    return Geolocator.getPositionStream(
-      locationSettings: locationSettings,
-    ).where((position) => position.accuracy <= 15);
+    return Geolocator.getPositionStream(locationSettings: locationSettings);
   }
 }
