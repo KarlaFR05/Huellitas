@@ -83,11 +83,11 @@ class _CrearAdopcionScreenState
           adopcion.sexo.isEmpty
               ? _sexo
               : adopcion.sexo;
+      _sonVariasMascotas = adopcion.sonVariasMascotas;
 
       _preguntas
         ..clear()
         ..addAll(adopcion.preguntas);
-      _sonVariasMascotas = adopcion.sonVariasMascotas;
     }
   }
 
@@ -659,7 +659,7 @@ class _CamposAdopcion
 
         const SizedBox(height: 10),
 
-        SegmentedButton<bool>(
+        if (false) SegmentedButton<bool>(
           segments: const [
             ButtonSegment(value: false, icon: Icon(Icons.pets_rounded), label: Text('Una mascota')),
             ButtonSegment(value: true, icon: Icon(Icons.group_rounded), label: Text('Varias mascotas')),

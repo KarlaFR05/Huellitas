@@ -42,7 +42,7 @@ class _AdopcionesPostulacionesScreenState
 
     final contacto = await _pedirContactoResponsable();
     if (contacto == null || !mounted) return;
-    PostulacionesAdopcionStore.aceptar(widget.adopcion.id, _seleccionadas, contacto);
+    PostulacionesAdopcionStore.cerrar(widget.adopcion.id, _seleccionadas, contacto);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Se aceptó ${_seleccionadas.length == 1 ? 'la postulación de ${_seleccionadas.first.nombre}' : 'a ${_seleccionadas.length} postulantes'}.')),
@@ -113,12 +113,14 @@ class _AdopcionesPostulacionesScreenState
                   _PostulacionCard(
                     postulacion: postulacion,
                     seleccionada: _seleccionadas.contains(postulacion),
-                    seleccionable: widget.adopcion.sonVariasMascotas || _seleccionadas.isEmpty || _seleccionadas.contains(postulacion),
+                    seleccionable:
+                        _seleccionadas.isEmpty ||
+                        _seleccionadas.contains(postulacion),
                     onSeleccionar: () => setState(() {
                       if (_seleccionadas.contains(postulacion)) {
                         _seleccionadas.remove(postulacion);
                       } else {
-                        if (!widget.adopcion.sonVariasMascotas) _seleccionadas.clear();
+                        _seleccionadas.clear();
                         _seleccionadas.add(postulacion);
                       }
                     }),
@@ -145,9 +147,7 @@ class _AdopcionesPostulacionesScreenState
               child: FilledButton.icon(
                 onPressed: _seleccionadas.isEmpty ? null : _aceptarSeleccionadas,
                 icon: const Icon(Icons.check_circle_rounded),
-                label: Text(widget.adopcion.sonVariasMascotas
-                    ? 'Aceptar ${_seleccionadas.length} postulante(s)'
-                    : 'Aceptar postulante'),
+                label: const Text('Cerrar adopción con el postulante'),
               ),
             ),
     );

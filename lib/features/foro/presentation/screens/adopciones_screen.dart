@@ -65,6 +65,7 @@ class _AdopcionesScreenState
     final termino = _busqueda.toLowerCase();
 
     final adopciones = estado.adopciones.where((adopcion) {
+      if (PostulacionesAdopcionStore.estaCerrada(adopcion.id)) return false;
       final texto = [
         adopcion.nombre,
         adopcion.especie,
@@ -341,11 +342,11 @@ class _AdopcionesScreenState
     }
   }
 
-  void _verPostulantes(
+  Future<void> _verPostulantes(
     BuildContext context,
     Adopcion adopcion,
-  ) {
-    Navigator.push<void>(
+  ) async {
+    await Navigator.push<void>(
       context,
 
       MaterialPageRoute(
@@ -355,5 +356,6 @@ class _AdopcionesScreenState
         ),
       ),
     );
+    if (mounted) setState(() {});
   }
 }
