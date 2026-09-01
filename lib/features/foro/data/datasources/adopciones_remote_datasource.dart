@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../domain/entities/adopcion.dart';
 import '../../domain/entities/pregunta_adopcion.dart';
 import '../../domain/repositories/crear_adopcion_solicitud.dart';
+import 'dart:io';
 
 abstract class AdopcionesRemoteDataSource {
   Future<List<Adopcion>> obtenerAdopciones();
@@ -25,6 +26,7 @@ abstract class AdopcionesRemoteDataSource {
   Future<bool> yaPostulado(int adopcionId);
   Future<int> contarSolicitudes(int adopcionId);
   Future<void> aprobarPostulacion(int adopcionId, int postulacionId);
+  Future<String> subirImagen(File imagen);
 }
 
 class AdopcionesRemoteDataSourceImpl implements AdopcionesRemoteDataSource {
@@ -52,6 +54,22 @@ class AdopcionesRemoteDataSourceImpl implements AdopcionesRemoteDataSource {
           .map((p) => PreguntaAdopcion.fromJson(p as Map<String, dynamic>))
           .toList(),
     );
+  }
+
+  @override
+  Future<String> subirImagen(File imagen) async {
+    final nombreArchivo = imagen.path.split('/').last;
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(
+        imagen.path,
+        filename: nombreArchivo,
+      ),
+    });
+    final response = await dio.post(
+      '/adopciones/upload-imagen',
+      data: formData,
+    );
+    return response.data['url'] as String;
   }
 
   @override
