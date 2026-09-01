@@ -1,6 +1,7 @@
 import '../../domain/entities/adopcion.dart';
 import '../../domain/repositories/crear_adopcion_solicitud.dart';
 import '../datasources/adopciones_remote_datasource.dart';
+import 'dart:io';
 
 abstract class AdopcionesRepository {
   Future<List<Adopcion>> obtenerAdopciones();
@@ -31,12 +32,16 @@ abstract class AdopcionesRepository {
   Future<bool> yaPostulado(int adopcionId);
   Future<int> contarSolicitudes(int adopcionId);
   Future<void> aprobarPostulacion(int adopcionId, int postulacionId);
+  Future<String> subirImagen(File imagen);
 }
 
 class AdopcionesRepositoryImpl implements AdopcionesRepository {
   final AdopcionesRemoteDataSource dataSource;
 
   AdopcionesRepositoryImpl(this.dataSource);
+
+  @override
+  Future<String> subirImagen(File imagen) => dataSource.subirImagen(imagen);
 
   @override
   Future<void> aprobarPostulacion(int adopcionId, int postulacionId) =>

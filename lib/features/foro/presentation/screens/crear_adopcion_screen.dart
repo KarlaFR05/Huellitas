@@ -291,6 +291,22 @@ class _CrearAdopcionScreenState extends State<CrearAdopcionScreen> {
       _publicando = true;
     });
 
+    String? imagenUrlFinal = _imagenExistenteUrl;
+    if (_imagen != null) {
+      try {
+        imagenUrlFinal = await context.read<AdopcionesRepository>().subirImagen(
+          _imagen!,
+        );
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _publicando = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se pudo subir la imagen: $e')),
+        );
+        return;
+      }
+    }
+
     final authState = context.read<AuthBloc>().state;
     final usuario = authState is AuthSuccess && authState.data is Usuario
         ? authState.data as Usuario
@@ -305,8 +321,7 @@ class _CrearAdopcionScreenState extends State<CrearAdopcionScreen> {
       sexo: _sexo,
       vacunas: vacunas,
       descripcion: contenido,
-      imagenLocalPath: _imagen?.path,
-      imagenExistenteUrl: _imagen == null ? _imagenExistenteUrl : null,
+      imagenExistenteUrl: imagenUrlFinal,
       id: widget.adopcion?.id,
       usuarioId: usuario?.usuarioIdPk,
       nombreUsuario: usuario?.nombreUsuario,
