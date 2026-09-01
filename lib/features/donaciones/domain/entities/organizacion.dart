@@ -1,5 +1,5 @@
 import '../entities/categoria_organizacion.dart';
-class Organizacion {
+class Organizacion { 
   final int id;
   final String nombre;
   final String descripcion;

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../auth/domain/entities/usuario.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../home/presentation/widgets/bottom_bar.dart';
 import '../../../notificaciones/presentation/widgets/campana_badge.dart';
 import 'grupos_screen.dart';
 import 'adopciones_screen.dart';
+import 'mi_organizacion_screen.dart';
 import 'publicaciones_screen.dart';
 import '../../data/repositories/adopciones_repository.dart';
 import '../bloc/adopciones_bloc.dart';
@@ -16,9 +20,17 @@ class ForoScreen extends StatelessWidget {
   static final AdopcionesRepositoryMemoria _adopcionesRepository =
       AdopcionesRepositoryMemoria();
 
+  bool _esOrganizacion(BuildContext context) {
+    final state = context.watch<AuthBloc>().state;
+    return state is AuthSuccess &&
+        state.data is Usuario &&
+        (state.data as Usuario).esOrganizacion;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final esOrganizacion = _esOrganizacion(context);
 
     return DefaultTabController(
       length: 3,
@@ -88,25 +100,30 @@ class ForoScreen extends StatelessWidget {
                   ),
                   insets: const EdgeInsets.symmetric(horizontal: 8),
                 ),
-                tabs: const [
-                  Tab(text: 'Publicaciones'),
-                  Tab(text: 'Grupos'),
-                  Tab(text: 'Adopciones'),
+
+                tabs: [
+                  const Tab(text: 'Publicaciones'),
+                  const Tab(text: 'Adopciones'),
+                  Tab(text: esOrganizacion ? 'Mi organización' : 'Grupos'),
+
                 ],
               ),
             ),
           ),
         ),
         body: TabBarView(
+
           children: [
             const PublicacionesScreen(),
-            const GruposScreen(),
             BlocProvider(
               create: (_) => AdopcionesBloc(
                 repository: _adopcionesRepository,
               )..add(const AdopcionesSolicitadas()),
               child: const AdopcionesScreen(),
             ),
+            esOrganizacion
+                ? const MiOrganizacionScreen()
+                : const GruposScreen(),
           ],
         ),
         bottomNavigationBar: const BottomBarWidget(currentIndex: 1),

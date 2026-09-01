@@ -46,6 +46,133 @@ class _RegistroFormState extends State<RegistroForm> {
     }
   }
 
+  void _preguntarPorOrganizacion() {
+    final datosUsuario = {
+      'nombre': nombreController.text.trim(),
+      'apellidos': apellidosController.text.trim(),
+      'nombreUsuario': nombreUsuarioController.text.trim(),
+      'usuario': nombreUsuarioController.text.trim(),
+      'telefono': telefonoController.text.trim(),
+      'correo': correoController.text.trim(),
+      'fechaNacimiento': fechaNacimiento,
+    };
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 110,
+                height: 90,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(
+                      Icons.home_rounded,
+                      size: 56,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    Positioned(
+                      top: 18,
+                      child: Icon(
+                        Icons.pets_rounded,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '¿Representas a una organización?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Registra tu refugio, asociación o grupo de rescate para que la comunidad pueda conocerte y apoyarte.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    context.go('/verificar-correo', extra: datosUsuario);
+                  },
+                  child: Text(
+                    'No, por ahora',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    context.go('/registro-organizacion', extra: datosUsuario);
+                  },
+                  child: const Text(
+                    'Sí, registrar organización',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Podrás completar y verificar los datos en el siguiente paso.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     nombreController.dispose();
@@ -255,18 +382,7 @@ class _RegistroFormState extends State<RegistroForm> {
                   return;
                 }
 
-                context.go(
-                  '/verificar-correo',
-                  extra: {
-                    'nombre': nombreController.text.trim(),
-                    'apellidos': apellidosController.text.trim(),
-                    'nombreUsuario': nombreUsuarioController.text.trim(),
-                    'usuario': nombreUsuarioController.text.trim(),
-                    'telefono': telefonoController.text.trim(),
-                    'correo': correoController.text.trim(),
-                    'fechaNacimiento': fechaNacimiento,
-                  },
-                );
+                _preguntarPorOrganizacion();
               },
               child: const Text('Continuar'),
             ),

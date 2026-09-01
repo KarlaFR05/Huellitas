@@ -19,6 +19,7 @@ class RegisterEvent extends AuthEvent {
   final String apellidos;
   final String numTelefono;
   final DateTime fechaNacimiento;
+  final Map<String, dynamic>? organizacion;
 
   RegisterEvent({
     required this.correo,
@@ -28,6 +29,7 @@ class RegisterEvent extends AuthEvent {
     required this.apellidos,
     required this.numTelefono,
     required this.fechaNacimiento,
+    this.organizacion,
   });
 }
 

@@ -10,6 +10,7 @@ abstract class ForoRemoteDataSource {
     String? categoria,
     int? grupoId,
     int? usuarioId,
+    int? organizacionId,
     String? cursor,
     int limite,
   });
@@ -19,6 +20,7 @@ abstract class ForoRemoteDataSource {
     required String contenido,
     String? categoria,
     int? grupoId,
+    int? organizacionId,
     String? imagenPath,
     Map<String, String>? datosAdopcion,
   });

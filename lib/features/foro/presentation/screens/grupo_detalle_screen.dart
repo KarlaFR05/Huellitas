@@ -449,6 +449,9 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
     final usuarioId = authState is AuthSuccess && authState.data is Usuario
         ? (authState.data as Usuario).usuarioIdPk
         : null;
+    final esOrganizacion = authState is AuthSuccess && authState.data is Usuario
+        ? (authState.data as Usuario).esOrganizacion
+        : false;
     final esAdministrador =
         _grupo.esAdministradorActual || _grupo.creadorUsuarioId == usuarioId;
     return PopScope(
@@ -662,24 +665,33 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
                     ),
                   );
                 }
+                
+                final publicacion = _publicaciones[index];
+                final esPublicacionPropia = publicacion.usuarioId == usuarioId;
+                
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: PublicacionCard(
-                    publicacion: _publicaciones[index],
-                    avatarUrl: _publicaciones[index].fotoUsuarioUrl,
-                    onPerfil: _publicaciones[index].usuarioId == null
+                    publicacion: esOrganizacion && esPublicacionPropia
+                        ? publicacion.copyWith(
+                            nombreUsuario: 'Mi Organización',
+                          )
+                        : publicacion,
+                    avatarUrl: publicacion.fotoUsuarioUrl,
+                    autorVerificado: esOrganizacion && esPublicacionPropia,
+                    onPerfil: publicacion.usuarioId == null
                         ? null
                         : () => context.push(
                             '/mi-perfil',
-                            extra: _publicaciones[index].usuarioId == usuarioId
+                            extra: publicacion.usuarioId == usuarioId
                                 ? null
-                                : _publicaciones[index].usuarioId,
+                                : publicacion.usuarioId,
                           ),
                     onMeGusta: () async {
                       try {
                         final actualizada = await context
                             .read<ForoRepository>()
-                            .cambiarMeGusta(_publicaciones[index].id);
+                            .cambiarMeGusta(publicacion.id);
                         if (mounted) {
                           setState(() => _publicaciones[index] = actualizada);
                         }
@@ -689,17 +701,15 @@ class _GrupoDetalleScreenState extends State<GrupoDetalleScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => ComentariosScreen(
-                          publicacion: _publicaciones[index],
+                          publicacion: publicacion,
                         ),
                       ),
                     ),
-                    onEditar: _publicaciones[index].usuarioId == usuarioId
-                        ? () => _editarPublicacionGrupo(_publicaciones[index])
+                    onEditar: esPublicacionPropia
+                        ? () => _editarPublicacionGrupo(publicacion)
                         : null,
-                    onEliminar: _publicaciones[index].usuarioId == usuarioId
-                        ? () => _confirmarEliminarPublicacionGrupo(
-                            _publicaciones[index],
-                          )
+                    onEliminar: esPublicacionPropia
+                        ? () => _confirmarEliminarPublicacionGrupo(publicacion)
                         : null,
                   ),
                 );

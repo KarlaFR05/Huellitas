@@ -10,9 +10,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   AuthRemoteDataSourceImpl(this.dio);
 
   @override
-  Future<UsuarioModel> register(UsuarioModel usuario, String password) async {
+  Future<UsuarioModel> register(
+    UsuarioModel usuario,
+    String password, {
+    Map<String, dynamic>? organizacion,
+  }) async {
     try {
-      final body = {
+      final Map<String, dynamic> body = {
         'correo': usuario.correo,
         'nombre_usuario': usuario.nombreUsuario,
         'contrasenia': password,
@@ -29,6 +33,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'identificacion_frontal': null,
         'identificacion_trasera': null,
       };
+
+      if (organizacion != null) {
+        body['rol_usuario'] = 'organizacion';
+        body['organizacion'] = organizacion;
+      }
 
       final response = await dio.post('/usuarios/register', data: body);
       return UsuarioModel.fromJson(response.data);

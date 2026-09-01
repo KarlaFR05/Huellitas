@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:dio/dio.dart';
 import '../../domain/entities/grupo.dart';
 import '../../domain/entities/solicitudes_foro.dart';
 import '../../domain/repositories/foro_repository.dart';
@@ -11,6 +11,11 @@ import '../widgets/grupo_imagen.dart';
 import 'crear_grupo_screen.dart';
 import 'buscar_grupos_screen.dart';
 import 'grupo_detalle_screen.dart';
+import '../../data/datasources/organizacion_foro_datasource.dart';
+import '../../data/repositories/organizacion_foro_repository_impl.dart';
+import '../../domain/entities/organizacion_foro.dart';
+import '../widgets/organizacion_card.dart';
+import 'organizacion_perfil_screen.dart';
 
 class GruposScreen extends StatelessWidget {
   const GruposScreen({super.key});
@@ -156,6 +161,8 @@ class _GruposView extends StatelessWidget {
                 BottomBarWidget.contentClearance(context) + 88,
               ),
               children: [
+                const _OrganizacionesVerificadas(),
+
                 if (misGrupos.isNotEmpty) ...[
                   Text(
                     'Tus grupos',
@@ -303,6 +310,75 @@ class _GrupoCompacto extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _OrganizacionesVerificadas extends StatefulWidget {
+  const _OrganizacionesVerificadas();
+
+  @override
+  State<_OrganizacionesVerificadas> createState() =>
+      _OrganizacionesVerificadasState();
+}
+
+class _OrganizacionesVerificadasState
+    extends State<_OrganizacionesVerificadas> {
+  late final Future<List<OrganizacionForo>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    final dio = context.read<Dio>();
+    _future = OrganizacionForoRepositoryImpl(
+      OrganizacionForoRemoteDataSourceImpl(dio),
+    ).obtenerOrganizacionesVerificadas();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<OrganizacionForo>>(
+      future: _future,
+      builder: (context, snapshot) {
+        final organizaciones = snapshot.data ?? [];
+        if (organizaciones.isEmpty) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Organizaciones verificadas',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 200,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: organizaciones.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final organizacion = organizaciones[index];
+                  return OrganizacionCard(
+                    organizacion: organizacion,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => OrganizacionPerfilScreen(
+                          organizacion: organizacion,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        );
+      },
     );
   }
 }
