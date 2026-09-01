@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/full_screen_image_viewer.dart';
 import '../../domain/entities/adopcion.dart';
 
 class AdopcionCard extends StatelessWidget {
@@ -23,6 +24,10 @@ class AdopcionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final solicitudes = cantidadSolicitudes;
+    final rutaImagen = _rutaImagen;
+    final nombreMascota = adopcion.nombre.isEmpty
+        ? 'la mascota'
+        : adopcion.nombre;
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 1,
@@ -41,29 +46,38 @@ class AdopcionCard extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: 5,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        _imagen(),
-                        Positioned(
-                          top: 10,
-                          left: 10,
-                          child: _tag(
-                            Icons.pets_rounded,
-                            'Publicado',
-                            colors.primary,
-                          ),
+                    child: Semantics(
+                      button: rutaImagen != null,
+                      label: rutaImagen == null
+                          ? null
+                          : 'Ampliar imagen de $nombreMascota',
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: rutaImagen == null
+                            ? null
+                            : () => _abrirImagen(context),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            _imagen(),
+                            Positioned(
+                              top: 10,
+                              left: 10,
+                              child: _tag(
+                                Icons.pets_rounded,
+                                'Publicado',
+                                colors.primary,
+                              ),
+                            ),
+                            if (rutaImagen != null)
+                              Positioned(
+                                right: 10,
+                                bottom: 10,
+                                child: IgnorePointer(child: _iconoAmpliar()),
+                              ),
+                          ],
                         ),
-                        Positioned(
-                          right: 10,
-                          bottom: 10,
-                          child: _tag(
-                            Icons.photo_outlined,
-                            '1/1',
-                            Colors.black54,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                   Expanded(
@@ -211,21 +225,44 @@ class AdopcionCard extends StatelessWidget {
     );
   }
 
-  Widget _imagen() {
-    final ruta = adopcion.imagenPath ?? adopcion.imagenUrl;
-    if (ruta == null || ruta.isEmpty) return _placeholder();
-    if (ruta.startsWith('http'))
+  Widget _imagen({BoxFit fit = BoxFit.cover}) {
+    final ruta = _rutaImagen;
+    if (ruta == null) return _placeholder();
+    if (ruta.startsWith('http')) {
       return Image.network(
         ruta,
-        fit: BoxFit.cover,
+        fit: fit,
         errorBuilder: (_, _, _) => _placeholder(),
       );
+    }
     return Image.file(
       File(ruta),
-      fit: BoxFit.cover,
+      fit: fit,
       errorBuilder: (_, _, _) => _placeholder(),
     );
   }
+
+  String? get _rutaImagen {
+    final ruta = adopcion.imagenPath ?? adopcion.imagenUrl;
+    return ruta == null || ruta.isEmpty ? null : ruta;
+  }
+
+  Future<void> _abrirImagen(BuildContext context) {
+    final nombre = adopcion.nombre.isEmpty ? 'la mascota' : adopcion.nombre;
+    return showFullScreenImage(
+      context,
+      image: _imagen(fit: BoxFit.contain),
+      semanticLabel: 'Imagen ampliada de $nombre',
+    );
+  }
+
+  Widget _iconoAmpliar() => const DecoratedBox(
+    decoration: BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+    child: Padding(
+      padding: EdgeInsets.all(6),
+      child: Icon(Icons.fullscreen_rounded, color: Colors.white, size: 20),
+    ),
+  );
 
   Widget _placeholder() => const ColoredBox(
     color: Color(0xFFFFF0DB),
@@ -315,4 +352,3 @@ class AdopcionCard extends StatelessWidget {
     return '${d.day} ${m[d.month - 1]} ${d.year}';
   }
 }
-

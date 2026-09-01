@@ -17,6 +17,7 @@ import '../../donaciones/presentation/models/solicitud_donacion.dart';
 import '../../donaciones/presentation/screens/solicitar_donaciones_screen.dart';
 import '../../donaciones/presentation/screens/donar_reporte_screen.dart';
 import '../../../core/verificacion/verificacion_cubit.dart';
+import '../../../core/widgets/full_screen_image_viewer.dart';
 
 class ReporteEstadoScreen extends StatelessWidget {
   final int reporteId;
@@ -383,13 +384,13 @@ class ReporteEstadoScreen extends StatelessWidget {
       children: [
         if (solicitud != null) ...[
           Text('Meta de donación', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height:8),
+          const SizedBox(height: 8),
           LinearProgressIndicator(
             value: solicitud.meta == 0
                 ? 0
                 : (solicitud.totalDonado / solicitud.meta)
-                    .clamp(0.0, 1.0)
-                    .toDouble(),
+                      .clamp(0.0, 1.0)
+                      .toDouble(),
           ),
           const SizedBox(height: 6),
           Text('\$${solicitud.totalDonado.toStringAsFixed(2)} recaudados de \$${solicitud.meta.toStringAsFixed(2)} MXN'),
@@ -404,14 +405,14 @@ class ReporteEstadoScreen extends StatelessWidget {
           const SizedBox(height: 12),
         ],
         if (esResponsable) OutlinedButton.icon(
-          icon: const Icon(Icons.volunteer_activism_outlined),
+            icon: const Icon(Icons.volunteer_activism_outlined),
           label: Text(solicitud == null ? 'Solicitar donaciones' : 'Editar solicitud de donaciones'),
-          onPressed: () => _abrirSolicitudDonaciones(context, reporte),
+            onPressed: () => _abrirSolicitudDonaciones(context, reporte),
         ) else FilledButton.icon(
-          icon: const Icon(Icons.favorite_outline),
-          label: const Text('Donar'),
+            icon: const Icon(Icons.favorite_outline),
+            label: const Text('Donar'),
           onPressed: solicitud == null ? null : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => DonarReporteScreen(reporteId: reporte.reporteId))),
-        ),
+          ),
       ],
     );
   }
@@ -487,33 +488,10 @@ class ReporteEstadoScreen extends StatelessWidget {
     final evidencia = gasto.evidencia;
     if (evidencia == null) return;
 
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => Dialog.fullscreen(
-        backgroundColor: Colors.black,
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Center(
-                child: InteractiveViewer(
-                  minScale: 0.5,
-                  maxScale: 4,
-                  child: Image.file(evidencia, fit: BoxFit.contain),
-                ),
-              ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: IconButton.filled(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  icon: const Icon(Icons.close),
-                  tooltip: 'Cerrar',
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    showFullScreenImage(
+      context,
+      image: Image.file(evidencia, fit: BoxFit.contain),
+      semanticLabel: 'Evidencia del gasto ${gasto.descripcion}',
     );
   }
 

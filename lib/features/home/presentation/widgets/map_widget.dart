@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/full_screen_image_viewer.dart';
 import 'reporte_marker.dart';
 
 class MapWidget extends StatefulWidget {
@@ -77,65 +78,22 @@ class _MapWidgetState extends State<MapWidget> {
 
   //mostrar imagen en pantalla completa
   void _showFullImage(BuildContext context, String imageUrl) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.zero,
-        child: Stack(
-          children: [
-            Center(
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  color: Colors.black,
-                  child: InteractiveViewer(
-                    boundaryMargin: const EdgeInsets.all(20),
-                    minScale: 0.5,
-                    maxScale: 4.0,
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.fitWidth,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Center(
-                          child: Icon(
-                            Icons.error,
-                            color: Colors.white,
-                            size: 48,
-                          ),
-                        );
-                      },
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return const Center(
-                          child: CircularProgressIndicator(color: Colors.white),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 40,
-              right: 20,
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.close, color: Colors.white, size: 24),
-                ),
-              ),
-            ),
-          ],
+    showFullScreenImage(
+      context,
+      image: Image.network(
+        imageUrl,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => const Center(
+          child: Icon(Icons.error, color: Colors.white, size: 48),
         ),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          );
+        },
       ),
+      semanticLabel: 'Evidencia del reporte en el mapa',
     );
   }
 
