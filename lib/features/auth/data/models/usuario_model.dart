@@ -18,6 +18,7 @@ class UsuarioModel extends Usuario {
     super.ciudad,
     super.estado,
     super.fotoPerfil,
+    super.organizacionId,
   });
 
   factory UsuarioModel.fromJson(Map<String, dynamic> json) {
@@ -42,6 +43,7 @@ class UsuarioModel extends Usuario {
       ciudad: json['ciudad'],
       estado: json['estado'],
       fotoPerfil: json['foto_perfil'],
+      organizacionId: json['organizacion_id'],
     );
   }
 

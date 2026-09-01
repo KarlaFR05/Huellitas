@@ -18,6 +18,7 @@ import '../../auth/presentation/bloc/auth_state.dart';
 import '../../auth/domain/entities/usuario.dart';
 import 'package:flutter/services.dart';
 import 'widgets/dialogo_duplicado.dart';
+import '../../../core/widgets/full_screen_image_viewer.dart';
 import 'widgets/loading_dialog.dart';
 
 class ReportFormScreen extends StatefulWidget {
@@ -287,51 +288,10 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       setState(() => _evidenceImages.removeAt(index));
 
   void _showFullImage(File image) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.zero,
-        child: Stack(
-          children: [
-            Center(
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  color: Colors.black,
-                  child: InteractiveViewer(
-                    boundaryMargin: const EdgeInsets.all(20),
-                    minScale: 0.5,
-                    maxScale: 4.0,
-                    child: Image.file(image, fit: BoxFit.fitWidth),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 40,
-              right: 20,
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.close,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    size: 24,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    showFullScreenImage(
+      context,
+      image: Image.file(image, fit: BoxFit.contain),
+      semanticLabel: 'Evidencia del reporte',
     );
   }
 
@@ -1211,6 +1171,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   }
 
   Widget _buildOtraRazaField() {
+    final tieneError = _otraRazaError != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1229,17 +1190,24 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             color: _fieldBackground,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: _otraRazaError != null
-                  ? Colors.red
+              color: tieneError
+                  ? Theme.of(context).colorScheme.error
                   : Theme.of(context).colorScheme.outline,
-              width: _otraRazaError != null ? 2 : 1,
+              width: tieneError ? 2 : 1,
             ),
           ),
           child: TextField(
             controller: _otraRazaController,
             onChanged: _validarOtraRaza,
+            textCapitalization: TextCapitalization.words,
             decoration: InputDecoration(
               border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              focusedErrorBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              filled: false,
               isDense: true,
               contentPadding: EdgeInsets.zero,
               hintText: 'Escribe la raza del animal',
@@ -1248,21 +1216,18 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               ),
             ),
             style: TextStyle(
-              color: _otraRazaError != null
-                  ? Colors.red
-                  : Theme.of(context).colorScheme.onSurface,
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 14,
             ),
           ),
         ),
-        if (_otraRazaError != null) ...[
-          const SizedBox(height: 4),
+        if (tieneError) ...[
+          const SizedBox(height: 6),
           Text(
             _otraRazaError!,
-            style: const TextStyle(
-              color: Colors.red,
-              fontSize: 11,
-              fontWeight: FontWeight.w400,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.error,
+              fontSize: 12,
             ),
           ),
         ],
@@ -1533,13 +1498,13 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
               spacing: 8,
               runSpacing: 8,
               children: _nivelesUrgencia.map((nivel) {
-          final isSelected = _urgencia == nivel['value'];
-          final color = nivel['color'] as Color;
+                final isSelected = _urgencia == nivel['value'];
+                final color = nivel['color'] as Color;
                 return SizedBox(
                   width: ancho,
                   height: 44,
-            child: Material(
-              color: isSelected
+                  child: Material(
+                    color: isSelected
                         ? color.withValues(alpha: .16)
                         : colors.surface,
                     shape: RoundedRectangleBorder(
@@ -1551,41 +1516,41 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                         width: isSelected ? 2 : 1,
                       ),
                     ),
-              child: InkWell(
-                onTap: () => setState(() => _urgencia = nivel['value']),
+                    child: InkWell(
+                      onTap: () => setState(() => _urgencia = nivel['value']),
                       borderRadius: BorderRadius.circular(24),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 13),
-                  child: Row(
-                    children: [
-                      Container(
+                        child: Row(
+                          children: [
+                            Container(
                               width: 11,
                               height: 11,
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                            const SizedBox(width: 8),
-                      Expanded(
-                              child: Text(
-                              nivel['label'],
-                              style: TextStyle(
-                                fontWeight: isSelected
-                                    ? FontWeight.w800
-                                    : FontWeight.w600,
-                                  color: isSelected ? color : colors.onSurface,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
                               ),
                             ),
-                      ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                nivel['label'],
+                                style: TextStyle(
+                                  fontWeight: isSelected
+                                      ? FontWeight.w800
+                                      : FontWeight.w600,
+                                  color: isSelected ? color : colors.onSurface,
+                                ),
+                              ),
+                            ),
                             if (isSelected)
                               Icon(Icons.check_rounded, color: color, size: 19),
-                    ],
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
-          );
+                );
               }).toList(),
             );
           },

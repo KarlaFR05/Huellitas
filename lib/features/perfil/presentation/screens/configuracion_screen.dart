@@ -56,21 +56,6 @@ class ConfiguracionScreen extends StatelessWidget {
           Divider(color: colorScheme.outlineVariant),
           ListTile(
             leading: Icon(
-              Icons.notifications_outlined,
-              color: colorScheme.primary,
-            ),
-            title: Text(
-              'Notificaciones',
-              style: TextStyle(color: colorScheme.onSurface),
-            ),
-            trailing: Icon(
-              Icons.chevron_right,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Divider(color: colorScheme.outlineVariant),
-          ListTile(
-            leading: Icon(
               Icons.dark_mode_outlined,
               color: colorScheme.primary,
             ),

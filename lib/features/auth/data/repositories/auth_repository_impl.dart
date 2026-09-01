@@ -11,7 +11,11 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<Usuario> register(Usuario usuario, String password) async {
+  Future<Usuario> register(
+    Usuario usuario,
+    String password, {
+    Map<String, dynamic>? organizacion, 
+  }) async {
     final usuarioModel = UsuarioModel(
       usuarioIdPk: usuario.usuarioIdPk,
       correo: usuario.correo,
@@ -25,7 +29,11 @@ class AuthRepositoryImpl implements AuthRepository {
       rolUsuario: usuario.rolUsuario,
     );
 
-    return await remoteDataSource.register(usuarioModel, password);
+    return await remoteDataSource.register(
+      usuarioModel,
+      password,
+      organizacion: organizacion,
+    );
   }
 
   @override

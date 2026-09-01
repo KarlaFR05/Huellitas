@@ -18,9 +18,10 @@ class RegisterUseCase {
     String? colonia,
     String? cp,
     String? ciudad,
+    Map<String, dynamic>? organizacion, 
   }) async {
     final usuario = Usuario(
-      usuarioIdPk: 0, // Se asigna en el backend
+      usuarioIdPk: 0,
       correo: correo,
       nombreUsuario: nombreUsuario,
       nombre: nombre,
@@ -29,9 +30,13 @@ class RegisterUseCase {
       fechaNacimiento: fechaNacimiento,
       verificado: false,
       fechaRegistroUsuario: DateTime.now(),
-      rolUsuario: 'usuario',
+      rolUsuario: organizacion != null ? 'organizacion' : 'usuario', 
     );
 
-    return await repository.register(usuario, password);
+    return await repository.register(
+      usuario,
+      password,
+      organizacion: organizacion, 
+    );
   }
 }

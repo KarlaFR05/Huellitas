@@ -15,6 +15,7 @@ import '../../../../core/widgets/verificado_badge.dart';
 import '../../../donaciones/presentation/bloc/tarjeta/tarjeta_bloc.dart';
 import '../../../donaciones/presentation/bloc/tarjeta/tarjeta_event.dart';
 import '../../../donaciones/presentation/bloc/tarjeta/tarjeta_state.dart';
+import 'perfil_organizacion_screen.dart';
 
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
@@ -24,6 +25,8 @@ class PerfilScreen extends StatefulWidget {
 }
 
 class _PerfilScreenState extends State<PerfilScreen> {
+  bool forzarVistaOrganizacion = false;
+
   @override
   void initState() {
     super.initState();
@@ -32,13 +35,28 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   void _cargarTarjetas() {
     final authState = context.read<AuthBloc>().state;
-    if (authState is AuthSuccess) {
+    // Solo carga tarjetas si NO es organización
+    final esOrganizacion = authState is AuthSuccess &&
+        authState.data is Usuario &&
+        (authState.data as Usuario).esOrganizacion;
+    if (authState is AuthSuccess && !esOrganizacion) {
       context.read<TarjetaBloc>().add(CargarTarjetas());
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Si es organización (o está forzado), muestra su propio perfil
+    final authState = context.watch<AuthBloc>().state;
+    final esOrganizacion = forzarVistaOrganizacion ||
+        (authState is AuthSuccess &&
+            authState.data is Usuario &&
+            (authState.data as Usuario).esOrganizacion);
+
+    if (esOrganizacion) {
+      return const PerfilOrganizacionScreen();
+    }
+
     return Scaffold(
       extendBody: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -216,6 +234,22 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 onTap: () {
                   context.push('/mi-perfil');
                 },
+              ),
+
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, authState) => BlocBuilder<VerificacionCubit, EstadoVerificacion>(
+                  builder: (context, estado) {
+                    final verificadoEnCuenta = authState is AuthSuccess && authState.data is Usuario && (authState.data as Usuario).verificado;
+                    final estaVerificado = verificadoEnCuenta || estado == EstadoVerificacion.verificado;
+                    if (!estaVerificado) return const SizedBox.shrink();
+                    return PerfilOption(
+                      icon: Icons.account_balance_wallet_outlined,
+                      titulo: 'Mi cuenta',
+                      subtitulo: 'Recibe donaciones en tus reportes',
+                      onTap: () => context.push('/mi-cuenta'),
+                    );
+                  },
+                ),
               ),
 
               BlocBuilder<TarjetaBloc, TarjetaState>(

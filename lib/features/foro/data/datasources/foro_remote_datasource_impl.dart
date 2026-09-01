@@ -16,6 +16,7 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
   Future<PaginaModel<PublicacionModel>> obtenerFeed({
     String? categoria,
     int? grupoId,
+    int? organizacionId,
     int? usuarioId,
     String? cursor,
     int limite = 20,
@@ -25,6 +26,7 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
       queryParameters: {
         if (categoria != null) 'categoria': categoria,
         if (grupoId != null) 'grupo_id': grupoId,
+        if (organizacionId != null) 'organizacion_id': organizacionId,
         if (usuarioId != null) 'usuario_id': usuarioId,
         if (cursor != null) 'cursor': cursor,
         'limite': limite,
@@ -39,27 +41,36 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
     return PublicacionModel.fromJson(res.data);
   }
 
-  @override
+    @override
   Future<PublicacionModel> crearPublicacion({
     required String titulo,
     required String contenido,
     String? categoria,
     int? grupoId,
+    int? organizacionId,
     String? imagenPath,
+    Map<String, String>? datosAdopcion,
   }) async {
     final formData = FormData.fromMap({
       'titulo': titulo,
       'contenido': contenido,
       if (categoria != null) 'categoria': categoria,
       if (grupoId != null) 'grupo_id': grupoId,
+      if (datosAdopcion != null) ...datosAdopcion,
       if (imagenPath != null && imagenPath.isNotEmpty)
         'imagen': await MultipartFile.fromFile(
           imagenPath,
           filename: imagenPath.split('/').last,
         ),
+      if (organizacionId != null) 'organizacion_id': organizacionId,
     });
-    final res = await dio.post('/publicaciones', data: formData);
-    return PublicacionModel.fromJson(res.data);
+
+    final response = await dio.post(
+      '/publicaciones',
+      data: formData,
+    );
+
+    return PublicacionModel.fromJson(response.data);
   }
 
   @override

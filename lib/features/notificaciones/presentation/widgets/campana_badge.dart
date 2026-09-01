@@ -1,11 +1,50 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../bloc/notificacion_bloc.dart';
+import '../bloc/notificacion_event.dart';
 import '../bloc/notificacion_state.dart';
 
-class CampanaBadge extends StatelessWidget {
+class CampanaBadge extends StatefulWidget {
   const CampanaBadge({super.key});
+
+  @override
+  State<CampanaBadge> createState() => _CampanaBadgeState();
+}
+
+class _CampanaBadgeState extends State<CampanaBadge>
+    with WidgetsBindingObserver {
+  Timer? _temporizador;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _recargar());
+    _temporizador = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _recargar(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _temporizador?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _recargar();
+  }
+
+  void _recargar() {
+    if (!mounted) return;
+    context.read<NotificacionBloc>().add(CargarNotificaciones());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +59,10 @@ class CampanaBadge extends StatelessWidget {
           children: [
             IconButton(
               tooltip: 'Notificaciones',
-              onPressed: () => context.push('/notificaciones'),
+              onPressed: () {
+                _recargar();
+                context.push('/notificaciones');
+              },
               icon: Icon(
                 Icons.notifications_none_rounded,
                 color: colorScheme.primary,

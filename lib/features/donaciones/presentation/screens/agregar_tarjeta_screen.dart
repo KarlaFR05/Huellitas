@@ -48,6 +48,10 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
   @override
   void initState() {
     super.initState();
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthSuccess) {
+      context.read<TarjetaBloc>().add(CargarTarjetas());
+    }
     if (_esModoEdicion && widget.tarjeta != null) {
       _titularController.text = widget.tarjeta!.titular;
       _vencimientoController.text = widget.tarjeta!.fechaVencimiento;
@@ -252,7 +256,12 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                     state is DonacionProcesando || _tarjetaTemporal;
 
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    20,
+                    20,
+                    20 + MediaQuery.viewPaddingOf(context).bottom,
+                  ),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -273,6 +282,67 @@ class _AgregarTarjetaScreenState extends State<AgregarTarjetaScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
+
+                        if (!_esModoEdicion && _esFlujoDonacion)
+                          BlocBuilder<TarjetaBloc, TarjetaState>(
+                            builder: (context, tarjetaState) {
+                              if (tarjetaState is! TarjetaLoaded ||
+                                  tarjetaState.tarjetas.isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+
+                              return Container(
+                                width: double.infinity,
+                                margin: const EdgeInsets.only(bottom: 24),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.08,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Tarjetas guardadas',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Puedes usar una tarjeta que ya registraste.',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ...tarjetaState.tarjetas.map(
+                                      (tarjeta) => ListTile(
+                                        contentPadding: EdgeInsets.zero,
+                                        leading: const Icon(Icons.credit_card),
+                                        title: Text(tarjeta.numeroEnmascarado),
+                                        subtitle: Text(tarjeta.titular),
+                                        trailing: const Icon(Icons.chevron_right),
+                                        onTap: () => context.push(
+                                          '/seleccion-tarjeta',
+                                          extra: {
+                                            'monto': widget.monto!,
+                                            'organizacionId':
+                                                widget.organizacionId!,
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
 
                         Text(
                           _esModoEdicion

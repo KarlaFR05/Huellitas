@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/widgets/avatar_helper.dart';
+import '../../../../core/widgets/full_screen_image_viewer.dart';
+import '../../../../core/widgets/organizacion_verificada_badge.dart';
 import '../../../insignias/data/repositories/insignia_repository_impl.dart';
 import '../../../insignias/domain/entities/insignia.dart';
 import '../../domain/entities/publicacion.dart';
@@ -19,6 +21,7 @@ class PublicacionCard extends StatelessWidget {
     this.onEditar,
     this.onEliminar,
     this.onPerfil,
+    this.autorVerificado = false,
   });
 
   final Publicacion publicacion;
@@ -29,6 +32,7 @@ class PublicacionCard extends StatelessWidget {
   final VoidCallback? onEditar;
   final VoidCallback? onEliminar;
   final VoidCallback? onPerfil;
+  final bool autorVerificado;
 
   String _formatearFecha(DateTime fecha) {
     final diferencia = DateTime.now().difference(fecha);
@@ -140,6 +144,11 @@ class PublicacionCard extends StatelessWidget {
                                 _InsigniaAutor(
                                   usuarioId: publicacion.usuarioId!,
                                 ),
+                              ],
+
+                              if (autorVerificado) ...[
+                                const SizedBox(width: 6),
+                                const OrganizacionVerificadaBadge(size: 18),
                               ],
                             ],
                           ),
@@ -308,35 +317,10 @@ class PublicacionCard extends StatelessWidget {
   }
 
   void _mostrarImagenCompleta(BuildContext context, Widget imagen) {
-    showDialog<void>(
-      context: context,
-      barrierColor: Colors.black87,
-      builder: (dialogContext) => Dialog.fullscreen(
-        backgroundColor: Colors.black,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: InteractiveViewer(
-                minScale: .8,
-                maxScale: 4,
-                child: Center(child: imagen),
-              ),
-            ),
-            Positioned(
-              top: MediaQuery.paddingOf(dialogContext).top + 8,
-              right: 12,
-              child: IconButton.filled(
-                onPressed: () => Navigator.pop(dialogContext),
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.black54,
-                  foregroundColor: Colors.white,
-                ),
-                icon: const Icon(Icons.close_rounded),
-              ),
-            ),
-          ],
-        ),
-      ),
+    showFullScreenImage(
+      context,
+      image: imagen,
+      semanticLabel: 'Imagen de la publicación ${publicacion.titulo}',
     );
   }
 }

@@ -1,0 +1,387 @@
+import 'package:flutter/material.dart';
+import 'reporte_marker.dart';
+
+/// Botón flotante que abre el filtro del mapa. Muestra un badge
+/// con la cantidad de filtros activos.
+class FiltroReportesButton extends StatelessWidget {
+  final int cantidadActiva;
+  final VoidCallback onTap;
+
+  const FiltroReportesButton({
+    super.key,
+    required this.cantidadActiva,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.surface,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.tune_rounded,
+                    color: theme.colorScheme.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Filtrar',
+                    style: TextStyle(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+              if (cantidadActiva > 0)
+                Positioned(
+                  top: -8,
+                  right: -8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: theme.colorScheme.surface,
+                        width: 2,
+                      ),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: Text(
+                      '$cantidadActiva',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: theme.colorScheme.onPrimary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet con chips seleccionables para filtrar por tipo de
+/// animal y nivel de urgencia. Selección vacía = mostrar todos.
+class FiltroReportesSheet extends StatefulWidget {
+  final Set<ReportAnimal> animalesSeleccionados;
+  final Set<ReportUrgency> urgenciasSeleccionadas;
+  final bool mostrarCompletados;
+
+  const FiltroReportesSheet({
+    super.key,
+    required this.animalesSeleccionados,
+    required this.urgenciasSeleccionadas,
+    required this.mostrarCompletados,
+  });
+
+  @override
+  State<FiltroReportesSheet> createState() => _FiltroReportesSheetState();
+}
+
+class _FiltroReportesSheetState extends State<FiltroReportesSheet> {
+  late Set<ReportAnimal> _animales;
+  late bool _mostrarCompletados;
+  late Set<ReportUrgency> _urgencias;
+
+  @override
+  void initState() {
+    super.initState();
+    _animales = {...widget.animalesSeleccionados};
+    _urgencias = {...widget.urgenciasSeleccionadas};
+    _mostrarCompletados = widget.mostrarCompletados;
+  }
+
+  void _toggleAnimal(ReportAnimal a) {
+    setState(() {
+      _animales.contains(a) ? _animales.remove(a) : _animales.add(a);
+    });
+  }
+
+  void _toggleUrgencia(ReportUrgency u) {
+    setState(() {
+      _urgencias.contains(u) ? _urgencias.remove(u) : _urgencias.add(u);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hayFiltrosActivos = _animales.isNotEmpty || _urgencias.isNotEmpty;
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Filtrar reportes',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextButton(
+                  onPressed: hayFiltrosActivos
+                      ? () {
+                          Navigator.pop(
+                            context,
+                            ResultadoFiltroReportes(
+                              <ReportAnimal>{},
+                              <ReportUrgency>{},
+                              false,
+                            ),
+                          );
+                        }
+                      : null,
+                  child: const Text('Limpiar'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Elige una o más opciones. Sin selección se muestran todos.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _SeccionTitulo(texto: 'ANIMAL'),
+            const SizedBox(height: 10),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final ancho = (constraints.maxWidth - 10) / 2;
+                return Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: ReportAnimal.values.map((a) {
+                    final sel = _animales.contains(a);
+                    return _FiltroPill(
+                      width: ancho,
+                      selected: sel,
+                      color: theme.colorScheme.primary,
+                      leading: Text(
+                        a.shortLabel,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      label: a.label,
+                      onTap: () => _toggleAnimal(a),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+            const SizedBox(height: 22),
+            _SeccionTitulo(texto: 'NIVEL DE URGENCIA'),
+            const SizedBox(height: 10),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final ancho = (constraints.maxWidth - 10) / 2;
+                return Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: ReportUrgency.values.map((u) {
+                    final sel = _urgencias.contains(u);
+                    return _FiltroPill(
+                      width: ancho,
+                      selected: sel,
+                      color: u.color,
+                      leading: Container(
+                        width: 11,
+                        height: 11,
+                        decoration: BoxDecoration(
+                          color: u.color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      label: u.label,
+                      onTap: () => _toggleUrgencia(u),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+            const SizedBox(height: 22),
+            _SeccionTitulo(texto: 'ESTADO'),
+            const SizedBox(height: 10),
+            _FiltroPill(
+              width: double.infinity,
+              selected: _mostrarCompletados,
+              color: const Color(0xFF2E7D32),
+              leading: Container(
+                width: 11,
+                height: 11,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF2E7D32),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              label: 'Mostrar completados',
+              onTap: () =>
+                  setState(() => _mostrarCompletados = !_mostrarCompletados),
+            ),
+            const SizedBox(height: 26),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                  ResultadoFiltroReportes(
+                    _animales,
+                    _urgencias,
+                    _mostrarCompletados,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Aplicar filtros',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SeccionTitulo extends StatelessWidget {
+  final String texto;
+  const _SeccionTitulo({required this.texto});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      texto,
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 0.5,
+      ),
+    );
+  }
+}
+
+/// Resultado que devuelve el bottom sheet de filtros al cerrarse.
+class ResultadoFiltroReportes {
+  final Set<ReportAnimal> animales;
+  final Set<ReportUrgency> urgencias;
+  final bool mostrarCompletados;
+
+  const ResultadoFiltroReportes(
+    this.animales,
+    this.urgencias,
+    this.mostrarCompletados,
+  );
+}
+
+class _FiltroPill extends StatelessWidget {
+  final double width;
+  final bool selected;
+  final Color color;
+  final Widget leading;
+  final String label;
+  final VoidCallback onTap;
+
+  const _FiltroPill({
+    required this.width,
+    required this.selected,
+    required this.color,
+    required this.leading,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return SizedBox(
+      width: width,
+      height: 44,
+      child: Material(
+        color: selected ? color.withValues(alpha: .16) : colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(
+            color: selected
+                ? color
+                : colors.outlineVariant.withValues(alpha: .6),
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 13),
+            child: Row(
+              children: [
+                leading,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                      color: selected ? color : colors.onSurface,
+                    ),
+                  ),
+                ),
+                if (selected)
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

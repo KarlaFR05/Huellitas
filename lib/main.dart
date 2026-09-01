@@ -3,6 +3,7 @@ import 'app/app.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/bloc/auth_state.dart';
 import 'features/auth/data/datasources/auth_remote_datasource_impl.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/usecases/registro_usecase.dart';
@@ -10,6 +11,7 @@ import 'features/auth/domain/usecases/login_usecase.dart';
 import 'features/auth/domain/usecases/enviar_codigo_usecase.dart';
 import 'features/auth/domain/usecases/confirmar_codigo_usecase.dart';
 import 'core/storage/token_storage_service.dart';
+import 'core/location/usuario_location_sync_service.dart';
 import 'features/completar_registro/data/datasources/completar_perfil_remote_datasource.dart';
 import 'features/completar_registro/data/repositories/completar_perfil_repository_impl.dart';
 import 'features/completar_registro/presentation/bloc/completar_perfil_bloc.dart';
@@ -50,6 +52,10 @@ import 'features/notificaciones/data/repositories/notificacion_repository_impl.d
 import 'features/notificaciones/presentation/bloc/notificacion_bloc.dart';
 import 'features/notificaciones/presentation/bloc/notificacion_event.dart';
 
+import 'features/foro/data/datasources/adopciones_remote_datasource.dart';
+import 'features/foro/data/repositories/adopciones_repository.dart';
+import 'features/foro/presentation/bloc/adopciones_bloc.dart';
+
 void main() {
   final dio = Dio(
     BaseOptions(baseUrl: 'https://huellitas-backend-xekn.onrender.com'),
@@ -58,6 +64,7 @@ void main() {
   final authDataSource = AuthRemoteDataSourceImpl(dio);
   final authRepository = AuthRepositoryImpl(authDataSource);
   final tokenStorage = TokenStorageService();
+  final usuarioLocationSync = UsuarioLocationSyncService(dio);
   final completarPerfilDataSource = CompletarPerfilRemoteDataSourceImpl(dio);
   final completarPerfilRepository = CompletarPerfilRepositoryImpl(
     completarPerfilDataSource,
@@ -89,7 +96,9 @@ void main() {
   final reporteRepository = ReporteRepositoryImpl(
     ReporteRemoteDataSourceImpl(dio),
   );
-
+  final adopcionesRepository = AdopcionesRepositoryImpl(
+    AdopcionesRemoteDataSourceImpl(dio),
+  );
   final historialDataSource = HistorialRemoteDataSourceImpl(dio);
   // para prueba del front de historial
   //final historialDataSource = HistorialRemoteDataSourceMock();
@@ -131,6 +140,9 @@ void main() {
         ),
         RepositoryProvider<ForoRepository>.value(value: foroRepository),
         RepositoryProvider<ReporteRepository>.value(value: reporteRepository),
+        RepositoryProvider<AdopcionesRepository>.value(
+          value: adopcionesRepository,
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -184,11 +196,30 @@ void main() {
           ),
           BlocProvider(
             create: (context) =>
-                NotificacionBloc(repository: notificacionRepository)
-                  ..add(CargarNotificaciones()),
+                NotificacionBloc(repository: notificacionRepository),
+          ),
+          BlocProvider(
+            create: (context) => AdopcionesBloc(
+              repository: context.read<AdopcionesRepository>(),
+            ),
           ),
         ],
-        child: const HuellitasApp(),
+        child: BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) async {
+            final notificaciones = context.read<NotificacionBloc>();
+            if (state is AuthSuccess) {
+              final token = await tokenStorage.obtenerToken();
+              if (token != null && context.mounted) {
+                await usuarioLocationSync.sincronizar();
+                if (!context.mounted) return;
+                notificaciones.add(CargarNotificaciones());
+              }
+            } else if (state is AuthInitial) {
+              notificaciones.add(LimpiarNotificaciones());
+            }
+          },
+          child: const HuellitasApp(),
+        ),
       ),
     ),
   );

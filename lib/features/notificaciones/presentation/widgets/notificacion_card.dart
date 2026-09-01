@@ -139,6 +139,9 @@ class NotificacionCard extends StatelessWidget {
       case 'comentario':
         return (Icons.comment, Colors.blue);
       case 'nuevo_miembro':
+      case 'nuevo_miembro_grupo':
+      case 'miembro_grupo':
+      case 'miembro_unido':
         return (Icons.person_add, Colors.purple);
       case 'aprobar_miembro':
         return (Icons.how_to_reg, Colors.teal);

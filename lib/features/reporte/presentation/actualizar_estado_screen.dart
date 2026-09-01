@@ -13,6 +13,7 @@ import '../domain/entities/reporte_estado.dart';
 import 'bloc/reporte_estado_bloc.dart';
 import 'bloc/reporte_estado_event.dart';
 import 'bloc/reporte_estado_state.dart';
+import '../../../core/widgets/full_screen_image_viewer.dart';
 
 class ActualizarEstadoScreen extends StatefulWidget {
   final ReporteEstado reporte;
@@ -246,47 +247,10 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
   }
 
   void _showFullImage(File image) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.zero,
-        child: Stack(
-          children: [
-            Center(
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  color: Colors.black,
-                  child: InteractiveViewer(
-                    boundaryMargin: const EdgeInsets.all(20),
-                    minScale: 0.5,
-                    maxScale: 4.0,
-                    child: Image.file(image, fit: BoxFit.fitWidth),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 40,
-              right: 20,
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.close, color: Colors.white, size: 24),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    showFullScreenImage(
+      context,
+      image: Image.file(image, fit: BoxFit.contain),
+      semanticLabel: 'Evidencia de la actualización del reporte',
     );
   }
 
@@ -298,7 +262,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
           // Esperar 3 segundos para que el backend procese
           Future.delayed(const Duration(seconds: 3), () {
             if (!mounted) return;
-            
+
             final authState = context.read<AuthBloc>().state;
             if (authState is AuthSuccess) {
               final usuarioId = authState.data.usuarioIdPk;
@@ -306,7 +270,7 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
               context.read<InsigniaBloc>().add(CargarInsignias(usuarioId));
             }
           });
-          
+
           context.go('/actualizar-estado-success');
         } else if (state is ReporteEstadoError) {
           context.go('/actualizar-estado-error');
@@ -430,35 +394,24 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).inputDecorationTheme.fillColor ??
-                          Theme.of(context).colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                    child: TextField(
-                      controller: _comentariosController,
-                      maxLines: 4,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                        hintText:
-                            'Describe el estado actual del animal, mejoras, tratamientos...',
-                        hintStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontSize: 14,
+                  TextField(
+                    controller: _comentariosController,
+                    minLines: 4,
+                    maxLines: 6,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      hintText:
+                          'Describe el estado actual del animal, mejoras, tratamientos...',
+                      hintStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         height: 1.4,
                       ),
+                      alignLabelWithHint: true,
+                    ),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 15,
+                      height: 1.45,
                     ),
                   ),
                   const SizedBox(height: 24),

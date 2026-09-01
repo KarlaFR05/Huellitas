@@ -18,6 +18,7 @@ import '../../../insignias/data/repositories/insignia_repository_impl.dart';
 import '../../../insignias/domain/entities/categoria_insignia.dart';
 import '../../../insignias/domain/entities/insignia.dart';
 import '../../../reporte/domain/entities/reporte.dart';
+import '../../../reporte/domain/entities/tipo_reporte.dart';
 import '../../../reporte/domain/repositories/reporte_repository.dart';
 import '../widgets/reporte_card.dart';
 
@@ -105,13 +106,26 @@ class _MiPerfilScreenState extends State<MiPerfilScreen> {
       final reportes = resultados[1] as List<Reporte>;
       final insigniasPorCategoria = resultados[2]
           as Map<CategoriaInsignia, List<Insignia>>;
+      final authState = context.read<AuthBloc>().state;
+      final usuarioActual = authState is AuthSuccess && authState.data is Usuario
+          ? authState.data as Usuario
+          : null;
+      final puedeVerMaltrato =
+          _esPerfilPropio || usuarioActual?.verificado == true;
       setState(() {
         // El filtro local evita mostrar contenido ajeno si una versión antigua
         // del backend ignora temporalmente el parámetro usuario_id.
         _publicaciones = (pagina.elementos as List<Publicacion>)
             .where((item) => item.usuarioId == usuarioId)
             .toList();
-        _reportes = reportes.where((item) => item.usuarioId == usuarioId).toList()
+        _reportes = reportes
+            .where((item) => item.usuarioId == usuarioId)
+            .where(
+              (item) =>
+                  puedeVerMaltrato ||
+                  item.tipoReporteId != TipoReporte.maltratoAnimal.id,
+            )
+            .toList()
           ..sort((a, b) => (b.fechaActualizacion ?? DateTime(0))
               .compareTo(a.fechaActualizacion ?? DateTime(0)));
         _insignias = insigniasPorCategoria.values

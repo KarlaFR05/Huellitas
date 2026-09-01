@@ -6,6 +6,10 @@ import '../bloc/notificacion_event.dart';
 import '../bloc/notificacion_state.dart';
 import '../widgets/notificacion_card.dart';
 import '../../domain/entities/notificacion.dart';
+import '../../../auth/domain/entities/usuario.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../foro/presentation/adopciones_postulaciones_store.dart';
 
 class NotificacionesScreen extends StatefulWidget {
   const NotificacionesScreen({super.key});
@@ -91,7 +95,16 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
           }
 
           if (state is NotificacionLoaded) {
-            if (state.notificaciones.isEmpty) {
+            final auth = context.read<AuthBloc>().state;
+            final usuarioId = auth is AuthSuccess && auth.data is Usuario
+                ? (auth.data as Usuario).usuarioIdPk
+                : null;
+            final notificaciones = [
+              if (usuarioId != null)
+                ...PostulacionesAdopcionStore.notificacionesDeUsuario(usuarioId),
+              ...state.notificaciones,
+            ];
+            if (notificaciones.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -123,15 +136,15 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
               },
               child: ListView.builder(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
-                itemCount: state.notificaciones.length + 1,
+                itemCount: notificaciones.length + 1,
                 itemBuilder: (context, index) {
                   if (index == 0) {
                     return _ResumenNotificaciones(
-                      total: state.notificaciones.length,
-                      noLeidas: state.noLeidas,
+                      total: notificaciones.length,
+                      noLeidas: notificaciones.where((n) => !n.leida).length,
                     );
                   }
-                  final notificacion = state.notificaciones[index - 1];
+                  final notificacion = notificaciones[index - 1];
                   return NotificacionCard(
                     notificacion: notificacion,
                     onTap: () {
@@ -184,6 +197,9 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
         break;
 
       case 'nuevo_miembro':
+      case 'nuevo_miembro_grupo':
+      case 'miembro_grupo':
+      case 'miembro_unido':
       case 'aprobar_miembro':
         if (grupoId != null) {
           context.push('/administrar-grupo/$grupoId');
