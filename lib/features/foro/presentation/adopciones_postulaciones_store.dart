@@ -5,6 +5,7 @@ class PostulacionAdopcion {
     this.porcentajeAptitud = 0,
     this.estado = 'En evaluación',
     this.entrevistaCompletada = false,
+    this.postulacionId,
     this.usuarioId,
     this.fechaRegistro,
     this.ubicacion,
@@ -17,17 +18,15 @@ class PostulacionAdopcion {
   final String nombre;
   final Map<String, String> respuestas;
 
-  /// Porcentaje de aptitud para adoptar.
+  /// Porcentaje de aptitud para adoptar (calculado por el backend con IA).
   final int porcentajeAptitud;
 
-  /// Ejemplo:
-  /// "Muy apta"
-  /// "Apta"
-  /// "En evaluación"
+  /// "Muy apta" / "Apta" / "En evaluación" / "Baja"
   final String estado;
 
   /// Indica si ya completó la entrevista.
   final bool entrevistaCompletada;
+  final int? postulacionId;
   final int? usuarioId;
   final DateTime? fechaRegistro;
   final String? ubicacion;
@@ -35,25 +34,74 @@ class PostulacionAdopcion {
   final int insigniasReporte;
   final int insigniasDonacion;
   final String? fotoPerfil;
+
+  factory PostulacionAdopcion.fromJson(Map<String, dynamic> json) {
+    final porcentaje = ((json['score_final'] as num?)?.round() ?? 0).clamp(
+      0,
+      100,
+    );
+
+    String estadoTexto;
+    if (porcentaje >= 85) {
+      estadoTexto = 'Muy apta';
+    } else if (porcentaje >= 70) {
+      estadoTexto = 'Apta';
+    } else if (porcentaje >= 50) {
+      estadoTexto = 'En evaluación';
+    } else {
+      estadoTexto = 'Baja';
+    }
+
+    DateTime? fechaRegistroUsuario;
+    final fechaRaw = json['fecha_registro_usuario'] as String?;
+    if (fechaRaw != null) {
+      fechaRegistroUsuario = DateTime.tryParse(fechaRaw);
+    }
+
+    final ubicacion = [
+      json['ciudad'],
+      json['estado_usuario'],
+    ].whereType<String>().where((valor) => valor.trim().isNotEmpty).join(', ');
+
+    final nombreUsuario = json['nombre_usuario'] as String?;
+
+    return PostulacionAdopcion(
+      nombre: (nombreUsuario != null && nombreUsuario.trim().isNotEmpty)
+          ? nombreUsuario
+          : 'Usuario #${json['usuario_id_fk']}',
+      respuestas: {
+        for (final r in (json['respuestas'] as List<dynamic>? ?? []))
+          (r['pregunta_id']?.toString() ?? ''):
+              (r['respuesta_texto'] as String? ?? ''),
+      },
+      porcentajeAptitud: porcentaje,
+      estado: estadoTexto,
+      entrevistaCompletada: true,
+      usuarioId: json['usuario_id_fk'] as int?,
+      fechaRegistro: fechaRegistroUsuario,
+      ubicacion: ubicacion.isEmpty ? null : ubicacion,
+      insigniasRescate: json['insignias_rescate'] as int? ?? 0,
+      insigniasReporte: json['insignias_reporte'] as int? ?? 0,
+      insigniasDonacion: json['insignias_donacion'] as int? ?? 0,
+      fotoPerfil: json['foto_perfil'] as String?,
+      postulacionId: json['postulacion_id'] as int?,
+    );
+  }
 }
 
-/// Almacenamiento temporal mientras se habilita el endpoint de postulaciones.
+/// Almacenamiento temporal — ya no se usa para postulaciones (esas ahora
+/// vienen del backend), se mantiene solo si algo más del código aún importa
+/// esta clase.
 class PostulacionesAdopcionStore {
   static final Map<int, List<PostulacionAdopcion>> _datos = {};
 
   static List<PostulacionAdopcion> deAdopcion(int id) =>
       List.unmodifiable(_datos[id] ?? const []);
 
-  static void agregar(
-    int id,
-    PostulacionAdopcion postulacion,
-  ) =>
+  static void agregar(int id, PostulacionAdopcion postulacion) =>
       _datos.putIfAbsent(id, () => []).add(postulacion);
 
-  static bool tienePostulacion(
-    int id,
-    String nombre,
-  ) =>
+  static bool tienePostulacion(int id, String nombre) =>
       (_datos[id] ?? const []).any(
         (postulacion) => postulacion.nombre == nombre,
       );

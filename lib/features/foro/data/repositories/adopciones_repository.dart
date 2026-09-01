@@ -27,12 +27,28 @@ abstract class AdopcionesRepository {
   Future<List<Map<String, dynamic>>> obtenerPostulaciones(int adopcionId);
 
   Future<List<Map<String, dynamic>>> calcularRanking(int adopcionId);
+
+  Future<bool> yaPostulado(int adopcionId);
+  Future<int> contarSolicitudes(int adopcionId);
+  Future<void> aprobarPostulacion(int adopcionId, int postulacionId);
 }
 
 class AdopcionesRepositoryImpl implements AdopcionesRepository {
   final AdopcionesRemoteDataSource dataSource;
 
   AdopcionesRepositoryImpl(this.dataSource);
+
+  @override
+  Future<void> aprobarPostulacion(int adopcionId, int postulacionId) =>
+      dataSource.aprobarPostulacion(adopcionId, postulacionId);
+
+  @override
+  Future<bool> yaPostulado(int adopcionId) =>
+      dataSource.yaPostulado(adopcionId);
+
+  @override
+  Future<int> contarSolicitudes(int adopcionId) =>
+      dataSource.contarSolicitudes(adopcionId);
 
   @override
   Future<List<Adopcion>> obtenerAdopciones() => dataSource.obtenerAdopciones();

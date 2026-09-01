@@ -12,34 +12,26 @@ import '../bloc/adopciones_bloc.dart';
 import '../bloc/adopciones_event.dart';
 import '../bloc/adopciones_state.dart';
 
-
-import '../adopciones_postulaciones_store.dart';
 import '../widgets/adopcion_card.dart';
 import 'adopciones_postulaciones_screen.dart';
 import 'comentarios_screen.dart';
 import 'crear_adopcion_screen.dart';
 import 'postular_adopcion_screen.dart';
+import '../../data/repositories/adopciones_repository.dart';
 
 class AdopcionesScreen extends StatefulWidget {
-  const AdopcionesScreen({
-    super.key,
-  });
+  const AdopcionesScreen({super.key});
 
   @override
-  State<AdopcionesScreen> createState() =>
-      _AdopcionesScreenState();
+  State<AdopcionesScreen> createState() => _AdopcionesScreenState();
 }
 
-class _AdopcionesScreenState
-    extends State<AdopcionesScreen> {
-
+class _AdopcionesScreenState extends State<AdopcionesScreen> {
   final _busquedaController = TextEditingController();
+  final Map<int, Future<int>> _conteoCache = {};
+  final Map<int, Future<bool>> _yaPostuladoCache = {};
 
   String _busqueda = '';
-
-  // Aquí debe venir tu lista real de adopciones.
-  // Si ya tienes un Bloc/Repository de adopciones,
-  // sustituye esta lista por ese estado.
 
   @override
   void dispose() {
@@ -51,15 +43,9 @@ class _AdopcionesScreenState
   Widget build(BuildContext context) {
     final auth = context.watch<AuthBloc>().state;
 
-    final usuarioId =
-        auth is AuthSuccess && auth.data is Usuario
-            ? (auth.data as Usuario).usuarioIdPk
-            : null;
-
-    final nombreUsuario =
-        auth is AuthSuccess && auth.data is Usuario
-            ? (auth.data as Usuario).nombreUsuario
-            : '';
+    final usuarioId = auth is AuthSuccess && auth.data is Usuario
+        ? (auth.data as Usuario).usuarioIdPk
+        : null;
 
     final estado = context.watch<AdopcionesBloc>().state;
     final termino = _busqueda.toLowerCase();
@@ -77,84 +63,58 @@ class _AdopcionesScreenState
         adopcion.nombreUsuario,
       ].join(' ');
 
-      return termino.isEmpty ||
-          texto.toLowerCase().contains(termino);
+      return termino.isEmpty || texto.toLowerCase().contains(termino);
     }).toList();
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-
       body: RefreshIndicator(
         onRefresh: () async {
-          // Aquí llamarías a tu repository/bloc
-          // para volver a cargar las adopciones.
           context.read<AdopcionesBloc>().add(
             const AdopcionesSolicitadas(recargar: true),
           );
         },
-
         child: ListView(
-          physics:
-              const AlwaysScrollableScrollPhysics(),
-
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.fromLTRB(
             16,
             12,
             16,
             BottomBarWidget.contentClearance(context) + 88,
           ),
-
           children: [
-
             Text(
               'Adopciones',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
             ),
-
             const SizedBox(height: 4),
-
             Text(
               'Encuentra un nuevo compañero o '
               'ayúdale a encontrar un hogar.',
               style: TextStyle(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurfaceVariant,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-
             const SizedBox(height: 16),
-
             TextField(
               controller: _busquedaController,
-
               onChanged: (valor) {
                 setState(() {
                   _busqueda = valor.trim();
                 });
               },
-
               decoration: InputDecoration(
                 labelText: 'Buscar adopciones',
-                hintText:
-                    'Gato, perro, ciudad o característica',
-                prefixIcon:
-                    const Icon(Icons.search_rounded),
-
+                hintText: 'Gato, perro, ciudad o característica',
+                prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _busqueda.isEmpty
                     ? null
                     : IconButton(
-                        icon: const Icon(
-                          Icons.clear_rounded,
-                        ),
+                        icon: const Icon(Icons.clear_rounded),
                         onPressed: () {
                           _busquedaController.clear();
-
                           setState(() {
                             _busqueda = '';
                           });
@@ -162,10 +122,9 @@ class _AdopcionesScreenState
                       ),
               ),
             ),
-
             const SizedBox(height: 18),
-
-            if (estado.status == AdopcionesStatus.cargando && estado.adopciones.isEmpty)
+            if (estado.status == AdopcionesStatus.cargando &&
+                estado.adopciones.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(28),
                 child: Center(child: CircularProgressIndicator()),
@@ -188,72 +147,73 @@ class _AdopcionesScreenState
               )
             else
               for (final adopcion in adopciones)
-                AdopcionCard(
-                  adopcion: adopcion,
+                FutureBuilder<List<dynamic>>(
+                  future: Future.wait([
+                    _conteoDe(adopcion.id),
+                    (usuarioId != null && adopcion.usuarioId == usuarioId)
+                        ? Future.value(false)
+                        : _yaPostuladoDe(adopcion.id),
+                  ]),
+                  builder: (context, snapshot) {
+                    final cantidad = snapshot.hasData
+                        ? snapshot.data![0] as int
+                        : 0;
+                    final yaPostulado = snapshot.hasData
+                        ? snapshot.data![1] as bool
+                        : false;
 
-                  onAbrir: () {},
-
-                  esPropietario: usuarioId != null && adopcion.usuarioId == usuarioId,
-
-                  postulacionPendiente:
-                      (usuarioId == null || adopcion.usuarioId != usuarioId) &&
-                      PostulacionesAdopcionStore
-                          .tienePostulacion(
-                        adopcion.id,
-                        nombreUsuario,
-                      ),
-
-                  onAccion: () {
-                    if (usuarioId != null && adopcion.usuarioId == usuarioId) {
-                      _verPostulantes(
-                        context,
-                        adopcion,
-                      );
-                    } else {
-                      _postularme(
-                        context,
-                        adopcion,
-                      );
-                    }
+                    return AdopcionCard(
+                      adopcion: adopcion,
+                      onAbrir: () {},
+                      esPropietario:
+                          usuarioId != null && adopcion.usuarioId == usuarioId,
+                      postulacionPendiente: yaPostulado,
+                      cantidadSolicitudes: cantidad,
+                      onAccion: () {
+                        if (usuarioId != null &&
+                            adopcion.usuarioId == usuarioId) {
+                          _verPostulantes(context, adopcion);
+                        } else {
+                          _postularme(context, adopcion);
+                        }
+                      },
+                    );
                   },
                 ),
           ],
         ),
       ),
-
       floatingActionButton: Padding(
         padding: EdgeInsets.only(
-          bottom:
-              BottomBarWidget.contentClearance(context) +
-                  18,
+          bottom: BottomBarWidget.contentClearance(context) + 18,
         ),
-
         child: FloatingActionButton.extended(
-          onPressed: () =>
-              _crearAdopcion(context),
-
-          icon: const Icon(
-            Icons.pets_rounded,
-          ),
-
-          label: const Text(
-            'Crear adopción',
-          ),
+          onPressed: () => _crearAdopcion(context),
+          icon: const Icon(Icons.pets_rounded),
+          label: const Text('Crear adopción'),
         ),
       ),
     );
   }
 
-  Future<void> _crearAdopcion(
-    BuildContext context,
-  ) async {
-    final resultado =
-        await Navigator.push<CrearAdopcionSolicitud>(
+  Future<int> _conteoDe(int adopcionId) {
+    return _conteoCache.putIfAbsent(
+      adopcionId,
+      () => context.read<AdopcionesRepository>().contarSolicitudes(adopcionId),
+    );
+  }
+
+  Future<bool> _yaPostuladoDe(int adopcionId) {
+    return _yaPostuladoCache.putIfAbsent(
+      adopcionId,
+      () => context.read<AdopcionesRepository>().yaPostulado(adopcionId),
+    );
+  }
+
+  Future<void> _crearAdopcion(BuildContext context) async {
+    final resultado = await Navigator.push<CrearAdopcionSolicitud>(
       context,
-      MaterialPageRoute(
-        builder: (_) =>
-            const CrearAdopcionScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const CrearAdopcionScreen()),
     );
 
     if (resultado == null || !mounted) {
@@ -284,16 +244,12 @@ class _AdopcionesScreenState
     );
   }
 
-  Future<void> _postularme(
-    BuildContext context,
-    Adopcion adopcion,
-  ) async {
+  Future<void> _postularme(BuildContext context, Adopcion adopcion) async {
     final auth = context.read<AuthBloc>().state;
 
-    final nombreUsuario =
-        auth is AuthSuccess && auth.data is Usuario
-            ? (auth.data as Usuario).nombreUsuario
-            : 'Postulante';
+    final nombreUsuario = auth is AuthSuccess && auth.data is Usuario
+        ? (auth.data as Usuario).nombreUsuario
+        : 'Postulante';
 
     final resultado = await Navigator.push<bool>(
       context,
@@ -306,22 +262,17 @@ class _AdopcionesScreenState
     );
 
     if (resultado == true && mounted) {
+      _conteoCache.remove(adopcion.id);
+      _yaPostuladoCache.remove(adopcion.id);
       setState(() {});
     }
   }
 
-  void _verPostulantes(
-    BuildContext context,
-    Adopcion adopcion,
-  ) {
+  void _verPostulantes(BuildContext context, Adopcion adopcion) {
     Navigator.push<void>(
       context,
-
       MaterialPageRoute(
-        builder: (_) =>
-            AdopcionesPostulacionesScreen(
-          adopcion: adopcion,
-        ),
+        builder: (_) => AdopcionesPostulacionesScreen(adopcion: adopcion),
       ),
     );
   }

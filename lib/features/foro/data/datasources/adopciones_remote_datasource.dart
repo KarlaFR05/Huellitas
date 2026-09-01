@@ -21,6 +21,9 @@ abstract class AdopcionesRemoteDataSource {
   });
   Future<List<Map<String, dynamic>>> obtenerPostulaciones(int adopcionId);
   Future<List<Map<String, dynamic>>> calcularRanking(int adopcionId);
+  Future<bool> yaPostulado(int adopcionId);
+  Future<int> contarSolicitudes(int adopcionId);
+  Future<void> aprobarPostulacion(int adopcionId, int postulacionId);
 }
 
 class AdopcionesRemoteDataSourceImpl implements AdopcionesRemoteDataSource {
@@ -48,6 +51,27 @@ class AdopcionesRemoteDataSourceImpl implements AdopcionesRemoteDataSource {
           .map((p) => PreguntaAdopcion.fromJson(p as Map<String, dynamic>))
           .toList(),
     );
+  }
+
+  @override
+  Future<void> aprobarPostulacion(int adopcionId, int postulacionId) async {
+    await dio.put(
+      '/adopciones/$adopcionId/postulaciones/$postulacionId/aprobar',
+    );
+  }
+
+  @override
+  Future<bool> yaPostulado(int adopcionId) async {
+    final response = await dio.get('/adopciones/$adopcionId/mi-postulacion');
+    return response.data['ya_postulado'] as bool;
+  }
+
+  @override
+  Future<int> contarSolicitudes(int adopcionId) async {
+    final response = await dio.get(
+      '/adopciones/$adopcionId/conteo-postulaciones',
+    );
+    return response.data['total'] as int;
   }
 
   @override

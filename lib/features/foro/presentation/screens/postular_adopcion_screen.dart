@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:dio/dio.dart';
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -112,9 +112,13 @@ class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo enviar tu solicitud: $e')),
-      );
+      String mensaje = 'No se pudo enviar tu solicitud.';
+      if (e is DioException && e.response?.data is Map) {
+        mensaje = (e.response!.data as Map)['detail']?.toString() ?? mensaje;
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(mensaje)));
       return;
     }
 
