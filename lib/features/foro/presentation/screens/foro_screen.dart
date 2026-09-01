@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../auth/domain/entities/usuario.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../home/presentation/widgets/bottom_bar.dart';
 import '../../../notificaciones/presentation/widgets/campana_badge.dart';
-import 'grupos_screen.dart';
-import 'adopciones_screen.dart';
-import 'publicaciones_screen.dart';
 import '../../data/repositories/adopciones_repository.dart';
 import '../bloc/adopciones_bloc.dart';
 import '../bloc/adopciones_event.dart';
+import 'adopciones_screen.dart';
+import 'grupos_screen.dart';
+import 'mi_organizacion_screen.dart';
+import 'publicaciones_screen.dart';
 
 class ForoScreen extends StatelessWidget {
   const ForoScreen({super.key});
@@ -16,6 +20,11 @@ class ForoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final authState = context.watch<AuthBloc>().state;
+    final esOrganizacion =
+        authState is AuthSuccess &&
+        authState.data is Usuario &&
+        (authState.data as Usuario).esOrganizacion;
 
     return DefaultTabController(
       length: 3,
@@ -85,10 +94,10 @@ class ForoScreen extends StatelessWidget {
                   ),
                   insets: const EdgeInsets.symmetric(horizontal: 8),
                 ),
-                tabs: const [
-                  Tab(text: 'Publicaciones'),
-                  Tab(text: 'Grupos'),
-                  Tab(text: 'Adopciones'),
+                tabs: [
+                  const Tab(text: 'Publicaciones'),
+                  Tab(text: esOrganizacion ? 'Mi organización' : 'Grupos'),
+                  const Tab(text: 'Adopciones'),
                 ],
               ),
             ),
@@ -97,7 +106,9 @@ class ForoScreen extends StatelessWidget {
         body: TabBarView(
           children: [
             const PublicacionesScreen(),
-            const GruposScreen(),
+            esOrganizacion
+                ? const MiOrganizacionScreen()
+                : const GruposScreen(),
             BlocProvider(
               create: (context) => AdopcionesBloc(
                 repository: context.read<AdopcionesRepository>(),
@@ -111,4 +122,3 @@ class ForoScreen extends StatelessWidget {
     );
   }
 }
-
