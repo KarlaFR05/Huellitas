@@ -129,6 +129,9 @@ class AdopcionesRepositoryMemoria implements AdopcionesRepository {
 
   @override
   Future<void> aprobarPostulacion(int adopcionId, int postulacionId) async {}
+
+  @override
+  Future<String> subirImagen(File imagen) async => imagen.path;
 }
 
 class AdopcionesRepositoryImpl implements AdopcionesRepository {

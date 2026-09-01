@@ -430,35 +430,24 @@ class _ActualizarEstadoScreenState extends State<ActualizarEstadoScreen> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).inputDecorationTheme.fillColor ??
-                          Theme.of(context).colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                    child: TextField(
-                      controller: _comentariosController,
-                      maxLines: 4,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                        hintText:
-                            'Describe el estado actual del animal, mejoras, tratamientos...',
-                        hintStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontSize: 14,
+                  TextField(
+                    controller: _comentariosController,
+                    minLines: 4,
+                    maxLines: 6,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      hintText:
+                          'Describe el estado actual del animal, mejoras, tratamientos...',
+                      hintStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         height: 1.4,
                       ),
+                      alignLabelWithHint: true,
+                    ),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 15,
+                      height: 1.45,
                     ),
                   ),
                   const SizedBox(height: 24),
