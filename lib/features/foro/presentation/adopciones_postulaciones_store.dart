@@ -1,3 +1,5 @@
+import '../../notificaciones/domain/entities/notificacion.dart';
+
 class PostulacionAdopcion {
   const PostulacionAdopcion({
     required this.nombre,
@@ -120,6 +122,8 @@ class PostulacionAdopcion {
 /// esta clase.
 class PostulacionesAdopcionStore {
   static final Map<int, List<PostulacionAdopcion>> _datos = {};
+  static final Map<int, List<Notificacion>> _notificaciones = {};
+  static var _siguienteNotificacionId = -1;
 
   static List<PostulacionAdopcion> deAdopcion(int id) =>
       List.unmodifiable(_datos[id] ?? const []);
@@ -140,15 +144,35 @@ class PostulacionesAdopcionStore {
     String contactoResponsable,
   ) {
     final seleccionadas = aceptadas.toSet();
-    _datos[adopcionId] = (_datos[adopcionId] ?? const [])
-        .map(
-          (postulacion) => postulacion.copyWith(
-            fueAceptada: seleccionadas.contains(postulacion),
-            contacto: seleccionadas.contains(postulacion)
-                ? contactoResponsable
-                : null,
+    _datos[adopcionId] = (_datos[adopcionId] ?? const []).map((postulacion) {
+      final fueAceptada = seleccionadas.contains(postulacion);
+      final usuarioId = postulacion.usuarioId;
+      if (usuarioId != null) {
+        _notificaciones.putIfAbsent(usuarioId, () => []).add(
+          Notificacion(
+            id: _siguienteNotificacionId--,
+            tipo: fueAceptada
+                ? 'adopcion_aceptada'
+                : 'adopcion_no_seleccionada',
+            titulo: fueAceptada
+                ? 'Postulación aceptada'
+                : 'Postulación no seleccionada',
+            mensaje: fueAceptada
+                ? 'Tu solicitud fue aceptada. Revisa el contacto compartido.'
+                : 'La adopción se cerró y tu solicitud no fue seleccionada.',
+            data: {'adopcion_id': adopcionId},
+            leida: false,
+            creadaEn: DateTime.now(),
           ),
-        )
-        .toList();
+        );
+      }
+      return postulacion.copyWith(
+        fueAceptada: fueAceptada,
+        contacto: fueAceptada ? contactoResponsable : null,
+      );
+    }).toList();
   }
+
+  static List<Notificacion> notificacionesDeUsuario(int usuarioId) =>
+      List.unmodifiable(_notificaciones[usuarioId] ?? const []);
 }
