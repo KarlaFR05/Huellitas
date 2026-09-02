@@ -45,6 +45,7 @@ class _CrearAdopcionScreenState extends State<CrearAdopcionScreen> {
   String _sexo = 'Macho';
 
   final List<PreguntaAdopcion> _preguntas = [
+    PreguntaAdopcion.medioContacto,
     const PreguntaAdopcion(texto: '¿Tienes tiempo suficiente?'),
     const PreguntaAdopcion(
       texto: '¿Cuentas con un ingreso mensual para proveer alimento?',
@@ -78,9 +79,18 @@ class _CrearAdopcionScreenState extends State<CrearAdopcionScreen> {
 
       _sexo = adopcion.sexo.isEmpty ? _sexo : adopcion.sexo;
 
+      final preguntasContacto = adopcion.preguntas
+          .where((pregunta) => pregunta.esMedioContacto)
+          .toList();
+      final preguntaContacto = preguntasContacto.isEmpty
+          ? null
+          : preguntasContacto.first;
       _preguntas
         ..clear()
-        ..addAll(adopcion.preguntas);
+        ..add(preguntaContacto ?? PreguntaAdopcion.medioContacto)
+        ..addAll(
+          adopcion.preguntas.where((pregunta) => !pregunta.esMedioContacto),
+        );
     }
   }
 
@@ -518,6 +528,13 @@ class _CrearAdopcionScreenState extends State<CrearAdopcionScreen> {
 
             const SizedBox(height: 8),
 
+            Text(
+              'El medio de contacto siempre será la primera pregunta y no se puede eliminar.',
+              style: TextStyle(color: colors.onSurfaceVariant),
+            ),
+
+            const SizedBox(height: 12),
+
             for (final pregunta in _preguntas)
               Container(
                 margin: const EdgeInsets.only(bottom: 10),
@@ -546,7 +563,8 @@ class _CrearAdopcionScreenState extends State<CrearAdopcionScreen> {
                             pregunta.texto,
                             style: const TextStyle(fontWeight: FontWeight.w700),
                           ),
-                          if (pregunta.criterioEsperado != null &&
+                          if (!pregunta.esMedioContacto &&
+                              pregunta.criterioEsperado != null &&
                               pregunta.criterioEsperado!.isNotEmpty) ...[
                             const SizedBox(height: 4),
                             Text(
@@ -561,12 +579,18 @@ class _CrearAdopcionScreenState extends State<CrearAdopcionScreen> {
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 20),
-                      onPressed: _publicando
-                          ? null
-                          : () => setState(() => _preguntas.remove(pregunta)),
-                    ),
+                    if (pregunta.esMedioContacto)
+                      const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Icon(Icons.lock_outline_rounded, size: 20),
+                      )
+                    else
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, size: 20),
+                        onPressed: _publicando
+                            ? null
+                            : () => setState(() => _preguntas.remove(pregunta)),
+                      ),
                   ],
                 ),
               ),

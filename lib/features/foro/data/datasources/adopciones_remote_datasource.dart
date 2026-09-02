@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../domain/entities/adopcion.dart';
+import '../../domain/entities/mi_postulacion_adopcion.dart';
 import '../../domain/entities/pregunta_adopcion.dart';
 import '../../domain/repositories/crear_adopcion_solicitud.dart';
 import 'dart:io';
@@ -23,9 +24,13 @@ abstract class AdopcionesRemoteDataSource {
   });
   Future<List<Map<String, dynamic>>> obtenerPostulaciones(int adopcionId);
   Future<List<Map<String, dynamic>>> calcularRanking(int adopcionId);
-  Future<bool> yaPostulado(int adopcionId);
+  Future<MiPostulacionAdopcion> obtenerMiPostulacion(int adopcionId);
   Future<int> contarSolicitudes(int adopcionId);
-  Future<void> aprobarPostulacion(int adopcionId, int postulacionId);
+  Future<void> aprobarPostulacion(
+    int adopcionId,
+    int postulacionId,
+    String contactoResponsable,
+  );
   Future<String> subirImagen(File imagen);
 }
 
@@ -35,6 +40,9 @@ class AdopcionesRemoteDataSourceImpl implements AdopcionesRemoteDataSource {
   AdopcionesRemoteDataSourceImpl(this.dio);
 
   Adopcion _adopcionDesdeJson(Map<String, dynamic> json) {
+    final seleccion = json['postulacion_aprobada'] is Map
+        ? Map<String, dynamic>.from(json['postulacion_aprobada'] as Map)
+        : const <String, dynamic>{};
     return Adopcion(
       id: json['adopcion_id'] as int,
       usuarioId: json['usuario_id_fk'] as int?,
@@ -46,6 +54,18 @@ class AdopcionesRemoteDataSourceImpl implements AdopcionesRemoteDataSource {
       sexo: json['sexo'] as String,
       vacunas: json['vacunas'] as String,
       descripcion: json['descripcion'] as String,
+      estado: json['estado']?.toString() ?? 'activa',
+      adoptanteId: _enteroOpcional(
+        json['adoptante_id'] ??
+            json['usuario_adoptante_id'] ??
+            json['usuario_seleccionado_id'] ??
+            seleccion['usuario_id_fk'],
+      ),
+      contactoResponsable:
+          (json['contacto_responsable'] ?? seleccion['contacto_responsable'])
+              ?.toString(),
+      contactoAdoptante:
+          (json['contacto_adoptante'] ?? seleccion['contacto'])?.toString(),
       imagenUrl: json['imagen_url'] as String?,
       fecha: json['fecha_adopcion'] != null
           ? DateTime.parse(json['fecha_adopcion'] as String)
@@ -73,16 +93,43 @@ class AdopcionesRemoteDataSourceImpl implements AdopcionesRemoteDataSource {
   }
 
   @override
-  Future<void> aprobarPostulacion(int adopcionId, int postulacionId) async {
+  Future<void> aprobarPostulacion(
+    int adopcionId,
+    int postulacionId,
+    String contactoResponsable,
+  ) async {
     await dio.put(
       '/adopciones/$adopcionId/postulaciones/$postulacionId/aprobar',
+      data: {'contacto_responsable': contactoResponsable},
     );
   }
 
+  int? _enteroOpcional(Object? valor) {
+    if (valor is int) return valor;
+    return int.tryParse(valor?.toString() ?? '');
+  }
+
   @override
-  Future<bool> yaPostulado(int adopcionId) async {
+  Future<MiPostulacionAdopcion> obtenerMiPostulacion(int adopcionId) async {
     final response = await dio.get('/adopciones/$adopcionId/mi-postulacion');
-    return response.data['ya_postulado'] as bool;
+    final raiz = Map<String, dynamic>.from(response.data as Map);
+    final postulacion = raiz['postulacion'] is Map
+        ? Map<String, dynamic>.from(raiz['postulacion'] as Map)
+        : raiz;
+    return MiPostulacionAdopcion(
+      yaPostulado:
+          raiz['ya_postulado'] == true ||
+          raiz['yaPostulado'] == true ||
+          raiz['postulacion'] is Map,
+      estado:
+          (postulacion['estado'] ?? raiz['estado_postulacion'])?.toString() ??
+          (raiz['fue_aceptada'] == true ? 'aceptada' : null),
+      contactoResponsable:
+          (postulacion['contacto_responsable'] ??
+                  raiz['contacto_responsable'] ??
+                  raiz['medio_contacto'])
+              ?.toString(),
+    );
   }
 
   @override

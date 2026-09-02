@@ -10,6 +10,7 @@ class AdopcionCard extends StatelessWidget {
     required this.onAbrir,
     this.esPropietario = false,
     this.postulacionPendiente = false,
+    this.postulacionAceptada = false,
     this.onAccion,
     this.cantidadSolicitudes = 0,
   });
@@ -17,6 +18,7 @@ class AdopcionCard extends StatelessWidget {
   final VoidCallback onAbrir;
   final bool esPropietario;
   final bool postulacionPendiente;
+  final bool postulacionAceptada;
   final VoidCallback? onAccion;
   final int cantidadSolicitudes;
 
@@ -24,6 +26,7 @@ class AdopcionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final solicitudes = cantidadSolicitudes;
+    final completada = adopcion.estaCompletada;
     final rutaImagen = _rutaImagen;
     final nombreMascota = adopcion.nombre.isEmpty
         ? 'la mascota'
@@ -198,13 +201,21 @@ class AdopcionCard extends StatelessWidget {
                     height: 45,
                     width: 120,
                     child: FilledButton(
-                      onPressed: postulacionPendiente
-                          ? null
-                          : (onAccion ?? onAbrir),
+                      onPressed: (!esPropietario &&
+                                  (postulacionPendiente ||
+                                      (completada && !postulacionAceptada)))
+                              ? null
+                              : (onAccion ?? onAbrir),
                       child: FittedBox(
                         child: Text(
                           esPropietario
-                              ? 'Postulaciones'
+                              ? completada
+                                    ? 'Ver resultado'
+                                    : 'Postulaciones'
+                              : postulacionAceptada
+                              ? 'Ver contacto'
+                              : completada
+                              ? 'Completada'
                               : postulacionPendiente
                               ? 'Pendiente'
                               : 'Postularme',
