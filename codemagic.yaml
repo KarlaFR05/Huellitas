@@ -45,7 +45,7 @@ workflows:
         script: |
           flutter build ipa --release \
             --export-options-plist=/Users/builder/export_options.plist \
-            --dart-define=CARTO_API_KEY=$cb1_2b6j_1_8eab03dbde9219c848b05fa1
+            --dart-define=CARTO_API_KEY=$CARTO_API_KEY
 
     artifacts:
       - build/ios/ipa/*.ipa
