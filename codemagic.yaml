@@ -41,6 +41,14 @@ workflows:
           cd ios
           agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
 
+      - name: Verificar variable de entorno
+        script: |
+          if [ -z "$CARTO_API_KEY" ]; then
+            echo "❌ CARTO_API_KEY está vacía o no definida"
+          else
+            echo "✅ CARTO_API_KEY está definida (longitud: ${#CARTO_API_KEY})"
+          fi
+
       - name: Compilar el .ipa
         script: |
           flutter build ipa --release \
