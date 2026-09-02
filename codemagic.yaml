@@ -8,7 +8,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.andry.huellitas # <-- reemplaza con tu Bundle ID real
+        bundle_identifier: com.andry.huellitas
       vars:
         APP_STORE_APPLE_ID: 0000000000 # <-- Apple ID numérico de tu app en App Store Connect
       flutter: stable
@@ -44,7 +44,8 @@ workflows:
       - name: Compilar el .ipa
         script: |
           flutter build ipa --release \
-            --export-options-plist=/Users/builder/export_options.plist
+            --export-options-plist=/Users/builder/export_options.plist \
+            --dart-define=CARTO_API_KEY=$cb1_2b6j_1_8eab03dbde9219c848b05fa1
 
     artifacts:
       - build/ios/ipa/*.ipa
