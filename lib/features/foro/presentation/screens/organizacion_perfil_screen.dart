@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/storage/organizaciones_seguidas_storage.dart';
 import '../../../../core/widgets/organizacion_verificada_badge.dart';
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -23,11 +24,13 @@ import 'comentarios_screen.dart';
 class OrganizacionPerfilScreen extends StatefulWidget {
   final OrganizacionForo organizacion;
   final List<Publicacion> publicaciones;
+  final ValueChanged<OrganizacionForo>? onSeguimientoChanged;
 
   const OrganizacionPerfilScreen({
     super.key,
     required this.organizacion,
     this.publicaciones = const [],
+    this.onSeguimientoChanged,
   });
 
   @override
@@ -41,8 +44,11 @@ class _OrganizacionPerfilScreenState extends State<OrganizacionPerfilScreen> {
   late String _portadaUrl;
   late bool _siguiendo;
   late int _seguidores;
+  late final OrganizacionForoRepositoryImpl _organizacionRepository;
+  final _seguimientoStorage = OrganizacionesSeguidasStorage();
 
   bool _esDueno = false;
+  bool _actualizandoSeguimiento = false;
   bool _yaSeMostroBienvenida = false;
   bool _subiendoImagen = false;
   bool _guardandoDescripcion = false;
@@ -55,6 +61,7 @@ class _OrganizacionPerfilScreenState extends State<OrganizacionPerfilScreen> {
   final _picker = ImagePicker();
   File? _perfilFile;
   File? _portadaFile;
+  int _usuarioId = 0;
 
   @override
   void initState() {
@@ -64,10 +71,14 @@ class _OrganizacionPerfilScreenState extends State<OrganizacionPerfilScreen> {
     _portadaUrl = widget.organizacion.fotoPortada;
     _siguiendo = widget.organizacion.esSeguidor;
     _seguidores = widget.organizacion.cantidadSeguidores;
+    _organizacionRepository = OrganizacionForoRepositoryImpl(
+      OrganizacionForoRemoteDataSourceImpl(context.read<Dio>()),
+    );
 
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthSuccess && authState.data is Usuario) {
       final usuario = authState.data as Usuario;
+      _usuarioId = usuario.usuarioIdPk;
       _esDueno = widget.organizacion.usuarioId == usuario.usuarioIdPk;
     }
 
@@ -87,9 +98,7 @@ class _OrganizacionPerfilScreenState extends State<OrganizacionPerfilScreen> {
     try {
       final repository = context.read<ForoRepository>();
       
-      // ✅ CAMBIO CLAVE: Usamos organizacionId en lugar de usuarioId.
-      // Esto le indica al backend que devuelva EXCLUSIVAMENTE las publicaciones 
-      // vinculadas a esta organización, ignorando las personales del dueño.
+      // La API filtra por organización, no por el usuario propietario.
       final pagina = await repository.obtenerFeed(
         FiltroPublicaciones(organizacionId: widget.organizacion.id),
       );
@@ -232,18 +241,64 @@ class _OrganizacionPerfilScreenState extends State<OrganizacionPerfilScreen> {
   }
 
   Future<void> _toggleSeguir() async {
-    final dio = context.read<Dio>();
-    final datasource = OrganizacionForoRemoteDataSourceImpl(dio);
+    if (_actualizandoSeguimiento) return;
+
+    final siguiendoAntes = _siguiendo;
+    setState(() => _actualizandoSeguimiento = true);
 
     try {
-      await datasource.toggleSeguir(widget.organizacion.id);
-      
+      final resultado = await _organizacionRepository.toggleSeguir(
+        widget.organizacion.id,
+      );
+
+      var siguiendoConfirmado = resultado.siguiendo;
+      var seguidoresConfirmados = resultado.cantidadSeguidores;
+      if (siguiendoConfirmado == null) {
+        try {
+          final organizaciones = await _organizacionRepository
+              .obtenerOrganizacionesVerificadas();
+          final actualizada = organizaciones
+              .where((item) => item.id == widget.organizacion.id)
+              .firstOrNull;
+          if (actualizada != null) {
+            seguidoresConfirmados ??= actualizada.cantidadSeguidores;
+            if (actualizada.cantidadSeguidores != _seguidores) {
+              siguiendoConfirmado =
+                  actualizada.cantidadSeguidores > _seguidores;
+            }
+          }
+        } catch (_) {
+          // La confirmacion es auxiliar; el POST ya fue exitoso.
+        }
+      }
+
       if (!mounted) return;
-      
+
       setState(() {
-        _siguiendo = !_siguiendo;
-        _seguidores += _siguiendo ? 1 : -1;
+        _siguiendo = siguiendoConfirmado ?? !siguiendoAntes;
+        _seguidores =
+            seguidoresConfirmados ??
+            (_seguidores + (_siguiendo ? 1 : -1))
+                .clamp(0, 1 << 31)
+                .toInt();
       });
+
+      try {
+        await _seguimientoStorage.actualizar(
+          usuarioId: _usuarioId,
+          organizacionId: widget.organizacion.id,
+          siguiendo: _siguiendo,
+        );
+      } catch (_) {
+        // El seguimiento ya se guardo en el backend; no se revierte la interfaz.
+      }
+
+      widget.onSeguimientoChanged?.call(
+        widget.organizacion.copyWith(
+          esSeguidor: _siguiendo,
+          cantidadSeguidores: _seguidores,
+        ),
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -272,6 +327,10 @@ class _OrganizacionPerfilScreenState extends State<OrganizacionPerfilScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _actualizandoSeguimiento = false);
+      }
     }
   }
 
@@ -713,7 +772,19 @@ class _OrganizacionPerfilScreenState extends State<OrganizacionPerfilScreen> {
                             if (!_esDueno)
                               SizedBox(
                                 width: 220,
-                                child: _siguiendo
+                                child: _actualizandoSeguimiento
+                                    ? OutlinedButton.icon(
+                                        onPressed: null,
+                                        icon: const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                        label: const Text('Actualizando...'),
+                                      )
+                                    : _siguiendo
                                     ? OutlinedButton.icon(
                                         onPressed: _toggleSeguir,
                                         icon: const Icon(Icons.check_rounded, size: 18),

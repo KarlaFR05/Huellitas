@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/widgets/avatar_helper.dart';
 
 import '../adopciones_postulaciones_store.dart';
@@ -703,6 +704,20 @@ class _PostulacionCard
                             FontWeight.w700,
                       ),
                     ),
+                  ),
+
+                  IconButton(
+                    tooltip: 'Copiar contacto',
+                    onPressed: () async {
+                      await Clipboard.setData(
+                        ClipboardData(text: contactoPostulante!),
+                      );
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Contacto copiado')),
+                      );
+                    },
+                    icon: const Icon(Icons.copy_rounded),
                   ),
                 ],
               ),

@@ -12,10 +12,6 @@ class SubmitReporte extends ReporteEvent {
   SubmitReporte(this.reporte, this.imagenes);
 }
 
-/// Se dispara cuando el usuario confirma en el diálogo que el reporte
-/// NO es un duplicado y quiere continuar de todas formas.
 class ConfirmarCreacionForzada extends ReporteEvent {}
 
-/// Se dispara cuando el usuario confirma que SÍ es el mismo animal
-/// y decide cancelar la creación del nuevo reporte.
 class CancelarCreacionPorDuplicado extends ReporteEvent {}

@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/candidato_duplicado.dart';
 
-// Colores de acento fijos para los badges (no dependen del theme, igual
-// que en la referencia de diseño). Si luego quieres que se adapten a
-// modo oscuro, se pueden mover a ColorScheme.extension.
 const _colorBadgeTitulo = Color(0xFFF7E4B8);
 const _colorTextoBadgeTitulo = Color(0xFF5C4A1E);
 const _colorBadgeBorde = Color(0xFFE8C87A);
@@ -20,12 +17,8 @@ enum _PasoDialogo { inicial, seleccionarCandidato }
 class DialogoDuplicado extends StatefulWidget {
   final List<CandidatoDuplicado> candidatos;
 
-  /// El usuario confirmó que es un animal diferente: continuar con la
-  /// creación forzada del reporte.
   final VoidCallback onEsDiferente;
 
-  /// El usuario seleccionó cuál de los candidatos es su reporte y quiere
-  /// ir a verlo en el mapa. Recibe el reporte_id elegido.
   final void Function(int reporteId) onVerEnMapa;
 
   const DialogoDuplicado({
@@ -58,8 +51,6 @@ class _DialogoDuplicadoState extends State<DialogoDuplicado> {
       ),
     );
   }
-
-  // --- PASO 1: mensaje inicial + lista informativa ---
 
   Widget _buildPasoInicial(BuildContext context, Color primary) {
     return Column(
@@ -122,8 +113,6 @@ class _DialogoDuplicadoState extends State<DialogoDuplicado> {
       ],
     );
   }
-
-  // --- PASO 2: elegir cuál candidato es el reporte del usuario ---
 
   Widget _buildPasoSeleccion(BuildContext context, Color primary) {
     return Column(

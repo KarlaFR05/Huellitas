@@ -6,7 +6,6 @@ import '../../domain/entities/publicacion.dart';
 import '../../domain/repositories/foro_repository.dart';
 import 'comentarios_screen.dart';
 
-/// Se usa principalmente desde notificaciones.
 class PublicacionDetalleScreen extends StatefulWidget {
   final int publicacionId;
 
@@ -113,7 +112,6 @@ class _PublicacionDetalleScreenState extends State<PublicacionDetalleScreen> {
       );
     }
 
-    // Una vez cargada, muestra la publicación con sus comentarios
     return ComentariosScreen(publicacion: _publicacion!);
   }
 }

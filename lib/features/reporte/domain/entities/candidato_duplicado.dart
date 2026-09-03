@@ -4,7 +4,7 @@ class CandidatoDuplicado {
   final double? scoreImagen;
   final double distanciaKm;
 
-  // Campos que vienen dentro de "detalle" en la respuesta del backend
+  // Datos anidados en "detalle" por el backend.
   final String? descripcion;
   final String? evidenciaUrl;
   final int? tipoAnimal;

@@ -62,12 +62,10 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
   Color get _accent => Theme.of(context).colorScheme.primary;
 
-  // Controladores
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _ubicacionController = TextEditingController();
   final TextEditingController _otraRazaController = TextEditingController();
 
-  // Variables de estado del formulario
   String? _tipoAnimal;
   String? _raza;
   String? _tamano;
@@ -83,11 +81,9 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
   bool _loadingDialogVisible = false;
 
-  // Evidencia (Límite de 1 imagen)
   final List<File> _evidenceImages = [];
   final ImagePicker _picker = ImagePicker();
 
-  // Listas locales
   final List<String> _razasPerro = [
     'Mestizo',
     'Chihuahua',
@@ -156,7 +152,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     super.dispose();
   }
 
-  // --- LÓGICA DE UI ---
 
   List<String> _getTamanosPorAnimal(String? animal) {
     if (animal == 'Perro') return ['Pequeño', 'Mediano', 'Grande'];
@@ -196,7 +191,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
   void _validarOtraRaza(String value) {
     setState(() {
-      // Verificar si contiene números (0-9) o caracteres especiales
       if (RegExp(r'[0-9!@#$%^&=*(),._¿;-/+¡\?":{}|<>]').hasMatch(value)) {
         _otraRazaError = 'No puede contener números ni caracteres especiales';
       } else {
@@ -205,7 +199,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     });
   }
 
-  // --- IMÁGENES ---
 
   Future<void> _pickImage(ImageSource source) async {
     if (_evidenceImages.isNotEmpty) {
@@ -295,7 +288,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     );
   }
 
-  // --- WIDGETS DE UI ---
 
   Widget _buildInfoIcon(String title, Widget content) {
     return GestureDetector(
@@ -527,7 +519,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     );
   }
 
-  // --- CONVERSIÓN A IDs (Para el BLoC) ---
 
   int _animalToId(String animal) => animal == 'Perro' ? 1 : 2;
 
@@ -1123,7 +1114,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     );
   }
 
-  // --- WIDGETS AUXILIARES ---
 
   Widget _buildTextField(
     String label,
@@ -1385,7 +1375,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         if (_latitud != null && _longitud != null) ...[
           GestureDetector(
             onTap: () {
-              // Copiar al portapapeles
               Clipboard.setData(ClipboardData(text: controller.text));
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(

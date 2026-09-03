@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Diálogo de carga simple, no descartable, usado mientras el bloc
-/// está en estado `ReporteSubmitting` (búsqueda de duplicados o
-/// creación forzada del reporte).
-
 const _colorInfoBg = Color(0xFFFCEFD2);
 const _colorInfoBorde = Color(0xFFE8C87A);
 const _colorInfoTexto = Color(0xFF6B4E16);

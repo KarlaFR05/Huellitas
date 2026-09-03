@@ -114,10 +114,11 @@ import '../models/organizacion_foro_model.dart';
 abstract class OrganizacionForoRemoteDataSource {
   Future<OrganizacionForoModel?> obtenerMiOrganizacion();
   Future<List<OrganizacionForoModel>> obtenerOrganizacionesVerificadas();
-  Future<Map<String, dynamic>> toggleSeguir(int organizacionId);
+  Future<dynamic> toggleSeguir(int organizacionId);
 }
 
-class OrganizacionForoRemoteDataSourceImpl implements OrganizacionForoRemoteDataSource {
+class OrganizacionForoRemoteDataSourceImpl
+    implements OrganizacionForoRemoteDataSource {
   final Dio dio;
 
   OrganizacionForoRemoteDataSourceImpl(this.dio);
@@ -133,12 +134,17 @@ class OrganizacionForoRemoteDataSourceImpl implements OrganizacionForoRemoteData
   Future<List<OrganizacionForoModel>> obtenerOrganizacionesVerificadas() async {
     final response = await dio.get('/organizaciones/verificadas');
     final List<dynamic> data = response.data;
-    return data.map((json) => OrganizacionForoModel.fromJson(json as Map<String, dynamic>)).toList();
+    return data
+        .map(
+          (json) =>
+              OrganizacionForoModel.fromJson(json as Map<String, dynamic>),
+        )
+        .toList();
   }
 
   @override
-  Future<Map<String, dynamic>> toggleSeguir(int organizacionId) async {
+  Future<dynamic> toggleSeguir(int organizacionId) async {
     final response = await dio.post('/organizaciones/$organizacionId/seguir');
-    return response.data as Map<String, dynamic>;
+    return response.data;
   }
 }

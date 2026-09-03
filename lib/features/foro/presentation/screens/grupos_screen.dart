@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
+import '../../../../core/errors/mensaje_error.dart';
+import '../../../../core/storage/organizaciones_seguidas_storage.dart';
+import '../../../auth/domain/entities/usuario.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/grupo.dart';
 import '../../domain/entities/solicitudes_foro.dart';
 import '../../domain/repositories/foro_repository.dart';
@@ -324,15 +329,128 @@ class _OrganizacionesVerificadas extends StatefulWidget {
 
 class _OrganizacionesVerificadasState
     extends State<_OrganizacionesVerificadas> {
-  late final Future<List<OrganizacionForo>> _future;
+  late final OrganizacionForoRepositoryImpl _repository;
+  late Future<List<OrganizacionForo>> _future;
+  final _seguimientoStorage = OrganizacionesSeguidasStorage();
+  final Map<int, OrganizacionForo> _organizacionesActualizadas = {};
+  int _usuarioId = 0;
 
   @override
   void initState() {
     super.initState();
     final dio = context.read<Dio>();
-    _future = OrganizacionForoRepositoryImpl(
+    _repository = OrganizacionForoRepositoryImpl(
       OrganizacionForoRemoteDataSourceImpl(dio),
-    ).obtenerOrganizacionesVerificadas();
+    );
+
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthSuccess && authState.data is Usuario) {
+      _usuarioId = (authState.data as Usuario).usuarioIdPk;
+    }
+
+    _future = _cargarOrganizaciones();
+  }
+
+  Future<List<OrganizacionForo>> _cargarOrganizaciones() async {
+    final organizaciones = await _repository.obtenerOrganizacionesVerificadas();
+
+    Set<int> organizacionesSeguidas = <int>{};
+    try {
+      organizacionesSeguidas = await _seguimientoStorage.obtener(_usuarioId);
+    } catch (_) {
+      // La lista remota sigue disponible aunque falle el almacenamiento local.
+    }
+
+    return organizaciones.map((organizacion) {
+      final siguiendo =
+          organizacion.esSeguidor ||
+          organizacionesSeguidas.contains(organizacion.id);
+      return siguiendo == organizacion.esSeguidor
+          ? organizacion
+          : organizacion.copyWith(esSeguidor: siguiendo);
+    }).toList();
+  }
+
+  Future<void> _toggleSeguir(OrganizacionForo organizacion) async {
+    late final ResultadoSeguimientoOrganizacion resultado;
+    try {
+      resultado = await _repository.toggleSeguir(organizacion.id);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(mensajeDeError(e)),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    var siguiendoConfirmado = resultado.siguiendo;
+    var seguidoresConfirmados = resultado.cantidadSeguidores;
+    if (siguiendoConfirmado == null) {
+      try {
+        final organizaciones = await _repository
+            .obtenerOrganizacionesVerificadas();
+        final actualizada = organizaciones
+            .where((item) => item.id == organizacion.id)
+            .firstOrNull;
+        if (actualizada != null) {
+          seguidoresConfirmados ??= actualizada.cantidadSeguidores;
+          if (actualizada.cantidadSeguidores !=
+              organizacion.cantidadSeguidores) {
+            siguiendoConfirmado =
+                actualizada.cantidadSeguidores >
+                organizacion.cantidadSeguidores;
+          }
+        }
+      } catch (_) {
+        // La confirmacion es auxiliar; el POST ya fue exitoso.
+      }
+    }
+
+    if (!mounted) return;
+    final siguiendo = siguiendoConfirmado ?? !organizacion.esSeguidor;
+    final seguidores =
+        seguidoresConfirmados ??
+        (organizacion.cantidadSeguidores + (siguiendo ? 1 : -1))
+            .clamp(0, 1 << 31)
+            .toInt();
+
+    setState(() {
+      _organizacionesActualizadas[organizacion.id] = organizacion.copyWith(
+        esSeguidor: siguiendo,
+        cantidadSeguidores: seguidores,
+      );
+    });
+
+    try {
+      await _seguimientoStorage.actualizar(
+        usuarioId: _usuarioId,
+        organizacionId: organizacion.id,
+        siguiendo: siguiendo,
+      );
+    } catch (_) {
+      // El seguimiento ya se guardo en el backend; no se revierte la interfaz.
+    }
+  }
+
+  void _abrirPerfil(OrganizacionForo organizacion) {
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrganizacionPerfilScreen(
+          organizacion: organizacion,
+          onSeguimientoChanged: (organizacionActualizada) {
+            if (!mounted) return;
+            setState(() {
+              _organizacionesActualizadas[organizacionActualizada.id] =
+                  organizacionActualizada;
+            });
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -348,9 +466,9 @@ class _OrganizacionesVerificadasState
           children: [
             Text(
               'Organizaciones verificadas',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 10),
             SizedBox(
@@ -360,17 +478,15 @@ class _OrganizacionesVerificadasState
                 itemCount: organizaciones.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
-                  final organizacion = organizaciones[index];
+                  final organizacionBase = organizaciones[index];
+                  final organizacion =
+                      _organizacionesActualizadas[organizacionBase.id] ??
+                      organizacionBase;
                   return OrganizacionCard(
+                    key: ValueKey(organizacion.id),
                     organizacion: organizacion,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => OrganizacionPerfilScreen(
-                          organizacion: organizacion,
-                        ),
-                      ),
-                    ),
+                    onTap: () => _abrirPerfil(organizacion),
+                    onToggleSeguir: () => _toggleSeguir(organizacion),
                   );
                 },
               ),

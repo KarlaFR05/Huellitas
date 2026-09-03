@@ -78,7 +78,6 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
         _detectarBanco(cuentaGuardada);
       });
     } else {
-      // Si no hay cuenta guardada, mostrar campo vacío
       setState(() {
         _cuentaController.text = '';
         _esCuentaExistente = false;
@@ -93,7 +92,6 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
     final ultimos4 = solo.substring(solo.length - 4);
     final enmascarada = '•' * (solo.length - 4) + ultimos4;
     
-    // Formatear con espacios cada 4 dígitos
     final buffer = StringBuffer();
     for (var i = 0; i < enmascarada.length; i++) {
       if (i > 0 && i % 4 == 0) buffer.write(' ');
@@ -102,7 +100,6 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
     return buffer.toString();
   }
 
-  // Detecta el banco basado en los primeros dígitos
   void _detectarBanco(String cuenta) {
     final soloDigitos = cuenta.replaceAll(RegExp(r'\D'), '');
     
@@ -111,7 +108,6 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
       return;
     }
 
-    // Fallback a prefijo de 3 dígitos
     final prefijo3 = soloDigitos.substring(0, 3);
     if (_bancosPorPrefijo3.containsKey(prefijo3)) {
       setState(() => _bancoDetectado = _bancosPorPrefijo3[prefijo3]);
@@ -120,7 +116,6 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
     }
   }
 
-  // Aviso de que todo es simulado
   Future<void> _mostrarAviso() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool('aviso_cuenta_simulada') ?? false) return;
@@ -228,7 +223,6 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
     );
   }
 
-  // Agrupa en bloques de 4: 1234 5678 1234 5678
   String _formatearCuenta(String valor) {
     final solo = valor.replaceAll(RegExp(r'\D'), '');
     final buffer = StringBuffer();
@@ -318,7 +312,6 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Banner permanente de flujo simulado
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -349,7 +342,6 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Campo de número de cuenta
                 TextFormField(
                   controller: _cuentaController,
                   keyboardType: TextInputType.number,
@@ -370,7 +362,6 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
                         selection: TextSelection.collapsed(offset: f.length),
                       );
                     }
-                    // Detectar banco automáticamente mientras escribe
                     _detectarBanco(v);
                   },
                   validator: (v) {
@@ -390,7 +381,6 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Campo de banco detectado (solo lectura)
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -453,7 +443,6 @@ class _CuentaBancariaScreenState extends State<CuentaBancariaScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Botón de guardar
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
