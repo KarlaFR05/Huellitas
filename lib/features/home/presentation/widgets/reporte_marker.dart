@@ -252,7 +252,6 @@ class _PinPainter extends CustomPainter {
     late final ui.Path path;
 
     if (d > r) {
-      // Ángulo exacto de las líneas tangentes desde la punta hasta el círculo
       final tangentAngle = math.acos(r / d);
       const down = math.pi / 2;
       final angleLeft = down + tangentAngle;
@@ -276,8 +275,7 @@ class _PinPainter extends CustomPainter {
         ..lineTo(t2.dx, t2.dy)
         ..close();
 
-      // Fusiona el círculo real con las líneas tangentes exactas:
-      // el resultado es perfectamente suave en la unión, sin picos.
+      // La unión tangente evita picos entre el círculo y la punta.
       path = ui.Path.combine(ui.PathOperation.union, circulo, triangulo);
     } else {
       path = ui.Path()..addOval(Rect.fromCircle(center: center, radius: r));

@@ -35,7 +35,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   void _cargarTarjetas() {
     final authState = context.read<AuthBloc>().state;
-    // Solo carga tarjetas si NO es organización
     final esOrganizacion = authState is AuthSuccess &&
         authState.data is Usuario &&
         (authState.data as Usuario).esOrganizacion;
@@ -46,7 +45,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Si es organización (o está forzado), muestra su propio perfil
     final authState = context.watch<AuthBloc>().state;
     final esOrganizacion = forzarVistaOrganizacion ||
         (authState is AuthSuccess &&

@@ -1,4 +1,3 @@
-// lib/domain/usecases/actualizar_grupo.dart
 import '../entities/grupo.dart';
 import '../repositories/foro_repository.dart';
 

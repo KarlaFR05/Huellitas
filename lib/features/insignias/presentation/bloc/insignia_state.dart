@@ -27,7 +27,6 @@ class InsigniaLoaded extends InsigniaState {
       todasLasInsignias.forEach((_, lista) => insignias.addAll(lista));
     }
     
-    // Ordenar por nivel (ascendente)
     insignias.sort((a, b) => a.nivel.compareTo(b.nivel));
     
     return mostrarObtenidas 

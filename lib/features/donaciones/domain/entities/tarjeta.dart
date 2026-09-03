@@ -21,7 +21,6 @@ class Tarjeta {
     required this.fechaCreacion,
   });
 
-  // Obtener el ícono según el tipo de tarjeta
   String get iconoTipo {
     switch (tipo.toLowerCase()) {
       case 'visa':
@@ -35,7 +34,6 @@ class Tarjeta {
     }
   }
 
-  // Determinar el tipo de tarjeta basado en el número
   static String detectarTipo(String numero) {
     final limpio = numero.replaceAll(RegExp(r'\D'), '');
     if (limpio.startsWith('4')) return 'visa';
@@ -44,7 +42,6 @@ class Tarjeta {
     return 'otro';
   }
 
-  // Enmascarar número para mostrar: "**** **** **** 1234"
   static String enmascararNumero(String numeroCompleto) {
     final limpio = numeroCompleto.replaceAll(RegExp(r'\D'), '');
     if (limpio.length < 4) return '****';

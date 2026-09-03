@@ -11,7 +11,7 @@ class ForoRepositoryImpl implements ForoRepository {
   final ForoRemoteDataSource remote;
   ForoRepositoryImpl(this.remote);
 
-  // ============ PUBLICACIONES ============
+  // Publicaciones
 
   @override
   Future<Pagina<Publicacion>> obtenerFeed(FiltroPublicaciones filtro) async {
@@ -80,7 +80,7 @@ class ForoRepositoryImpl implements ForoRepository {
     return model.toEntity();
   }
 
-  // ============ COMENTARIOS ============
+  // Comentarios
 
   @override
   Future<Pagina<Comentario>> obtenerComentarios(
@@ -124,7 +124,7 @@ class ForoRepositoryImpl implements ForoRepository {
     await remote.eliminarComentario(comentarioId);
   }
 
-  // ============ GRUPOS ============
+  // Grupos
 
   @override
   Future<Pagina<Grupo>> obtenerGrupos({

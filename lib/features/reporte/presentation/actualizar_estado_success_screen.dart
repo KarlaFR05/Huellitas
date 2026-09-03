@@ -77,7 +77,6 @@ class _ActualizarEstadoSuccessScreenState
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
-              // Contador regresivo
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

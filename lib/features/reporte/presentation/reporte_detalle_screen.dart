@@ -10,7 +10,6 @@ class ReporteDetalleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Verificamos si el reporte está en Fase 1 (sin actualizaciones)
     final bool esFaseInicial = reporte.faseActual.id == 1;
 
     return Scaffold(
@@ -57,7 +56,6 @@ class ReporteDetalleScreen extends StatelessWidget {
               icon: Icons.straighten,
             ),
 
-            // EVIDENCIA solo en Fase 1
             if (esFaseInicial) ...[
               const SizedBox(height: 24),
               Text(
@@ -72,7 +70,6 @@ class ReporteDetalleScreen extends StatelessWidget {
               _buildEvidencia(context, reporte.evidenciaUrl),
             ],
 
-            // SECCIÓN DE ACTUALIZACIONES para Fase 2 o 3
             if (!esFaseInicial) ...[
               const SizedBox(height: 32),
               const Divider(color: Colors.grey, height: 1),

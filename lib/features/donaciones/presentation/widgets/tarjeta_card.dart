@@ -36,7 +36,6 @@ class TarjetaCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header con tipo de tarjeta y badge de predeterminada
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -81,7 +80,6 @@ class TarjetaCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              // Número enmascarado
               Text(
                 tarjeta.numeroEnmascarado,
                 style: TextStyle(
@@ -92,7 +90,6 @@ class TarjetaCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              // Titular y fecha
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -138,7 +135,6 @@ class TarjetaCard extends StatelessWidget {
                   ),
                 ],
               ),
-              // Acciones (editar/eliminar) solo si se proporcionan
               if (onEdit != null || onDelete != null) ...[
                 const SizedBox(height: 12),
                 const Divider(),

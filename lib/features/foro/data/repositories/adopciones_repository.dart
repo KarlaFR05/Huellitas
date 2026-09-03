@@ -42,8 +42,7 @@ abstract class AdopcionesRepository {
   Future<String> subirImagen(File imagen);
 }
 
-/// Implementación local conservada para pantallas o pruebas que todavía la
-/// inyecten explícitamente. La aplicación usa [AdopcionesRepositoryImpl].
+/// Implementación local usada sólo cuando se inyecta explícitamente.
 class AdopcionesRepositoryMemoria implements AdopcionesRepository {
   final List<Adopcion> _adopciones = [];
   var _siguienteId = 1;

@@ -1,4 +1,3 @@
-// lib/features/foro/foro_injection.dart
 import 'package:dio/dio.dart';
 import 'data/datasources/foro_remote_datasource.dart';
 import 'data/datasources/foro_remote_datasource_impl.dart';
@@ -32,7 +31,6 @@ class ForoInjection {
     return _repository!;
   }
 
-  // Use cases
   static CrearPublicacion crearPublicacion(Dio dio) =>
       CrearPublicacion(repository(dio));
   static ObtenerFeedForo obtenerFeedForo(Dio dio) =>

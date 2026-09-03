@@ -225,7 +225,6 @@ class ReporteEstadoScreen extends StatelessWidget {
 
           _buildUbicacionCopiable(context, reporte.ubicacion),
 
-          // Estado de asignación del rescate
           if (otroLoAtiende) ...[
             const SizedBox(height: 16),
             _buildInfoRow(
@@ -311,7 +310,6 @@ class ReporteEstadoScreen extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Botón principal: cambia según quién atiende el reporte
           SizedBox(
             width: double.infinity,
             height: 55,
@@ -531,7 +529,6 @@ class ReporteEstadoScreen extends StatelessWidget {
       return () => _confirmarTomarReporte(context, reporte);
     }
 
-    // yoLoAtiendo == true
     return () {
       context.push('/actualizar-estado', extra: reporte);
     };

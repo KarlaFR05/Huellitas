@@ -20,6 +20,21 @@ class OrganizacionForoModel extends OrganizacionForo {
     super.recaudadoMensual,
   });
 
+  static bool _parseBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final normalizado = value.toLowerCase();
+      return normalizado == 'true' || normalizado == '1';
+    }
+    return false;
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
   factory OrganizacionForoModel.fromJson(Map<String, dynamic> json) {
     return OrganizacionForoModel(
       id: json['id'] ?? 0,
@@ -29,8 +44,10 @@ class OrganizacionForoModel extends OrganizacionForo {
       logoUrl: json['logo_url'] ?? '',
       fotoPortada: json['foto_portada'] ?? '',
       verificada: json['verificada'] ?? true,
-      cantidadSeguidores: json['cantidad_seguidores'] ?? 0,
-      esSeguidor: json['es_seguidor'] ?? false,
+      cantidadSeguidores: _parseInt(
+        json['cantidad_seguidores'] ?? json['cantidadSeguidores'],
+      ),
+      esSeguidor: _parseBool(json['es_seguidor'] ?? json['esSeguidor']),
       tiposAnimales: json['tipos_animales'],
       telefonoEmergencia: json['telefono_emergencia'],
       correoInstitucional: json['correo_institucional'],

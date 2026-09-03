@@ -105,7 +105,6 @@ class InsigniaDetalleScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 20),
 
-            // Medalla
             Container(
               width: 170,
               height: 170,
@@ -144,7 +143,6 @@ class InsigniaDetalleScreen extends StatelessWidget {
 
             const SizedBox(height: 32),
 
-            // Nombre de la insignia
             Text(
               insignia.nombre,
               style: TextStyle(
@@ -157,7 +155,6 @@ class InsigniaDetalleScreen extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Nivel
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
@@ -178,7 +175,6 @@ class InsigniaDetalleScreen extends StatelessWidget {
 
             const SizedBox(height: 32),
 
-            // Mensaje de logro
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -207,7 +203,6 @@ class InsigniaDetalleScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Fecha de obtención
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -261,7 +256,6 @@ class InsigniaDetalleScreen extends StatelessWidget {
 
             const SizedBox(height: 32),
 
-            // Botón cerrar
             SizedBox(
               width: double.infinity,
               height: 50,

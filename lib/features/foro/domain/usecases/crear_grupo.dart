@@ -1,4 +1,3 @@
-// lib/domain/usecases/crear_grupo.dart
 import '../entities/grupo.dart';
 import '../entities/solicitudes_foro.dart';
 import '../repositories/foro_repository.dart';

@@ -93,7 +93,6 @@ class InsigniaCard extends StatelessWidget {
   }
 
   Widget _buildInsigniaImage() {
-    // Si tiene imagen URL, intentar cargarla
     if (insignia.imagenUrl != null && insignia.imagenUrl!.isNotEmpty) {
       return Image.network(
         insignia.imagenUrl!,
@@ -106,7 +105,6 @@ class InsigniaCard extends StatelessWidget {
       );
     }
 
-    // Si no tiene imagen, mostrar ícono por defecto
     return _buildFallbackIcon();
   }
 

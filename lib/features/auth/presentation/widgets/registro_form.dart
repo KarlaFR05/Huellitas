@@ -58,6 +58,12 @@ class _RegistroFormState extends State<RegistroForm> {
       return;
     }
 
+    _preguntarPorOrganizacion();
+  }
+
+  void _continuarRegistroNormal() {
+    if (!mounted) return;
+
     setState(() {
       _validandoCorreo = true;
       _correoError = null;
@@ -146,7 +152,7 @@ class _RegistroFormState extends State<RegistroForm> {
                   ),
                   onPressed: () {
                     Navigator.pop(dialogContext);
-                    context.go('/verificar-correo', extra: datosUsuario);
+                    _continuarRegistroNormal();
                   },
                   child: Text(
                     'No, por ahora',
