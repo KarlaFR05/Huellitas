@@ -166,7 +166,7 @@ class _MapWidgetState extends State<MapWidget> {
           ),
           child: TileLayer(
             urlTemplate:
-                'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=$_cartoApiKey',
+                'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=cb1_2b6j_1_8eab03dbde9219c848b05fa1',
             subdomains: const ['a', 'b', 'c', 'd'],
             userAgentPackageName: 'com.huellitas.app',
           ),

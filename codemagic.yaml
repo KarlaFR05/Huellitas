@@ -8,7 +8,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.andry.huellitas # <-- reemplaza con tu Bundle ID real
+        bundle_identifier: com.andry.huellitas
       vars:
         APP_STORE_APPLE_ID: 0000000000 # <-- Apple ID numérico de tu app en App Store Connect
       flutter: stable
@@ -41,10 +41,19 @@ workflows:
           cd ios
           agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
 
+      - name: Verificar variable de entorno
+        script: |
+          if [ -z "$CARTO_API_KEY" ]; then
+            echo "❌ CARTO_API_KEY está vacía o no definida"
+          else
+            echo "✅ CARTO_API_KEY está definida (longitud: ${#CARTO_API_KEY})"
+          fi
+
       - name: Compilar el .ipa
         script: |
           flutter build ipa --release \
-            --export-options-plist=/Users/builder/export_options.plist
+            --export-options-plist=/Users/builder/export_options.plist \
+            --dart-define=CARTO_API_KEY=$CARTO_API_KEY
 
     artifacts:
       - build/ios/ipa/*.ipa

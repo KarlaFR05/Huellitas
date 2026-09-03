@@ -107,7 +107,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _iniciarSeguimientoUbicacion() async {
     try {
-      await _locationService.obtenerUbicacionActual();
+      final posicionInicial = await _locationService.obtenerUbicacionActual();
+      if (mounted && posicionInicial != null) {
+        final ubicacionInicial = LatLng(
+          posicionInicial.latitude,
+          posicionInicial.longitude,
+        );
+        setState(() => _userLocation = ubicacionInicial);
+        _mapController.move(ubicacionInicial, _mapController.camera.zoom);
+      }
 
       _positionStream = _locationService.obtenerStreamUbicacion().listen((
         position,
