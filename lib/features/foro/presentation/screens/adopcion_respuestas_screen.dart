@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/widgets/avatar_helper.dart';
@@ -45,7 +46,9 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
         title: const Text('Aprobar adopción'),
         content: Text(
           '¿Confirmas que ${widget.postulacion.nombre} será quien adopte a '
-          '${widget.adopcion.nombre}? Las demás postulaciones quedarán rechazadas.',
+          '${widget.adopcion.nombre}? Las demás postulaciones quedarán rechazadas. '
+          'Al completar la adopción, la tarjeta dejará de estar visible; guarda '
+          'el contacto del postulante antes de continuar.',
         ),
         actions: [
           TextButton(
@@ -74,6 +77,10 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
         contactoResponsable,
       );
       if (!mounted) return;
+
+      await _mostrarAvisoGuardarContacto(_contactoDelPostulante());
+      if (!mounted) return;
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('¡Adopción aprobada!')));
@@ -151,6 +158,83 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
 
     controller.dispose();
     return resultado;
+  }
+
+  String? _contactoDelPostulante() {
+    for (final pregunta in widget.adopcion.preguntas) {
+      if (!pregunta.esMedioContacto || pregunta.id == null) continue;
+      final respuesta = widget.postulacion.respuestas[pregunta.id.toString()]
+          ?.trim();
+      if (respuesta != null && respuesta.isNotEmpty) return respuesta;
+    }
+
+    final contacto =
+        widget.postulacion.contacto?.trim() ??
+        widget.adopcion.contactoAdoptante?.trim();
+    return contacto?.isNotEmpty == true ? contacto : null;
+  }
+
+  Future<void> _mostrarAvisoGuardarContacto(String? contacto) async {
+    var copiado = false;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          icon: const Icon(Icons.contact_phone_rounded, size: 38),
+          title: const Text('Guarda el contacto'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'La adopción fue aprobada. Guarda el contacto de '
+                '${widget.postulacion.nombre} ahora: al continuar, la tarjeta '
+                'de adopción dejará de estar visible.',
+              ),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: contacto == null
+                    ? const Text(
+                        'No se encontró un medio de contacto del postulante.',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      )
+                    : SelectableText(
+                        contacto,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+              ),
+            ],
+          ),
+          actions: [
+            if (contacto != null)
+              OutlinedButton.icon(
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: contacto));
+                  if (!dialogContext.mounted) return;
+                  setDialogState(() => copiado = true);
+                },
+                icon: Icon(copiado ? Icons.check_rounded : Icons.copy_rounded),
+                label: Text(copiado ? 'Copiado' : 'Copiar contacto'),
+              ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Ya lo guardé'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
