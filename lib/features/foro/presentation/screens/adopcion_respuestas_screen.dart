@@ -83,7 +83,16 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
       setState(() => _aprobando = false);
       String mensaje = 'No se pudo aprobar la adopción.';
       if (e is DioException && e.response?.data is Map) {
-        mensaje = (e.response!.data as Map)['detail']?.toString() ?? mensaje;
+        final detail = (e.response!.data as Map)['detail'];
+        if (detail is Map && detail['message'] != null) {
+          mensaje = detail['message'].toString();
+        } else if (detail != null) {
+          final texto = detail.toString();
+          final coincidencia = RegExp(
+            r'''['"]message['"]\s*:\s*['"]([^'"]+)['"]''',
+          ).firstMatch(texto);
+          mensaje = coincidencia?.group(1) ?? texto;
+        }
       }
       ScaffoldMessenger.of(
         context,
@@ -99,58 +108,14 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
     final contactoInicial = usuario?.numTelefono.trim().isNotEmpty == true
         ? usuario!.numTelefono.trim()
         : usuario?.correo.trim() ?? '';
-    final controller = TextEditingController(text: contactoInicial);
-    final formKey = GlobalKey<FormState>();
-
-    final resultado = await showDialog<String>(
+    return showDialog<String>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Comparte tu medio de contacto'),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Este dato solamente será visible para ${widget.postulacion.nombre}.',
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: controller,
-                autofocus: true,
-                keyboardType: TextInputType.text,
-                decoration: const InputDecoration(
-                  labelText: 'Teléfono, WhatsApp o correo',
-                  hintText: 'Ej. 55 1234 5678',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (valor) => valor == null || valor.trim().isEmpty
-                    ? 'Ingresa un medio de contacto'
-                    : null,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (formKey.currentState?.validate() != true) return;
-              Navigator.pop(dialogContext, controller.text.trim());
-            },
-            child: const Text('Compartir y finalizar'),
-          ),
-        ],
+      builder: (_) => _ContactoResponsableDialog(
+        contactoInicial: contactoInicial,
+        nombrePostulante: widget.postulacion.nombre,
       ),
     );
-
-    controller.dispose();
-    return resultado;
   }
 
   @override
@@ -360,6 +325,107 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
     if (porcentaje >= 80) return 'Muy apta';
     if (porcentaje >= 60) return 'Apta';
     return 'En evaluación';
+  }
+}
+
+class _ContactoResponsableDialog extends StatefulWidget {
+  const _ContactoResponsableDialog({
+    required this.contactoInicial,
+    required this.nombrePostulante,
+  });
+
+  final String contactoInicial;
+  final String nombrePostulante;
+
+  @override
+  State<_ContactoResponsableDialog> createState() =>
+      _ContactoResponsableDialogState();
+}
+
+class _ContactoResponsableDialogState
+    extends State<_ContactoResponsableDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.contactoInicial);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Comparte tu medio de contacto'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange.shade300),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.orange.shade800,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Este dato solamente será visible para '
+                      '${widget.nombrePostulante}. Precargamos el número o '
+                      'correo registrado en la app, pero puedes cambiarlo por '
+                      'cualquier otro medio de contacto.',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _controller,
+              autofocus: true,
+              keyboardType: TextInputType.text,
+              decoration: const InputDecoration(
+                labelText: 'Teléfono, WhatsApp o correo',
+                hintText: 'Ej. 55 1234 5678',
+                border: OutlineInputBorder(),
+              ),
+              validator: (valor) => valor == null || valor.trim().isEmpty
+                  ? 'Ingresa un medio de contacto'
+                  : null,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (_formKey.currentState?.validate() != true) return;
+            Navigator.pop(context, _controller.text.trim());
+          },
+          child: const Text('Compartir y finalizar'),
+        ),
+      ],
+    );
   }
 }
 

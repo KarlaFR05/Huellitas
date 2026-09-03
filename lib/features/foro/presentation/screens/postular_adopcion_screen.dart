@@ -25,32 +25,28 @@ class PostularAdopcionScreen extends StatefulWidget {
 class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
   late final List<PreguntaAdopcion> _preguntas;
   late final List<TextEditingController> _controllers;
+  late final TextEditingController _contactoController;
 
   @override
   void initState() {
     super.initState();
 
-    _preguntas = [
-      ...widget.adopcion.preguntas.where(
-        (pregunta) => pregunta.esMedioContacto,
-      ),
-      ...widget.adopcion.preguntas.where(
-        (pregunta) => !pregunta.esMedioContacto,
-      ),
-    ];
+    _preguntas = widget.adopcion.preguntas
+        .where((pregunta) => !pregunta.esMedioContacto)
+        .toList();
     _controllers = [for (final _ in _preguntas) TextEditingController()];
 
     final authState = context.read<AuthBloc>().state;
     final usuario = authState is AuthSuccess && authState.data is Usuario
         ? authState.data as Usuario
         : null;
-    if (_preguntas.isNotEmpty &&
-        _preguntas.first.esMedioContacto &&
-        usuario != null) {
-      _controllers.first.text = usuario.numTelefono.trim().isNotEmpty
+    _contactoController = TextEditingController(
+      text: usuario == null
+          ? ''
+          : usuario.numTelefono.trim().isNotEmpty
           ? usuario.numTelefono.trim()
-          : usuario.correo.trim();
-    }
+          : usuario.correo.trim(),
+    );
   }
 
   @override
@@ -58,14 +54,14 @@ class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
     for (final controller in _controllers) {
       controller.dispose();
     }
+    _contactoController.dispose();
 
     super.dispose();
   }
 
   bool get _todasRespondidas {
-    return _controllers.every(
-      (controller) => controller.text.trim().isNotEmpty,
-    );
+    return _contactoController.text.trim().isNotEmpty &&
+        _controllers.every((controller) => controller.text.trim().isNotEmpty);
   }
 
   Future<void> _continuar() async {
@@ -132,6 +128,7 @@ class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
       await context.read<AdopcionesRepository>().crearPostulacion(
         adopcionId: widget.adopcion.id,
         usuarioId: usuario.usuarioIdPk,
+        contacto: _contactoController.text.trim(),
         respuestas: {
           for (var i = 0; i < _preguntas.length; i++)
             _preguntas[i].id!: _controllers[i].text.trim(),
@@ -151,10 +148,46 @@ class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
 
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Tu solicitud fue enviada correctamente.')),
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        icon: Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: Colors.green.shade50,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.check_circle_rounded,
+            color: Colors.green.shade700,
+            size: 50,
+          ),
+        ),
+        title: const Text(
+          '¡Postulación enviada!',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
+        content: Text(
+          'Tu solicitud para adoptar a ${widget.adopcion.nombre} fue enviada '
+          'correctamente. El responsable podrá revisarla y te notificaremos '
+          'cuando haya una decisión.',
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(dialogContext),
+            icon: const Icon(Icons.pets_rounded),
+            label: const Text('Volver a adopciones'),
+          ),
+        ],
+      ),
     );
 
+    if (!mounted) return;
     Navigator.pop(context, true);
   }
 
@@ -225,6 +258,56 @@ class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
             const SizedBox(height: 28),
 
             Text(
+              'Medio de contacto',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+            ),
+
+            const SizedBox(height: 10),
+
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.orange.shade300),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.orange.shade800,
+                  ),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text(
+                      'Precargamos el número o correo registrado en la app. '
+                      'Puedes conservarlo o reemplazarlo por cualquier otro '
+                      'medio de contacto. Solo será visible si eres seleccionado.',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            TextField(
+              controller: _contactoController,
+              keyboardType: TextInputType.text,
+              decoration: const InputDecoration(
+                labelText: 'Teléfono, WhatsApp o correo',
+                hintText: 'Ej. 55 1234 5678',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+
+            const SizedBox(height: 28),
+
+            Text(
               'Cuéntanos sobre ti',
               style: Theme.of(
                 context,
@@ -250,20 +333,13 @@ class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
 
               TextField(
                 controller: _controllers[i],
-                minLines: _preguntas[i].esMedioContacto ? 1 : 3,
-                maxLines: _preguntas[i].esMedioContacto ? 2 : 6,
-                keyboardType: _preguntas[i].esMedioContacto
-                    ? TextInputType.text
-                    : TextInputType.multiline,
+                minLines: 3,
+                maxLines: 6,
+                keyboardType: TextInputType.multiline,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  hintText: _preguntas[i].esMedioContacto
-                      ? 'Teléfono, WhatsApp o correo electrónico'
-                      : 'Escribe tu respuesta...',
-                  helperText: _preguntas[i].esMedioContacto
-                      ? 'Solo se utilizará para coordinar la adopción si eres seleccionado.'
-                      : null,
-                  border: const OutlineInputBorder(),
+                decoration: const InputDecoration(
+                  hintText: 'Escribe tu respuesta...',
+                  border: OutlineInputBorder(),
                 ),
                 onChanged: (_) {
                   setState(() {});

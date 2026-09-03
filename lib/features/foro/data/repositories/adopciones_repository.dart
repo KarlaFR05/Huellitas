@@ -6,6 +6,7 @@ import 'dart:io';
 
 abstract class AdopcionesRepository {
   Future<List<Adopcion>> obtenerAdopciones();
+  Future<Adopcion> obtenerAdopcion(int adopcionId);
 
   Future<Adopcion> crearAdopcion(CrearAdopcionSolicitud solicitud);
 
@@ -23,6 +24,7 @@ abstract class AdopcionesRepository {
   Future<void> crearPostulacion({
     required int adopcionId,
     required int usuarioId,
+    required String contacto,
     required Map<int, String> respuestas,
   });
 
@@ -49,6 +51,10 @@ class AdopcionesRepositoryMemoria implements AdopcionesRepository {
   @override
   Future<List<Adopcion>> obtenerAdopciones() async =>
       List.unmodifiable(_adopciones.reversed);
+
+  @override
+  Future<Adopcion> obtenerAdopcion(int adopcionId) async =>
+      _adopciones.firstWhere((adopcion) => adopcion.id == adopcionId);
 
   @override
   Future<Adopcion> crearAdopcion(CrearAdopcionSolicitud solicitud) async {
@@ -116,12 +122,14 @@ class AdopcionesRepositoryMemoria implements AdopcionesRepository {
   Future<void> crearPostulacion({
     required int adopcionId,
     required int usuarioId,
+    required String contacto,
     required Map<int, String> respuestas,
   }) async {}
 
   @override
-  Future<List<Map<String, dynamic>>> obtenerPostulaciones(int adopcionId) async =>
-      const [];
+  Future<List<Map<String, dynamic>>> obtenerPostulaciones(
+    int adopcionId,
+  ) async => const [];
 
   @override
   Future<List<Map<String, dynamic>>> calcularRanking(int adopcionId) async =>
@@ -176,6 +184,10 @@ class AdopcionesRepositoryImpl implements AdopcionesRepository {
   Future<List<Adopcion>> obtenerAdopciones() => dataSource.obtenerAdopciones();
 
   @override
+  Future<Adopcion> obtenerAdopcion(int adopcionId) =>
+      dataSource.obtenerAdopcion(adopcionId);
+
+  @override
   Future<Adopcion> crearAdopcion(CrearAdopcionSolicitud solicitud) =>
       dataSource.crearAdopcion(solicitud);
 
@@ -205,10 +217,12 @@ class AdopcionesRepositoryImpl implements AdopcionesRepository {
   Future<void> crearPostulacion({
     required int adopcionId,
     required int usuarioId,
+    required String contacto,
     required Map<int, String> respuestas,
   }) => dataSource.crearPostulacion(
     adopcionId: adopcionId,
     usuarioId: usuarioId,
+    contacto: contacto,
     respuestas: respuestas,
   );
 

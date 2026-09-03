@@ -6,6 +6,9 @@ import '../bloc/notificacion_event.dart';
 import '../bloc/notificacion_state.dart';
 import '../widgets/notificacion_card.dart';
 import '../../domain/entities/notificacion.dart';
+import '../../../foro/data/repositories/adopciones_repository.dart';
+import '../../../foro/domain/entities/adopcion.dart';
+import '../../../foro/presentation/widgets/adopcion_card.dart';
 
 class NotificacionesScreen extends StatefulWidget {
   const NotificacionesScreen({super.key});
@@ -236,11 +239,22 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
     BuildContext context,
     Notificacion notificacion,
   ) {
+    final tipo = notificacion.tipo.trim().toLowerCase().replaceAll('-', '_');
+    final adopcionId = _leerId(notificacion.data, const [
+      'adopcion_id',
+      'adopcionId',
+    ]);
     final contacto = _leerTexto(notificacion.data, const [
       'contacto',
       'contacto_responsable',
       'medio_contacto',
     ]);
+    if ((tipo == 'adopcion_aceptada' || tipo == 'adopcion_aprobada') &&
+        adopcionId != null) {
+      _mostrarAdopcionAceptada(context, notificacion, adopcionId, contacto);
+      return;
+    }
+
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -271,6 +285,108 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
     );
   }
 
+  void _mostrarAdopcionAceptada(
+    BuildContext context,
+    Notificacion notificacion,
+    int adopcionId,
+    String? contacto,
+  ) {
+    final adopcionFuture = _cargarAdopcionConReintento(adopcionId);
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => FractionallySizedBox(
+        heightFactor: .92,
+        child: FutureBuilder<Adopcion>(
+          future: adopcionFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError || !snapshot.hasData) {
+              return _AdopcionNoDisponible(
+                mensaje: notificacion.mensaje,
+                contacto: contacto,
+                onReintentar: () {
+                  Navigator.pop(sheetContext);
+                  if (!mounted) return;
+                  _mostrarAdopcionAceptada(
+                    this.context,
+                    notificacion,
+                    adopcionId,
+                    contacto,
+                  );
+                },
+              );
+            }
+
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
+              children: [
+                Text(
+                  '¡Fuiste seleccionado!',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  notificacion.mensaje,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                AdopcionCard(
+                  adopcion: snapshot.data!,
+                  onAbrir: () {},
+                  postulacionAceptada: true,
+                  onAccion: () =>
+                      _mostrarContactoAdopcion(sheetContext, contacto),
+                ),
+                _ContactoAdopcionAceptada(contacto: contacto),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<Adopcion> _cargarAdopcionConReintento(int adopcionId) async {
+    final repository = context.read<AdopcionesRepository>();
+    try {
+      return await repository.obtenerAdopcion(adopcionId);
+    } catch (_) {
+      await Future<void>.delayed(const Duration(milliseconds: 700));
+      return repository.obtenerAdopcion(adopcionId);
+    }
+  }
+
+  void _mostrarContactoAdopcion(BuildContext context, String? contacto) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Medio de contacto'),
+        content: SelectableText(
+          contacto?.trim().isNotEmpty == true
+              ? contacto!.trim()
+              : 'El responsable todavía no compartió un medio de contacto.',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Entendido'),
+          ),
+        ],
+      ),
+    );
+  }
+
   String? _leerTexto(Map<String, dynamic>? data, List<String> keys) {
     if (data == null) return null;
     for (final key in keys) {
@@ -290,6 +406,95 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
           ),
         ),
       );
+  }
+}
+
+class _ContactoAdopcionAceptada extends StatelessWidget {
+  const _ContactoAdopcionAceptada({required this.contacto});
+
+  final String? contacto;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.orange.shade300),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.contact_phone_rounded, color: Colors.orange.shade800),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Contacto del responsable',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 5),
+                SelectableText(
+                  contacto?.trim().isNotEmpty == true
+                      ? contacto!.trim()
+                      : 'El responsable todavía no compartió un medio de contacto.',
+                  style: TextStyle(color: colors.onSurface),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdopcionNoDisponible extends StatelessWidget {
+  const _AdopcionNoDisponible({
+    required this.mensaje,
+    required this.contacto,
+    required this.onReintentar,
+  });
+
+  final String mensaje;
+  final String? contacto;
+  final VoidCallback onReintentar;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        const Icon(Icons.pets_rounded, size: 64, color: Colors.green),
+        const SizedBox(height: 16),
+        Text(
+          '¡Fuiste seleccionado!',
+          textAlign: TextAlign.center,
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 8),
+        Text(mensaje, textAlign: TextAlign.center),
+        const SizedBox(height: 24),
+        const Text(
+          'No fue posible cargar la publicación en este momento.',
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+        _ContactoAdopcionAceptada(contacto: contacto),
+        const SizedBox(height: 16),
+        FilledButton.icon(
+          onPressed: onReintentar,
+          icon: const Icon(Icons.refresh_rounded),
+          label: const Text('Intentar nuevamente'),
+        ),
+      ],
+    );
   }
 }
 

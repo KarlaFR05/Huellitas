@@ -20,6 +20,7 @@ abstract class AdopcionesRemoteDataSource {
   Future<void> crearPostulacion({
     required int adopcionId,
     required int usuarioId,
+    required String contacto,
     required Map<int, String> respuestas,
   });
   Future<List<Map<String, dynamic>>> obtenerPostulaciones(int adopcionId);
@@ -64,8 +65,8 @@ class AdopcionesRemoteDataSourceImpl implements AdopcionesRemoteDataSource {
       contactoResponsable:
           (json['contacto_responsable'] ?? seleccion['contacto_responsable'])
               ?.toString(),
-      contactoAdoptante:
-          (json['contacto_adoptante'] ?? seleccion['contacto'])?.toString(),
+      contactoAdoptante: (json['contacto_adoptante'] ?? seleccion['contacto'])
+          ?.toString(),
       imagenUrl: json['imagen_url'] as String?,
       fecha: json['fecha_adopcion'] != null
           ? DateTime.parse(json['fecha_adopcion'] as String)
@@ -135,7 +136,7 @@ class AdopcionesRemoteDataSourceImpl implements AdopcionesRemoteDataSource {
   @override
   Future<int> contarSolicitudes(int adopcionId) async {
     final response = await dio.get(
-      '/adopciones/$adopcionId/conteo-postulaciones',
+      '/adopciones/$adopcionId/postulaciones/conteo',
     );
     return response.data['total'] as int;
   }
@@ -175,7 +176,10 @@ class AdopcionesRemoteDataSourceImpl implements AdopcionesRemoteDataSource {
     if (id == null) {
       throw ArgumentError('La adopción a actualizar no tiene id.');
     }
-    final response = await dio.put('/adopciones/$id', data: _datosSolicitud(solicitud));
+    final response = await dio.put(
+      '/adopciones/$id',
+      data: _datosSolicitud(solicitud),
+    );
     return _adopcionDesdeJson(response.data as Map<String, dynamic>);
   }
 
@@ -227,12 +231,14 @@ class AdopcionesRemoteDataSourceImpl implements AdopcionesRemoteDataSource {
   Future<void> crearPostulacion({
     required int adopcionId,
     required int usuarioId,
+    required String contacto,
     required Map<int, String> respuestas,
   }) async {
     await dio.post(
       '/adopciones/$adopcionId/postulaciones',
       data: {
         'usuario_id_fk': usuarioId,
+        'contacto': contacto,
         'respuestas': respuestas.entries
             .map((e) => {'pregunta_id': e.key, 'respuesta_texto': e.value})
             .toList(),
@@ -250,7 +256,7 @@ class AdopcionesRemoteDataSourceImpl implements AdopcionesRemoteDataSource {
 
   @override
   Future<List<Map<String, dynamic>>> calcularRanking(int adopcionId) async {
-    final response = await dio.post('/adopciones/$adopcionId/ranking');
+    final response = await dio.get('/adopciones/$adopcionId/ranking');
     return List<Map<String, dynamic>>.from(response.data as List);
   }
 }
