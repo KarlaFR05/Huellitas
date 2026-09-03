@@ -5,8 +5,11 @@ import '../../../home/presentation/widgets/bottom_bar.dart';
 import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../notificaciones/presentation/bloc/notificacion_bloc.dart';
+import '../../../notificaciones/presentation/bloc/notificacion_state.dart';
 
 import '../../domain/entities/adopcion.dart';
+import '../../domain/entities/mi_postulacion_adopcion.dart';
 import '../../domain/repositories/crear_adopcion_solicitud.dart';
 import '../bloc/adopciones_bloc.dart';
 import '../bloc/adopciones_event.dart';
@@ -28,7 +31,7 @@ class AdopcionesScreen extends StatefulWidget {
 class _AdopcionesScreenState extends State<AdopcionesScreen> {
   final _busquedaController = TextEditingController();
   final Map<int, Future<int>> _conteoCache = {};
-  final Map<int, Future<bool>> _yaPostuladoCache = {};
+  final Map<int, Future<MiPostulacionAdopcion>> _miPostulacionCache = {};
 
   String _busqueda = '';
 
@@ -47,6 +50,7 @@ class _AdopcionesScreenState extends State<AdopcionesScreen> {
         : null;
 
     final estado = context.watch<AdopcionesBloc>().state;
+    final estadoNotificaciones = context.watch<NotificacionBloc>().state;
     final termino = _busqueda.toLowerCase();
 
     final adopciones = estado.adopciones.where((adopcion) {
@@ -69,6 +73,8 @@ class _AdopcionesScreenState extends State<AdopcionesScreen> {
       backgroundColor: Colors.transparent,
       body: RefreshIndicator(
         onRefresh: () async {
+          _conteoCache.clear();
+          _miPostulacionCache.clear();
           context.read<AdopcionesBloc>().add(
             const AdopcionesSolicitadas(recargar: true),
           );
@@ -150,28 +156,53 @@ class _AdopcionesScreenState extends State<AdopcionesScreen> {
                   future: Future.wait([
                     _conteoDe(adopcion.id),
                     (usuarioId != null && adopcion.usuarioId == usuarioId)
-                        ? Future.value(false)
-                        : _yaPostuladoDe(adopcion.id),
+                        ? Future.value(
+                            const MiPostulacionAdopcion.noPostulado(),
+                          )
+                        : _miPostulacionDe(adopcion.id),
                   ]),
                   builder: (context, snapshot) {
                     final cantidad = snapshot.hasData
                         ? snapshot.data![0] as int
                         : 0;
-                    final yaPostulado = snapshot.hasData
-                        ? snapshot.data![1] as bool
-                        : false;
+                    final miPostulacion = snapshot.hasData
+                        ? snapshot.data![1] as MiPostulacionAdopcion
+                        : const MiPostulacionAdopcion.noPostulado();
+                    final esPropietario =
+                        usuarioId != null && adopcion.usuarioId == usuarioId;
+                    final resultadoNotificado = _resultadoNotificado(
+                      estadoNotificaciones,
+                      adopcion.id,
+                    );
+                    final fueAceptada = usuarioId != null &&
+                        (adopcion.adoptanteId == usuarioId ||
+                            miPostulacion.fueAceptada ||
+                            resultadoNotificado.$1);
+
+                    if (adopcion.estaCompletada &&
+                        !esPropietario &&
+                        !fueAceptada) {
+                      return const SizedBox.shrink();
+                    }
 
                     return AdopcionCard(
                       adopcion: adopcion,
                       onAbrir: () {},
-                      esPropietario:
-                          usuarioId != null && adopcion.usuarioId == usuarioId,
-                      postulacionPendiente: yaPostulado,
+                      esPropietario: esPropietario,
+                      postulacionPendiente:
+                          miPostulacion.yaPostulado && !fueAceptada,
+                      postulacionAceptada: fueAceptada,
                       cantidadSolicitudes: cantidad,
                       onAccion: () {
-                        if (usuarioId != null &&
-                            adopcion.usuarioId == usuarioId) {
+                        if (esPropietario) {
                           _verPostulantes(context, adopcion);
+                        } else if (adopcion.estaCompletada && fueAceptada) {
+                          _mostrarContactoResponsable(
+                            context,
+                            miPostulacion.contactoResponsable ??
+                                adopcion.contactoResponsable ??
+                                resultadoNotificado.$2,
+                          );
                         } else {
                           _postularme(context, adopcion);
                         }
@@ -202,11 +233,37 @@ class _AdopcionesScreenState extends State<AdopcionesScreen> {
     );
   }
 
-  Future<bool> _yaPostuladoDe(int adopcionId) {
-    return _yaPostuladoCache.putIfAbsent(
+  Future<MiPostulacionAdopcion> _miPostulacionDe(int adopcionId) {
+    return _miPostulacionCache.putIfAbsent(
       adopcionId,
-      () => context.read<AdopcionesRepository>().yaPostulado(adopcionId),
+      () => context
+          .read<AdopcionesRepository>()
+          .obtenerMiPostulacion(adopcionId),
     );
+  }
+
+  (bool, String?) _resultadoNotificado(
+    NotificacionState estado,
+    int adopcionId,
+  ) {
+    if (estado is! NotificacionLoaded) return (false, null);
+    for (final notificacion in estado.notificaciones) {
+      final tipo = notificacion.tipo.trim().toLowerCase().replaceAll('-', '_');
+      if (tipo != 'adopcion_aceptada' && tipo != 'adopcion_aprobada') continue;
+      final data = notificacion.data;
+      final id = int.tryParse(
+        (data?['adopcion_id'] ?? data?['adopcionId'])?.toString() ?? '',
+      );
+      if (id != adopcionId) continue;
+      final contacto =
+          (data?['contacto_responsable'] ??
+                  data?['contacto'] ??
+                  data?['medio_contacto'])
+              ?.toString()
+              .trim();
+      return (true, contacto?.isNotEmpty == true ? contacto : null);
+    }
+    return (false, null);
   }
 
   Future<void> _crearAdopcion(BuildContext context) async {
@@ -262,18 +319,64 @@ class _AdopcionesScreenState extends State<AdopcionesScreen> {
 
     if (resultado == true && mounted) {
       _conteoCache.remove(adopcion.id);
-      _yaPostuladoCache.remove(adopcion.id);
+      _miPostulacionCache.remove(adopcion.id);
       setState(() {});
     }
   }
 
-  void _verPostulantes(BuildContext context, Adopcion adopcion) {
-    Navigator.push<void>(
+  Future<void> _verPostulantes(
+    BuildContext context,
+    Adopcion adopcion,
+  ) async {
+    await Navigator.push<void>(
       context,
       MaterialPageRoute(
         builder: (_) => AdopcionesPostulacionesScreen(adopcion: adopcion),
       ),
     );
+    if (!mounted) return;
+    _conteoCache.remove(adopcion.id);
+    _miPostulacionCache.remove(adopcion.id);
+    context.read<AdopcionesBloc>().add(
+      const AdopcionesSolicitadas(recargar: true),
+    );
+  }
+
+  void _mostrarContactoResponsable(
+    BuildContext context,
+    String? contacto,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Adopción completada'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Fuiste la persona seleccionada. Puedes comunicarte con quien dio a la mascota en adopción.',
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Medio de contacto',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 4),
+            SelectableText(
+              contacto?.trim().isNotEmpty == true
+                  ? contacto!.trim()
+                  : 'El responsable todavía no compartió un medio de contacto.',
+            ),
+          ],
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Entendido'),
+          ),
+        ],
+      ),
+    );
   }
 }
-

@@ -1,5 +1,3 @@
-import '../../notificaciones/domain/entities/notificacion.dart';
-
 class PostulacionAdopcion {
   const PostulacionAdopcion({
     required this.nombre,
@@ -17,6 +15,7 @@ class PostulacionAdopcion {
     this.fotoPerfil,
     this.contacto,
     this.fueAceptada = false,
+    this.estadoProceso = 'pendiente',
   });
 
   final String nombre;
@@ -40,6 +39,13 @@ class PostulacionAdopcion {
   final String? fotoPerfil;
   final String? contacto;
   final bool fueAceptada;
+  final String estadoProceso;
+
+  bool get fueRechazada {
+    final valor = estadoProceso.trim().toLowerCase();
+    return const {'rechazada', 'rechazado', 'no_seleccionada', 'no seleccionado'}
+        .contains(valor);
+  }
 
   PostulacionAdopcion copyWith({
     String? contacto,
@@ -60,6 +66,7 @@ class PostulacionAdopcion {
     fotoPerfil: fotoPerfil,
     contacto: contacto ?? this.contacto,
     fueAceptada: fueAceptada ?? this.fueAceptada,
+    estadoProceso: estadoProceso,
   );
 
   factory PostulacionAdopcion.fromJson(Map<String, dynamic> json) {
@@ -91,6 +98,17 @@ class PostulacionAdopcion {
 
     final nombreUsuario = json['nombre_usuario'] as String?;
 
+    final estadoProceso = json['estado']?.toString() ?? 'pendiente';
+    final estadoNormalizado = estadoProceso.trim().toLowerCase();
+    final aceptadaPorEstado = const {
+      'aprobada',
+      'aprobado',
+      'aceptada',
+      'aceptado',
+      'seleccionada',
+      'seleccionado',
+    }.contains(estadoNormalizado);
+
     return PostulacionAdopcion(
       nombre: (nombreUsuario != null && nombreUsuario.trim().isNotEmpty)
           ? nombreUsuario
@@ -111,68 +129,9 @@ class PostulacionAdopcion {
       insigniasDonacion: json['insignias_donacion'] as int? ?? 0,
       fotoPerfil: json['foto_perfil'] as String?,
       postulacionId: json['postulacion_id'] as int?,
-      contacto: json['contacto'] as String?,
-      fueAceptada: json['fue_aceptada'] as bool? ?? false,
+      contacto: (json['contacto'] ?? json['contacto_adoptante'])?.toString(),
+      fueAceptada: json['fue_aceptada'] as bool? ?? aceptadaPorEstado,
+      estadoProceso: estadoProceso,
     );
   }
-}
-
-/// Almacenamiento temporal — ya no se usa para postulaciones (esas ahora
-/// vienen del backend), se mantiene solo si algo más del código aún importa
-/// esta clase.
-class PostulacionesAdopcionStore {
-  static final Map<int, List<PostulacionAdopcion>> _datos = {};
-  static final Map<int, List<Notificacion>> _notificaciones = {};
-  static var _siguienteNotificacionId = -1;
-
-  static List<PostulacionAdopcion> deAdopcion(int id) =>
-      List.unmodifiable(_datos[id] ?? const []);
-
-  static void agregar(int id, PostulacionAdopcion postulacion) =>
-      _datos.putIfAbsent(id, () => []).add(postulacion);
-
-  static bool tienePostulacion(int id, String nombre) =>
-      (_datos[id] ?? const []).any(
-        (postulacion) => postulacion.nombre == nombre,
-      );
-
-  /// Compatibilidad para el flujo local de cierre de adopción.
-  /// La aprobación definitiva se realiza mediante el backend.
-  static void cerrar(
-    int adopcionId,
-    Iterable<PostulacionAdopcion> aceptadas,
-    String contactoResponsable,
-  ) {
-    final seleccionadas = aceptadas.toSet();
-    _datos[adopcionId] = (_datos[adopcionId] ?? const []).map((postulacion) {
-      final fueAceptada = seleccionadas.contains(postulacion);
-      final usuarioId = postulacion.usuarioId;
-      if (usuarioId != null) {
-        _notificaciones.putIfAbsent(usuarioId, () => []).add(
-          Notificacion(
-            id: _siguienteNotificacionId--,
-            tipo: fueAceptada
-                ? 'adopcion_aceptada'
-                : 'adopcion_no_seleccionada',
-            titulo: fueAceptada
-                ? 'Postulación aceptada'
-                : 'Postulación no seleccionada',
-            mensaje: fueAceptada
-                ? 'Tu solicitud fue aceptada. Revisa el contacto compartido.'
-                : 'La adopción se cerró y tu solicitud no fue seleccionada.',
-            data: {'adopcion_id': adopcionId},
-            leida: false,
-            creadaEn: DateTime.now(),
-          ),
-        );
-      }
-      return postulacion.copyWith(
-        fueAceptada: fueAceptada,
-        contacto: fueAceptada ? contactoResponsable : null,
-      );
-    }).toList();
-  }
-
-  static List<Notificacion> notificacionesDeUsuario(int usuarioId) =>
-      List.unmodifiable(_notificaciones[usuarioId] ?? const []);
 }

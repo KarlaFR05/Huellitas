@@ -49,6 +49,11 @@ class NotificacionRemoteDataSourceImpl implements NotificacionRemoteDataSource {
       'publicacionId',
       'grupo_id',
       'grupoId',
+      'adopcion_id',
+      'adopcionId',
+      'contacto',
+      'contacto_responsable',
+      'medio_contacto',
     ]) {
       if (data[key] == null && json[key] != null) data[key] = json[key];
     }

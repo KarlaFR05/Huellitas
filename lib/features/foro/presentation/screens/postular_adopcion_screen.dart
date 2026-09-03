@@ -5,6 +5,7 @@ import '../../../auth/domain/entities/usuario.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/adopcion.dart';
+import '../../domain/entities/pregunta_adopcion.dart';
 import '../../data/repositories/adopciones_repository.dart';
 
 class PostularAdopcionScreen extends StatefulWidget {
@@ -22,15 +23,34 @@ class PostularAdopcionScreen extends StatefulWidget {
 }
 
 class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
+  late final List<PreguntaAdopcion> _preguntas;
   late final List<TextEditingController> _controllers;
 
   @override
   void initState() {
     super.initState();
 
-    _controllers = [
-      for (final _ in widget.adopcion.preguntas) TextEditingController(),
+    _preguntas = [
+      ...widget.adopcion.preguntas.where(
+        (pregunta) => pregunta.esMedioContacto,
+      ),
+      ...widget.adopcion.preguntas.where(
+        (pregunta) => !pregunta.esMedioContacto,
+      ),
     ];
+    _controllers = [for (final _ in _preguntas) TextEditingController()];
+
+    final authState = context.read<AuthBloc>().state;
+    final usuario = authState is AuthSuccess && authState.data is Usuario
+        ? authState.data as Usuario
+        : null;
+    if (_preguntas.isNotEmpty &&
+        _preguntas.first.esMedioContacto &&
+        usuario != null) {
+      _controllers.first.text = usuario.numTelefono.trim().isNotEmpty
+          ? usuario.numTelefono.trim()
+          : usuario.correo.trim();
+    }
   }
 
   @override
@@ -58,7 +78,7 @@ class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
       return;
     }
 
-    if (widget.adopcion.preguntas.any((pregunta) => pregunta.id == null)) {
+    if (_preguntas.any((pregunta) => pregunta.id == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -113,8 +133,8 @@ class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
         adopcionId: widget.adopcion.id,
         usuarioId: usuario.usuarioIdPk,
         respuestas: {
-          for (var i = 0; i < widget.adopcion.preguntas.length; i++)
-            widget.adopcion.preguntas[i].id!: _controllers[i].text.trim(),
+          for (var i = 0; i < _preguntas.length; i++)
+            _preguntas[i].id!: _controllers[i].text.trim(),
         },
       );
     } catch (e) {
@@ -220,9 +240,9 @@ class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
 
             const SizedBox(height: 18),
 
-            for (var i = 0; i < widget.adopcion.preguntas.length; i++) ...[
+            for (var i = 0; i < _preguntas.length; i++) ...[
               Text(
-                widget.adopcion.preguntas[i].texto,
+                '${i + 1}. ${_preguntas[i].texto}',
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
 
@@ -230,12 +250,20 @@ class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
 
               TextField(
                 controller: _controllers[i],
-                minLines: 3,
-                maxLines: 6,
+                minLines: _preguntas[i].esMedioContacto ? 1 : 3,
+                maxLines: _preguntas[i].esMedioContacto ? 2 : 6,
+                keyboardType: _preguntas[i].esMedioContacto
+                    ? TextInputType.text
+                    : TextInputType.multiline,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  hintText: 'Escribe tu respuesta...',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: _preguntas[i].esMedioContacto
+                      ? 'Teléfono, WhatsApp o correo electrónico'
+                      : 'Escribe tu respuesta...',
+                  helperText: _preguntas[i].esMedioContacto
+                      ? 'Solo se utilizará para coordinar la adopción si eres seleccionado.'
+                      : null,
+                  border: const OutlineInputBorder(),
                 ),
                 onChanged: (_) {
                   setState(() {});

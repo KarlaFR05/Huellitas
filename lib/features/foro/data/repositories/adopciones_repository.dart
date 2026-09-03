@@ -1,4 +1,5 @@
 import '../../domain/entities/adopcion.dart';
+import '../../domain/entities/mi_postulacion_adopcion.dart';
 import '../../domain/repositories/crear_adopcion_solicitud.dart';
 import '../datasources/adopciones_remote_datasource.dart';
 import 'dart:io';
@@ -29,9 +30,13 @@ abstract class AdopcionesRepository {
 
   Future<List<Map<String, dynamic>>> calcularRanking(int adopcionId);
 
-  Future<bool> yaPostulado(int adopcionId);
+  Future<MiPostulacionAdopcion> obtenerMiPostulacion(int adopcionId);
   Future<int> contarSolicitudes(int adopcionId);
-  Future<void> aprobarPostulacion(int adopcionId, int postulacionId);
+  Future<void> aprobarPostulacion(
+    int adopcionId,
+    int postulacionId,
+    String contactoResponsable,
+  );
   Future<String> subirImagen(File imagen);
 }
 
@@ -91,6 +96,7 @@ class AdopcionesRepositoryMemoria implements AdopcionesRepository {
     sexo: solicitud.sexo,
     vacunas: solicitud.vacunas,
     descripcion: solicitud.descripcion,
+    estado: 'activa',
     nombreUsuario: solicitud.nombreUsuario ?? 'Usuario',
     imagenPath: solicitud.imagenLocalPath,
     imagenUrl: solicitud.imagenExistenteUrl ?? imagenUrl,
@@ -122,13 +128,18 @@ class AdopcionesRepositoryMemoria implements AdopcionesRepository {
       const [];
 
   @override
-  Future<bool> yaPostulado(int adopcionId) async => false;
+  Future<MiPostulacionAdopcion> obtenerMiPostulacion(int adopcionId) async =>
+      const MiPostulacionAdopcion.noPostulado();
 
   @override
   Future<int> contarSolicitudes(int adopcionId) async => 0;
 
   @override
-  Future<void> aprobarPostulacion(int adopcionId, int postulacionId) async {}
+  Future<void> aprobarPostulacion(
+    int adopcionId,
+    int postulacionId,
+    String contactoResponsable,
+  ) async {}
 
   @override
   Future<String> subirImagen(File imagen) async => imagen.path;
@@ -143,12 +154,19 @@ class AdopcionesRepositoryImpl implements AdopcionesRepository {
   Future<String> subirImagen(File imagen) => dataSource.subirImagen(imagen);
 
   @override
-  Future<void> aprobarPostulacion(int adopcionId, int postulacionId) =>
-      dataSource.aprobarPostulacion(adopcionId, postulacionId);
+  Future<void> aprobarPostulacion(
+    int adopcionId,
+    int postulacionId,
+    String contactoResponsable,
+  ) => dataSource.aprobarPostulacion(
+    adopcionId,
+    postulacionId,
+    contactoResponsable,
+  );
 
   @override
-  Future<bool> yaPostulado(int adopcionId) =>
-      dataSource.yaPostulado(adopcionId);
+  Future<MiPostulacionAdopcion> obtenerMiPostulacion(int adopcionId) =>
+      dataSource.obtenerMiPostulacion(adopcionId);
 
   @override
   Future<int> contarSolicitudes(int adopcionId) =>

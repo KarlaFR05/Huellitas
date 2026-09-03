@@ -6,10 +6,6 @@ import '../bloc/notificacion_event.dart';
 import '../bloc/notificacion_state.dart';
 import '../widgets/notificacion_card.dart';
 import '../../domain/entities/notificacion.dart';
-import '../../../auth/domain/entities/usuario.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_state.dart';
-import '../../../foro/presentation/adopciones_postulaciones_store.dart';
 
 class NotificacionesScreen extends StatefulWidget {
   const NotificacionesScreen({super.key});
@@ -95,15 +91,7 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
           }
 
           if (state is NotificacionLoaded) {
-            final auth = context.read<AuthBloc>().state;
-            final usuarioId = auth is AuthSuccess && auth.data is Usuario
-                ? (auth.data as Usuario).usuarioIdPk
-                : null;
-            final notificaciones = [
-              if (usuarioId != null)
-                ...PostulacionesAdopcionStore.notificacionesDeUsuario(usuarioId),
-              ...state.notificaciones,
-            ];
+            final notificaciones = state.notificaciones;
             if (notificaciones.isEmpty) {
               return Center(
                 child: Column(
@@ -221,6 +209,13 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
         }
         break;
 
+      case 'adopcion_aceptada':
+      case 'adopcion_aprobada':
+      case 'adopcion_no_seleccionada':
+      case 'adopcion_rechazada':
+        _mostrarResultadoAdopcion(context, notificacion);
+        break;
+
       default:
         _mostrarContenidoNoDisponible(context, 'contenido');
     }
@@ -233,6 +228,54 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
       if (valor is int) return valor;
       final convertido = int.tryParse(valor?.toString() ?? '');
       if (convertido != null) return convertido;
+    }
+    return null;
+  }
+
+  void _mostrarResultadoAdopcion(
+    BuildContext context,
+    Notificacion notificacion,
+  ) {
+    final contacto = _leerTexto(notificacion.data, const [
+      'contacto',
+      'contacto_responsable',
+      'medio_contacto',
+    ]);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(notificacion.titulo),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(notificacion.mensaje),
+            if (contacto != null) ...[
+              const SizedBox(height: 16),
+              const Text(
+                'Medio de contacto',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 4),
+              SelectableText(contacto),
+            ],
+          ],
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Entendido'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String? _leerTexto(Map<String, dynamic>? data, List<String> keys) {
+    if (data == null) return null;
+    for (final key in keys) {
+      final valor = data[key]?.toString().trim();
+      if (valor != null && valor.isNotEmpty) return valor;
     }
     return null;
   }
