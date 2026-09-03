@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 
 import '../../../home/presentation/widgets/bottom_bar.dart';
 import '../../../auth/domain/entities/usuario.dart';
@@ -174,7 +175,8 @@ class _AdopcionesScreenState extends State<AdopcionesScreen> {
                       estadoNotificaciones,
                       adopcion.id,
                     );
-                    final fueAceptada = usuarioId != null &&
+                    final fueAceptada =
+                        usuarioId != null &&
                         (adopcion.adoptanteId == usuarioId ||
                             miPostulacion.fueAceptada ||
                             resultadoNotificado.$1);
@@ -236,9 +238,8 @@ class _AdopcionesScreenState extends State<AdopcionesScreen> {
   Future<MiPostulacionAdopcion> _miPostulacionDe(int adopcionId) {
     return _miPostulacionCache.putIfAbsent(
       adopcionId,
-      () => context
-          .read<AdopcionesRepository>()
-          .obtenerMiPostulacion(adopcionId),
+      () =>
+          context.read<AdopcionesRepository>().obtenerMiPostulacion(adopcionId),
     );
   }
 
@@ -324,10 +325,7 @@ class _AdopcionesScreenState extends State<AdopcionesScreen> {
     }
   }
 
-  Future<void> _verPostulantes(
-    BuildContext context,
-    Adopcion adopcion,
-  ) async {
+  Future<void> _verPostulantes(BuildContext context, Adopcion adopcion) async {
     await Navigator.push<void>(
       context,
       MaterialPageRoute(
@@ -342,13 +340,12 @@ class _AdopcionesScreenState extends State<AdopcionesScreen> {
     );
   }
 
-  void _mostrarContactoResponsable(
-    BuildContext context,
-    String? contacto,
-  ) {
+  void _mostrarContactoResponsable(BuildContext context, String? contacto) {
+    final contactoDisponible = contacto?.trim();
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        scrollable: true,
         title: const Text('Adopción completada'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -371,6 +368,25 @@ class _AdopcionesScreenState extends State<AdopcionesScreen> {
           ],
         ),
         actions: [
+          TextButton.icon(
+            onPressed: contactoDisponible?.isNotEmpty == true
+                ? () async {
+                    await Clipboard.setData(
+                      ClipboardData(text: contactoDisponible!),
+                    );
+                    if (!dialogContext.mounted) return;
+                    ScaffoldMessenger.of(dialogContext)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(
+                        const SnackBar(
+                          content: Text('Contacto copiado al portapapeles.'),
+                        ),
+                      );
+                  }
+                : null,
+            icon: const Icon(Icons.copy_rounded),
+            label: const Text('Copiar'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Entendido'),

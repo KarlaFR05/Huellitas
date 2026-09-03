@@ -89,6 +89,7 @@ class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
+          scrollable: true,
           title: const Text('Confirmar solicitud'),
           content: const Text(
             '¿Estás seguro de que quieres enviar '
@@ -152,6 +153,7 @@ class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
+        scrollable: true,
         icon: Container(
           width: 72,
           height: 72,

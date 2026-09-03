@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 import '../bloc/notificacion_bloc.dart';
 import '../bloc/notificacion_event.dart';
 import '../bloc/notificacion_state.dart';
@@ -258,6 +259,7 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        scrollable: true,
         title: Text(notificacion.titulo),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -368,9 +370,11 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
   }
 
   void _mostrarContactoAdopcion(BuildContext context, String? contacto) {
+    final contactoDisponible = contacto?.trim();
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        scrollable: true,
         title: const Text('Medio de contacto'),
         content: SelectableText(
           contacto?.trim().isNotEmpty == true
@@ -378,6 +382,13 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
               : 'El responsable todavía no compartió un medio de contacto.',
         ),
         actions: [
+          TextButton.icon(
+            onPressed: contactoDisponible?.isNotEmpty == true
+                ? () => _copiarContacto(dialogContext, contactoDisponible!)
+                : null,
+            icon: const Icon(Icons.copy_rounded),
+            label: const Text('Copiar'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Entendido'),
@@ -385,6 +396,16 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _copiarContacto(BuildContext context, String contacto) async {
+    await Clipboard.setData(ClipboardData(text: contacto));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(content: Text('Contacto copiado al portapapeles.')),
+      );
   }
 
   String? _leerTexto(Map<String, dynamic>? data, List<String> keys) {
@@ -417,6 +438,7 @@ class _ContactoAdopcionAceptada extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final contactoDisponible = contacto?.trim();
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -443,6 +465,28 @@ class _ContactoAdopcionAceptada extends StatelessWidget {
                       ? contacto!.trim()
                       : 'El responsable todavía no compartió un medio de contacto.',
                   style: TextStyle(color: colors.onSurface),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: contactoDisponible?.isNotEmpty == true
+                      ? () async {
+                          await Clipboard.setData(
+                            ClipboardData(text: contactoDisponible!),
+                          );
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Contacto copiado al portapapeles.',
+                                ),
+                              ),
+                            );
+                        }
+                      : null,
+                  icon: const Icon(Icons.copy_rounded),
+                  label: const Text('Copiar contacto'),
                 ),
               ],
             ),

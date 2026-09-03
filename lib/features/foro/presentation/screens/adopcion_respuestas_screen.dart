@@ -42,6 +42,7 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        scrollable: true,
         title: const Text('Aprobar adopción'),
         content: Text(
           '¿Confirmas que ${widget.postulacion.nombre} será quien adopte a '
@@ -362,6 +363,7 @@ class _ContactoResponsableDialogState
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      scrollable: true,
       title: const Text('Comparte tu medio de contacto'),
       content: Form(
         key: _formKey,
