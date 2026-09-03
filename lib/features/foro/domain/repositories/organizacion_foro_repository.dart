@@ -10,5 +10,5 @@ import '../entities/organizacion_foro.dart';
 abstract class OrganizacionForoRepository {
   Future<OrganizacionForo?> obtenerMiOrganizacion();
   Future<List<OrganizacionForo>> obtenerOrganizacionesVerificadas();
-  Future<Map<String, dynamic>> toggleSeguir(int organizacionId);
+  Future<ResultadoSeguimientoOrganizacion> toggleSeguir(int organizacionId);
 }

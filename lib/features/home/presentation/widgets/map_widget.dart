@@ -76,7 +76,6 @@ class _MapWidgetState extends State<MapWidget> {
     _showReportInfo(context, marcador);
   }
 
-  //mostrar imagen en pantalla completa
   void _showFullImage(BuildContext context, String imageUrl) {
     showFullScreenImage(
       context,

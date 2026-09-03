@@ -21,8 +21,6 @@ class ReporteCatalogsLoaded extends ReporteState {
   });
 }
 
-/// Se detectaron posibles duplicados; la UI debe mostrar el diálogo
-/// de confirmación con estos candidatos.
 class ReporteDuplicadoDetectado extends ReporteState {
   final List<CandidatoDuplicado> candidatos;
 

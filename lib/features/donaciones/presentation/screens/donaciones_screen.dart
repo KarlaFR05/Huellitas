@@ -212,7 +212,6 @@ class _DonacionesScreenState extends State<DonacionesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ NUEVO: si es organización, redirige al panel de donaciones de organización
     if (_esOrganizacion(context)) {
       return const DonacionesOrganizacionScreen();
     }
@@ -362,7 +361,6 @@ class _DonacionesScreenState extends State<DonacionesScreen> {
     );
   }
 
-  //detecta si el usuario es organización
   bool _esOrganizacion(BuildContext context) {
     
     final state = context.watch<AuthBloc>().state;

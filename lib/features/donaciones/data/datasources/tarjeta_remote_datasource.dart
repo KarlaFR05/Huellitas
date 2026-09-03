@@ -144,9 +144,6 @@ class TarjetaRemoteDataSourceImpl implements TarjetaRemoteDataSource {
     }
   }
 
-  // ==========================================
-  // 3. MAPEO DE DATOS
-  // ==========================================
   Tarjeta _tarjetaFromJson(Map<String, dynamic> json) {
     return Tarjeta(
       id: json['tarjetaId'] ?? json['tarjeta_id'] ?? 0,

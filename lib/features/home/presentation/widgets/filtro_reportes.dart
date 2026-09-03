@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'reporte_marker.dart';
 
-/// Botón flotante que abre el filtro del mapa. Muestra un badge
-/// con la cantidad de filtros activos.
 class FiltroReportesButton extends StatelessWidget {
   final int cantidadActiva;
   final VoidCallback onTap;
@@ -85,8 +83,6 @@ class FiltroReportesButton extends StatelessWidget {
   }
 }
 
-/// Bottom sheet con chips seleccionables para filtrar por tipo de
-/// animal y nivel de urgencia. Selección vacía = mostrar todos.
 class FiltroReportesSheet extends StatefulWidget {
   final Set<ReportAnimal> animalesSeleccionados;
   final Set<ReportUrgency> urgenciasSeleccionadas;
@@ -298,7 +294,6 @@ class _SeccionTitulo extends StatelessWidget {
   }
 }
 
-/// Resultado que devuelve el bottom sheet de filtros al cerrarse.
 class ResultadoFiltroReportes {
   final Set<ReportAnimal> animales;
   final Set<ReportUrgency> urgencias;

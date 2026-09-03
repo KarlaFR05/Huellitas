@@ -6,11 +6,13 @@ import '../../domain/entities/organizacion_foro.dart';
 class OrganizacionCard extends StatefulWidget {
   final OrganizacionForo organizacion;
   final VoidCallback onTap;
+  final Future<void> Function() onToggleSeguir;
 
   const OrganizacionCard({
     super.key,
     required this.organizacion,
     required this.onTap,
+    required this.onToggleSeguir,
   });
 
   @override
@@ -18,21 +20,19 @@ class OrganizacionCard extends StatefulWidget {
 }
 
 class _OrganizacionCardState extends State<OrganizacionCard> {
-  late bool _siguiendo;
-  late int _seguidores;
+  bool _actualizandoSeguimiento = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _siguiendo = widget.organizacion.esSeguidor;
-    _seguidores = widget.organizacion.cantidadSeguidores;
-  }
+  Future<void> _toggleSeguir() async {
+    if (_actualizandoSeguimiento) return;
 
-  void _toggleSeguir() {
-    setState(() {
-      _siguiendo = !_siguiendo;
-      _seguidores += _siguiendo ? 1 : -1;
-    });
+    setState(() => _actualizandoSeguimiento = true);
+    try {
+      await widget.onToggleSeguir();
+    } finally {
+      if (mounted) {
+        setState(() => _actualizandoSeguimiento = false);
+      }
+    }
   }
 
   @override
@@ -43,7 +43,7 @@ class _OrganizacionCardState extends State<OrganizacionCard> {
       child: Card(
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: widget.onTap,
+          onTap: _actualizandoSeguimiento ? null : widget.onTap,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
             child: Column(
@@ -76,13 +76,13 @@ class _OrganizacionCardState extends State<OrganizacionCard> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$_seguidores seguidores',
+                  '${widget.organizacion.cantidadSeguidores} seguidores',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 8),
                 SizedBox(
                   width: double.infinity,
-                  child: _siguiendo
+                  child: widget.organizacion.esSeguidor
                       ? OutlinedButton(
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size(0, 30),
@@ -91,11 +91,21 @@ class _OrganizacionCardState extends State<OrganizacionCard> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          onPressed: _toggleSeguir,
-                          child: const Text(
-                            'Siguiendo',
-                            style: TextStyle(fontSize: 12),
-                          ),
+                          onPressed: _actualizandoSeguimiento
+                              ? null
+                              : _toggleSeguir,
+                          child: _actualizandoSeguimiento
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Siguiendo',
+                                  style: TextStyle(fontSize: 12),
+                                ),
                         )
                       : FilledButton(
                           style: FilledButton.styleFrom(
@@ -105,11 +115,21 @@ class _OrganizacionCardState extends State<OrganizacionCard> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          onPressed: _toggleSeguir,
-                          child: const Text(
-                            'Seguir',
-                            style: TextStyle(fontSize: 12),
-                          ),
+                          onPressed: _actualizandoSeguimiento
+                              ? null
+                              : _toggleSeguir,
+                          child: _actualizandoSeguimiento
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Seguir',
+                                  style: TextStyle(fontSize: 12),
+                                ),
                         ),
                 ),
                 /*const SizedBox(height: 4),

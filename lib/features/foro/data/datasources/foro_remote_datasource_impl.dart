@@ -10,7 +10,7 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
   final Dio dio;
   ForoRemoteDataSourceImpl(this.dio);
 
-  // ============ PUBLICACIONES ============
+  // Publicaciones
 
   @override
   Future<PaginaModel<PublicacionModel>> obtenerFeed({
@@ -106,7 +106,7 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
     return PublicacionModel.fromJson(res.data);
   }
 
-  // ============ COMENTARIOS ============
+  // Comentarios
 
   @override
   Future<PaginaModel<ComentarioModel>> obtenerComentarios(
@@ -152,7 +152,7 @@ class ForoRemoteDataSourceImpl implements ForoRemoteDataSource {
     await dio.delete('/comentarios/$id');
   }
 
-  // ============ GRUPOS ============
+  // Grupos
 
   @override
   Future<List<GrupoModel>> obtenerGrupos({

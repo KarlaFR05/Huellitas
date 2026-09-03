@@ -20,7 +20,7 @@ class SolicitudDonacion {
   double get totalGastado => gastos.fold(0, (total, gasto) => total + gasto.monto);
 }
 
-/// Estado temporal de la solicitud mientras se habilita su persistencia en API.
+/// Estado local; todavía no se guarda en la API.
 class SolicitudesDonacionStore {
   static final Map<int, SolicitudDonacion> _solicitudes = {};
   static final ValueNotifier<int> cambios = ValueNotifier(0);

@@ -186,7 +186,6 @@ class _PostularAdopcionScreenState extends State<PostularAdopcionScreen> {
 
             const SizedBox(height: 24),
 
-            // Información de la mascota
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(

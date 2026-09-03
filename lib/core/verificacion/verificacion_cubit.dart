@@ -17,7 +17,6 @@ class VerificacionCubit extends Cubit<EstadoVerificacion> {
   }
 
   void resetear() {
-    // NUEVO
     _timer?.cancel();
     emit(EstadoVerificacion.noIniciado);
   }

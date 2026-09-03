@@ -3,10 +3,7 @@ import '../entities/reporte.dart';
 import '../entities/respuesta_crear_reporte.dart';
 import '../repositories/reporte_repository.dart';
 
-/// Resultado del caso de uso: incluye el reporte final (ya con la
-/// evidencia subida) junto con la respuesta del backend. El reporte
-/// final es necesario para poder reintentar con forzarCreacion=true
-/// sin volver a subir la imagen.
+/// Incluye la evidencia subida para permitir reintentos sin volver a cargarla.
 class CrearReporteResult {
   final Reporte reporteConEvidencia;
   final RespuestaCrearReporte respuesta;
@@ -29,8 +26,7 @@ class CreateReporteUseCase {
   }) async {
     String evidenciaUrl = reporte.evidencia;
 
-    // Solo subimos evidencia si aún no la tiene (evita re-subir la imagen
-    // cuando el usuario reintenta con forzarCreacion=true).
+    // En los reintentos se reutiliza la evidencia ya subida.
     if (imagenes.isNotEmpty && evidenciaUrl.isEmpty) {
       evidenciaUrl = await repository.subirEvidencia(imagenes.first);
     }

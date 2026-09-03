@@ -34,4 +34,35 @@ class OrganizacionForo {
     this.metaMensual = 0,
     this.recaudadoMensual = 0,
   });
+
+  OrganizacionForo copyWith({int? cantidadSeguidores, bool? esSeguidor}) {
+    return OrganizacionForo(
+      id: id,
+      usuarioId: usuarioId,
+      nombre: nombre,
+      descripcion: descripcion,
+      logoUrl: logoUrl,
+      fotoPortada: fotoPortada,
+      verificada: verificada,
+      cantidadSeguidores: cantidadSeguidores ?? this.cantidadSeguidores,
+      esSeguidor: esSeguidor ?? this.esSeguidor,
+      tiposAnimales: tiposAnimales,
+      telefonoEmergencia: telefonoEmergencia,
+      correoInstitucional: correoInstitucional,
+      registroLegal: registroLegal,
+      fechaFundacion: fechaFundacion,
+      metaMensual: metaMensual,
+      recaudadoMensual: recaudadoMensual,
+    );
+  }
+}
+
+class ResultadoSeguimientoOrganizacion {
+  final bool? siguiendo;
+  final int? cantidadSeguidores;
+
+  const ResultadoSeguimientoOrganizacion({
+    this.siguiendo,
+    this.cantidadSeguidores,
+  });
 }

@@ -33,9 +33,7 @@ class PostulacionDetalleScreen extends StatelessWidget {
           32,
         ),
         children: [
-          // ==========================================
-          // INFORMACIÓN DEL POSTULANTE
-          // ==========================================
+          // Postulante
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
@@ -115,7 +113,6 @@ class PostulacionDetalleScreen extends StatelessWidget {
                   ),
                 ),
 
-                // Porcentaje
                 Container(
                   width: 65,
                   height: 65,
@@ -154,9 +151,7 @@ class PostulacionDetalleScreen extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // ==========================================
-          // RESPUESTAS
-          // ==========================================
+          // Respuestas
           for (final respuesta
               in postulacion.respuestas.entries)
             _RespuestaCard(
@@ -166,9 +161,7 @@ class PostulacionDetalleScreen extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // ==========================================
-          // ESTADO DE ENTREVISTA
-          // ==========================================
+          // Entrevista
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -207,16 +200,11 @@ class PostulacionDetalleScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // ==========================================
-          // BOTÓN
-          // ==========================================
           SizedBox(
             width: double.infinity,
             height: 50,
             child: FilledButton(
               onPressed: () {
-                // Aquí después puedes poner
-                // la lógica para aprobar la adopción.
               },
               child: const Text(
                 'Aprobar adopción',

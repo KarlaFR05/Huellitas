@@ -74,11 +74,9 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Ícono circular
               SuccessStatusBadge(isSuccess: widget.isSuccess),
               const SizedBox(height: 32),
 
-              // Mensaje principal
               Text(
                 widget.isSuccess ? '¡Reporte Enviado!' : 'Error al Enviar',
                 style: TextStyle(
@@ -90,7 +88,6 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Mensaje secundario
               Text(
                 widget.isSuccess
                     ? 'Tu reporte ha sido enviado con éxito.'
@@ -105,7 +102,6 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
               ),
               const SizedBox(height: 48),
 
-              // Contador regresivo
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -135,7 +131,6 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Barra de progreso
               SizedBox(
                 width: 200,
                 child: LinearProgressIndicator(
@@ -151,7 +146,6 @@ class _ReportSuccessScreenState extends State<ReportSuccessScreen> {
                 ),
               ),
 
-              // Botón solo si es error
               if (!widget.isSuccess) ...[
                 const SizedBox(height: 32),
                 SizedBox(

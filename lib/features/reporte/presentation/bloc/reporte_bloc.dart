@@ -14,8 +14,7 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
   final GetReportTypes getReportTypes;
   final GetUrgencyLevels getUrgencyLevels;
 
-  // Guardamos el reporte final (ya con evidencia subida) para poder
-  // reintentar con forzarCreacion=true sin volver a subir la imagen.
+  // Se conserva para reintentar sin volver a subir la evidencia.
   Reporte? _ultimoReporteConEvidencia;
 
   ReporteBloc({
