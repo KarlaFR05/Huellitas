@@ -22,8 +22,6 @@ class AdopcionesPostulacionesScreen extends StatefulWidget {
 
 class _AdopcionesPostulacionesScreenState
     extends State<AdopcionesPostulacionesScreen> {
-  final Set<PostulacionAdopcion> _seleccionadas = {};
-
   late Future<List<PostulacionAdopcion>> _futuro;
 
   @override
@@ -42,109 +40,21 @@ class _AdopcionesPostulacionesScreenState
         .toList();
   }
 
-  Future<void> _aceptarSeleccionadas() async {
-    if (_seleccionadas.isEmpty) return;
-
-    final nombres =
-        _seleccionadas.map((p) => p.nombre).join(', ');
-
-    final confirmar = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar postulantes'),
-        content: Text(
-          '¿Deseas aceptar a $nombres? Las demás postulaciones se eliminarán y las personas aceptadas recibirán una notificación.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () =>
-                Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.pop(context, true),
-            child: const Text('Sí, aceptar'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmar != true || !mounted) return;
-
-    final contacto =
-        await _pedirContactoResponsable();
-
-    if (contacto == null || !mounted) return;
-
-    PostulacionesAdopcionStore.cerrar(
-      widget.adopcion.id,
-      _seleccionadas,
-      contacto,
-    );
-
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _seleccionadas.length == 1
-              ? 'Se aceptó la postulación de ${_seleccionadas.first.nombre}'
-              : 'Se aceptó a ${_seleccionadas.length} postulantes',
-        ),
-      ),
-    );
-
-    setState(() => _seleccionadas.clear());
+  bool _estaCompletada(List<PostulacionAdopcion> postulaciones) {
+    return widget.adopcion.estaCompletada ||
+        postulaciones.any((postulacion) => postulacion.fueAceptada);
   }
 
-  Future<String?> _pedirContactoResponsable() async {
-    final controller = TextEditingController();
-
-    final resultado = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text(
-          'Comparte tus datos de contacto',
-        ),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.phone,
-          autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Teléfono o medio de contacto',
-            hintText: 'Ej. 55 1234 5678',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () =>
-                Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final contacto =
-                  controller.text.trim();
-
-              if (contacto.isNotEmpty) {
-                Navigator.pop(
-                  context,
-                  contacto,
-                );
-              }
-            },
-            child: const Text(
-              'Compartir y finalizar',
-            ),
-          ),
-        ],
-      ),
-    );
-
-    controller.dispose();
-
-    return resultado;
+  String? _contactoDe(PostulacionAdopcion postulacion) {
+    for (final pregunta in widget.adopcion.preguntas) {
+      if (!pregunta.esMedioContacto || pregunta.id == null) continue;
+      final respuesta = postulacion.respuestas[pregunta.id.toString()]?.trim();
+      if (respuesta != null && respuesta.isNotEmpty) return respuesta;
+    }
+    final contacto =
+        postulacion.contacto?.trim() ??
+        widget.adopcion.contactoAdoptante?.trim();
+    return contacto?.isNotEmpty == true ? contacto : null;
   }
 
   @override
@@ -180,6 +90,8 @@ class _AdopcionesPostulacionesScreenState
             return const _SinPostulaciones();
           }
 
+          final adopcionCompletada = _estaCompletada(postulaciones);
+
           return ListView(
             padding: const EdgeInsets.fromLTRB(
               16,
@@ -195,33 +107,37 @@ class _AdopcionesPostulacionesScreenState
 
               const SizedBox(height: 22),
 
+              if (adopcionCompletada) ...[
+                Container(
+                  margin: const EdgeInsets.only(bottom: 18),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: .1),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: Colors.green.withValues(alpha: .35),
+                    ),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.check_circle_rounded, color: Colors.green),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Adopción completada. Ya no se puede aceptar a otra persona.',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               for (final postulacion in postulaciones)
                 _PostulacionCard(
                   postulacion: postulacion,
-                  seleccionada:
-                      _seleccionadas.contains(
-                    postulacion,
-                  ),
-                  seleccionable:
-                      _seleccionadas.isEmpty ||
-                          _seleccionadas.contains(
-                            postulacion,
-                          ),
-                  onSeleccionar: () {
-                    setState(() {
-                      if (_seleccionadas
-                          .contains(postulacion)) {
-                        _seleccionadas.remove(
-                          postulacion,
-                        );
-                      } else {
-                        _seleccionadas.clear();
-                        _seleccionadas.add(
-                          postulacion,
-                        );
-                      }
-                    });
-                  },
+                  adopcionCompletada: adopcionCompletada,
+                  contactoPostulante: _contactoDe(postulacion),
                   onVerRespuestas: () async {
                     final aprobada =
                         await Navigator.push<bool>(
@@ -233,6 +149,8 @@ class _AdopcionesPostulacionesScreenState
                               widget.adopcion,
                           postulacion:
                               postulacion,
+                          adopcionCompletada:
+                              adopcionCompletada,
                         ),
                       ),
                     );
@@ -246,40 +164,8 @@ class _AdopcionesPostulacionesScreenState
                   },
                 ),
 
-              const SizedBox(height: 76),
+              const SizedBox(height: 20),
             ],
-          );
-        },
-      ),
-      bottomNavigationBar: FutureBuilder<
-          List<PostulacionAdopcion>>(
-        future: _futuro,
-        builder: (context, snapshot) {
-          final postulaciones =
-              snapshot.data ?? [];
-
-          if (postulaciones.isEmpty) {
-            return const SizedBox.shrink();
-          }
-
-          return SafeArea(
-            minimum: const EdgeInsets.fromLTRB(
-              16,
-              8,
-              16,
-              12,
-            ),
-            child: FilledButton.icon(
-              onPressed: _seleccionadas.isEmpty
-                  ? null
-                  : _aceptarSeleccionadas,
-              icon: const Icon(
-                Icons.check_circle_rounded,
-              ),
-              label: const Text(
-                'Cerrar adopción con el postulante',
-              ),
-            ),
           );
         },
       ),
@@ -399,16 +285,14 @@ class _PostulacionCard
   const _PostulacionCard({
     required this.postulacion,
     required this.onVerRespuestas,
-    required this.seleccionada,
-    required this.seleccionable,
-    required this.onSeleccionar,
+    required this.adopcionCompletada,
+    required this.contactoPostulante,
   });
 
   final PostulacionAdopcion postulacion;
   final VoidCallback onVerRespuestas;
-  final bool seleccionada;
-  final bool seleccionable;
-  final VoidCallback onSeleccionar;
+  final bool adopcionCompletada;
+  final String? contactoPostulante;
 
   @override
   Widget build(BuildContext context) {
@@ -419,10 +303,16 @@ class _PostulacionCard
         postulacion.porcentajeAptitud
             .clamp(0, 100);
 
+    final estadoVisible = postulacion.fueAceptada
+        ? 'Seleccionada'
+        : adopcionCompletada
+        ? 'No seleccionada'
+        : postulacion.estado;
+
     final estadoColor =
         _colorEstado(
       context,
-      postulacion.estado,
+      estadoVisible,
     );
 
     return Container(
@@ -530,7 +420,7 @@ class _PostulacionCard
                                   .circular(20),
                         ),
                         child: Text(
-                          postulacion.estado,
+                          estadoVisible,
                           style: TextStyle(
                             color:
                                 estadoColor,
@@ -581,17 +471,6 @@ class _PostulacionCard
                       ),
                     ],
                   ),
-                ),
-
-                const SizedBox(width: 10),
-
-                Checkbox(
-                  value: seleccionada,
-                  onChanged:
-                      seleccionable
-                          ? (_) =>
-                              onSeleccionar()
-                          : null,
                 ),
 
                 Column(
@@ -786,8 +665,8 @@ class _PostulacionCard
           ),
 
           if (postulacion.fueAceptada &&
-              postulacion.contacto != null &&
-              postulacion.contacto!.isNotEmpty)
+              contactoPostulante != null &&
+              contactoPostulante!.isNotEmpty)
             Container(
               width: double.infinity,
               margin:
@@ -817,7 +696,7 @@ class _PostulacionCard
 
                   Expanded(
                     child: Text(
-                      'Contacto de ${postulacion.nombre}: ${postulacion.contacto}',
+                      'Contacto de ${postulacion.nombre}: $contactoPostulante',
                       style:
                           const TextStyle(
                         fontWeight:
@@ -868,8 +747,12 @@ class _PostulacionCard
     String estado,
   ) {
     switch (estado.toLowerCase()) {
+      case 'seleccionada':
       case 'muy apta':
         return Colors.green;
+
+      case 'no seleccionada':
+        return Theme.of(context).colorScheme.error;
 
       case 'apta':
         return Colors.orange;

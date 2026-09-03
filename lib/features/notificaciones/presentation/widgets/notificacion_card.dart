@@ -15,6 +15,7 @@ class NotificacionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final (icono, color) = _getIconoYColor(notificacion.tipo, colorScheme);
+    final contacto = _contactoCompartido();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -90,6 +91,25 @@ class NotificacionCard extends StatelessWidget {
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (contacto != null) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.contact_phone_rounded, size: 16, color: color),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Contacto: $contacto',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 9),
                     Row(
                       children: [
@@ -145,9 +165,29 @@ class NotificacionCard extends StatelessWidget {
         return (Icons.person_add, Colors.purple);
       case 'aprobar_miembro':
         return (Icons.how_to_reg, Colors.teal);
+      case 'adopcion_aceptada':
+      case 'adopcion_aprobada':
+        return (Icons.pets_rounded, Colors.green);
+      case 'adopcion_no_seleccionada':
+      case 'adopcion_rechazada':
+        return (Icons.pets_outlined, colorScheme.onSurfaceVariant);
       default:
         return (Icons.notifications, colorScheme.primary);
     }
+  }
+
+  String? _contactoCompartido() {
+    final data = notificacion.data;
+    if (data == null) return null;
+    for (final key in const [
+      'contacto',
+      'contacto_responsable',
+      'medio_contacto',
+    ]) {
+      final valor = data[key]?.toString().trim();
+      if (valor != null && valor.isNotEmpty) return valor;
+    }
+    return null;
   }
 
   String _formatearFecha(DateTime fecha) {

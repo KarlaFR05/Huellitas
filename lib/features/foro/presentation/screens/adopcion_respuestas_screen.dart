@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/widgets/avatar_helper.dart';
+import '../../../auth/domain/entities/usuario.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../data/repositories/adopciones_repository.dart';
 import '../../domain/entities/adopcion.dart';
 import '../adopciones_postulaciones_store.dart';
@@ -11,10 +14,12 @@ class AdopcionRespuestasScreen extends StatefulWidget {
     super.key,
     required this.adopcion,
     required this.postulacion,
+    required this.adopcionCompletada,
   });
 
   final Adopcion adopcion;
   final PostulacionAdopcion postulacion;
+  final bool adopcionCompletada;
 
   @override
   State<AdopcionRespuestasScreen> createState() =>
@@ -25,6 +30,8 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
   bool _aprobando = false;
 
   Future<void> _aprobar() async {
+    if (widget.adopcionCompletada) return;
+
     if (widget.postulacion.postulacionId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No se pudo identificar la postulación.')),
@@ -35,6 +42,7 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        scrollable: true,
         title: const Text('Aprobar adopción'),
         content: Text(
           '¿Confirmas que ${widget.postulacion.nombre} será quien adopte a '
@@ -55,12 +63,16 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
 
     if (confirmar != true || !mounted) return;
 
+    final contactoResponsable = await _pedirContactoResponsable();
+    if (contactoResponsable == null || !mounted) return;
+
     setState(() => _aprobando = true);
 
     try {
       await context.read<AdopcionesRepository>().aprobarPostulacion(
         widget.adopcion.id,
         widget.postulacion.postulacionId!,
+        contactoResponsable,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -72,12 +84,39 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
       setState(() => _aprobando = false);
       String mensaje = 'No se pudo aprobar la adopción.';
       if (e is DioException && e.response?.data is Map) {
-        mensaje = (e.response!.data as Map)['detail']?.toString() ?? mensaje;
+        final detail = (e.response!.data as Map)['detail'];
+        if (detail is Map && detail['message'] != null) {
+          mensaje = detail['message'].toString();
+        } else if (detail != null) {
+          final texto = detail.toString();
+          final coincidencia = RegExp(
+            r'''['"]message['"]\s*:\s*['"]([^'"]+)['"]''',
+          ).firstMatch(texto);
+          mensaje = coincidencia?.group(1) ?? texto;
+        }
       }
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(mensaje)));
     }
+  }
+
+  Future<String?> _pedirContactoResponsable() async {
+    final authState = context.read<AuthBloc>().state;
+    final usuario = authState is AuthSuccess && authState.data is Usuario
+        ? authState.data as Usuario
+        : null;
+    final contactoInicial = usuario?.numTelefono.trim().isNotEmpty == true
+        ? usuario!.numTelefono.trim()
+        : usuario?.correo.trim() ?? '';
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _ContactoResponsableDialog(
+        contactoInicial: contactoInicial,
+        nombrePostulante: widget.postulacion.nombre,
+      ),
+    );
   }
 
   @override
@@ -91,6 +130,14 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
       for (final p in adopcion.preguntas)
         if (p.id != null) p.id!.toString(): p.texto,
     };
+    final idsContacto = {
+      for (final p in adopcion.preguntas)
+        if (p.id != null && p.esMedioContacto) p.id!.toString(),
+    };
+    final respuestasVisibles = postulacion.respuestas.entries.where((entry) {
+      if (!idsContacto.contains(entry.key)) return true;
+      return widget.adopcionCompletada && postulacion.fueAceptada;
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Respuestas de adopción')),
@@ -203,15 +250,13 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
                   style: TextStyle(color: colors.onSurfaceVariant),
                 ),
                 const SizedBox(height: 20),
-                for (var i = 0; i < postulacion.respuestas.length; i++)
+                for (var i = 0; i < respuestasVisibles.length; i++)
                   _RespuestaCard(
                     numero: i + 1,
                     pregunta:
-                        textoPregunta[postulacion.respuestas.keys.elementAt(
-                          i,
-                        )] ??
-                        postulacion.respuestas.keys.elementAt(i),
-                    respuesta: postulacion.respuestas.values.elementAt(i),
+                        textoPregunta[respuestasVisibles[i].key] ??
+                        respuestasVisibles[i].key,
+                    respuesta: respuestasVisibles[i].value,
                   ),
               ],
             ),
@@ -220,25 +265,53 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        child: FilledButton(
-          onPressed: _aprobando ? null : _aprobar,
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(double.infinity, 52),
-          ),
-          child: _aprobando
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : const Text(
-                  'Aprobar adopción',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+        child: widget.adopcionCompletada
+            ? Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-        ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      widget.postulacion.fueAceptada
+                          ? Icons.check_circle_rounded
+                          : Icons.block_rounded,
+                      color: widget.postulacion.fueAceptada
+                          ? Colors.green
+                          : colors.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      widget.postulacion.fueAceptada
+                          ? 'Postulación seleccionada'
+                          : 'Adopción completada con otra persona',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ],
+                ),
+              )
+            : FilledButton(
+                onPressed: _aprobando ? null : _aprobar,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 52),
+                ),
+                child: _aprobando
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Aprobar adopción',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+              ),
       ),
     );
   }
@@ -253,6 +326,108 @@ class _AdopcionRespuestasScreenState extends State<AdopcionRespuestasScreen> {
     if (porcentaje >= 80) return 'Muy apta';
     if (porcentaje >= 60) return 'Apta';
     return 'En evaluación';
+  }
+}
+
+class _ContactoResponsableDialog extends StatefulWidget {
+  const _ContactoResponsableDialog({
+    required this.contactoInicial,
+    required this.nombrePostulante,
+  });
+
+  final String contactoInicial;
+  final String nombrePostulante;
+
+  @override
+  State<_ContactoResponsableDialog> createState() =>
+      _ContactoResponsableDialogState();
+}
+
+class _ContactoResponsableDialogState
+    extends State<_ContactoResponsableDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.contactoInicial);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      scrollable: true,
+      title: const Text('Comparte tu medio de contacto'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange.shade300),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.orange.shade800,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Este dato solamente será visible para '
+                      '${widget.nombrePostulante}. Precargamos el número o '
+                      'correo registrado en la app, pero puedes cambiarlo por '
+                      'cualquier otro medio de contacto.',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _controller,
+              autofocus: true,
+              keyboardType: TextInputType.text,
+              decoration: const InputDecoration(
+                labelText: 'Teléfono, WhatsApp o correo',
+                hintText: 'Ej. 55 1234 5678',
+                border: OutlineInputBorder(),
+              ),
+              validator: (valor) => valor == null || valor.trim().isEmpty
+                  ? 'Ingresa un medio de contacto'
+                  : null,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (_formKey.currentState?.validate() != true) return;
+            Navigator.pop(context, _controller.text.trim());
+          },
+          child: const Text('Compartir y finalizar'),
+        ),
+      ],
+    );
   }
 }
 
